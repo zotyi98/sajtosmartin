@@ -3,167 +3,620 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Martin Bringát Gyűjt!</title>
+    <title>Martin: Bicikli Birodalom</title>
     <style>
+        :root {
+            --primary: #2e7d32;
+            --accent: #fdd835;
+            --bg: #81d4fa;
+            --love: #e91e63;
+            --gold: #ffc107;
+        }
+
         body {
-            text-align: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e0f7fa;
+            font-family: 'Segoe UI', Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            background-color: var(--bg);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
         }
-        h1 {
-            color: #006064;
-            margin-bottom: 5px;
+
+        /* --- RANGLISTA --- */
+        #leaderboard {
+            width: 280px;
+            background: white;
+            border-right: 3px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+            z-index: 20;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
         }
-        #instructions {
-            color: #555;
-            margin-bottom: 15px;
+
+        .leaderboard-header { 
+            background: var(--primary); 
+            color: white; 
+            padding: 20px; 
+            text-align: center; 
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .leaderboard-list { flex: 1; overflow-y: auto; padding: 10px; }
+
+        .leader-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .leader-item.current-user { 
+            background: #fff9c4; 
+            font-weight: bold; 
+            border-radius: 8px;
+            border: 1px solid var(--accent);
+        }
+
+        /* --- LOGIN KÉPERNYŐ --- */
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 320px;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .btn-login {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
             font-size: 16px;
         }
-        #score-board {
-            font-size: 26px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #d32f2f;
-            background-color: white;
-            display: inline-block;
-            padding: 10px 30px;
+
+        /* --- JÁTÉK FELÜLET --- */
+        #game-container {
+            display: none;
+            flex: 1;
+            width: 100%;
+        }
+
+        #game-world {
+            flex: 1;
+            position: relative;
+            background: linear-gradient(to bottom, #81d4fa 60%, #7cb342 60%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .user-tag {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 5px 15px;
             border-radius: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-weight: bold;
+            border: 2px solid var(--primary);
+            z-index: 10;
         }
-        canvas {
-            background-color: #b3e5fc;
-            border: 5px solid #0288d1;
-            border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-            display: block;
-            margin: 0 auto;
+
+        #motivation-banner {
+            position: absolute;
+            top: 60px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 3px solid var(--love);
+            color: var(--love);
+            font-weight: bold;
+            font-size: 16px;
+            display: none;
+            animation: bounce 2s infinite;
+            z-index: 100;
         }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .stats-overlay {
+            margin-top: 30px;
+            background: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-align: center;
+            border: 3px solid var(--primary);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        #bike-count { font-size: 40px; font-weight: bold; color: var(--primary); display: block; }
+        #bps-count { font-size: 14px; color: #666; }
+        #multiplier-info { color: var(--gold); font-weight: bold; display: none; font-size: 18px; margin-top: 5px; }
+
+        #martin-character {
+            width: 180px; 
+            height: 180px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 6px solid white;
+            position: absolute;
+            bottom: 115px;
+            cursor: pointer;
+            transition: transform 0.05s;
+            z-index: 50; 
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
+        }
+
+        #martin-character:active { transform: scale(0.90); }
+
+        /* --- ARANY BICIKLI --- */
+        #golden-bike {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            font-size: 50px;
+            cursor: pointer;
+            z-index: 100;
+            display: none;
+            filter: drop-shadow(0 0 15px gold);
+            animation: goldenFloat 10s linear forwards;
+        }
+
+        @keyframes goldenFloat {
+            0% { left: -100px; transform: rotate(0deg); }
+            100% { left: 110vw; transform: rotate(360deg); }
+        }
+
+        .road {
+            position: absolute;
+            bottom: 60px;
+            width: 100%;
+            height: 120px;
+            background: #444;
+            display: flex;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .road-line {
+            width: 100%;
+            height: 6px;
+            background-image: linear-gradient(to right, white 50%, transparent 50%);
+            background-size: 80px 100%;
+            animation: roadMove 0.5s linear infinite;
+        }
+
+        @keyframes roadMove { from { background-position: 0 0; } to { background-position: -80px 0; } }
+
+        /* --- BOLT --- */
+        #shop {
+            width: 380px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+            z-index: 20;
+        }
+
+        .shop-header { background: var(--primary); color: white; padding: 20px; text-align: center; font-weight: bold; }
+        .upgrade-list { flex: 1; overflow-y: auto; padding: 15px; background: #f5f5f5; }
+
+        .upgrade-item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.2s;
+        }
+
+        .upgrade-item.affordable { border-color: #8bc34a; background: #f1f8e9; }
+        .upgrade-item.disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
+
+        .upgrade-icon { font-size: 30px; margin-right: 15px; }
+        .upgrade-info { flex: 1; }
+        .upgrade-name { font-weight: bold; display: block; }
+        .upgrade-desc { font-size: 11px; color: #777; display: block; font-style: italic; margin-bottom: 3px; }
+        .upgrade-cost { color: #d32f2f; font-weight: bold; font-size: 14px; }
+        .upgrade-owned { font-size: 20px; font-weight: bold; color: #ccc; margin-left: 10px; }
+
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            animation: particleFly 0.8s ease-out forwards;
+            font-size: 24px;
+            z-index: 100;
+        }
+
+        @keyframes particleFly {
+            0% { transform: translate(0,0); opacity: 1; }
+            100% { transform: translate(var(--x), var(--y)); opacity: 0; }
+        }
+
+        .btn-logout { margin: 10px; padding: 10px; background: #eee; border: none; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-logout:hover { background: #ddd; }
     </style>
 </head>
 <body>
 
-    <h1>Martin Bringát Gyűjt!</h1>
-    <div id="instructions">Irányítsd Martint a <b>Bal / Jobb nyilakkal</b> vagy az <b>A / D</b> gombokkal!</div>
-    <div id="score-board">Pontszám: <span id="score">0</span></div>
+    <div id="login-screen">
+        <div class="login-box">
+            <h1>🚲 Bicikli Birodalom</h1>
+            <p>Add meg a neved a belépéshez!</p>
+            <input type="text" id="username-input" placeholder="Felhasználónév..." maxlength="12">
+            <button class="btn-login" onclick="window.login()">BELÉPÉS</button>
+        </div>
+    </div>
+
+    <div id="game-container">
+        <div id="leaderboard">
+            <div class="leaderboard-header">🏆 RANGSOR</div>
+            <div class="leaderboard-list" id="leaderboard-list">
+                <div style="text-align:center; padding:20px; color:#999;">Betöltés...</div>
+            </div>
+        </div>
+
+        <div id="game-world">
+            <div id="golden-bike" onclick="window.catchGoldenBike()">🚲</div>
+            <div class="user-tag">👤 <span id="current-user-display">Martin</span></div>
+            <div id="motivation-banner">💖 gyerünk martin eszter nagyon szurkol neked 💖</div>
+            
+            <div class="stats-overlay">
+                <span id="bike-count">0 🚲</span>
+                <span id="bps-count">Biciklik másodpercenként: 0</span>
+                <div id="multiplier-info">✨ 7x SZORZÓ AKTÍV! ✨</div>
+            </div>
+
+            <img src="martin.jpg" id="martin-character" alt="Martin" onclick="window.clickMartin(event)">
+            <div class="road"><div class="road-line"></div></div>
+        </div>
+
+        <div id="shop">
+            <div class="shop-header">BOLT</div>
+            <div class="upgrade-list" id="upgrade-list"></div>
+            <button class="btn-logout" onclick="location.reload()">Kijelentkezés</button>
+        </div>
+    </div>
+
+    <div id="admin-panel" style="display:none; position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.85); padding:15px; border-radius:12px; z-index:1000; color:white; width: 180px;">
+        <h4 style="margin:0 0 10px 0; text-align:center; color: var(--accent);">Admin Mód</h4>
+        <input type="number" id="admin-bike-amount" placeholder="Mennyiség" style="margin-bottom:10px; padding:8px;">
+        <button onclick="window.adminAddBikes()" style="padding:8px; cursor:pointer; background:var(--primary); color:white; border:none; border-radius:5px; width:100%; font-weight:bold; margin-bottom:10px;">Hozzáad</button>
+        
+        <button onclick="window.resetLeaderboard()" style="padding:8px; cursor:pointer; background:#d32f2f; color:white; border:none; border-radius:5px; width:100%; font-weight:bold;">Rangsor Reset</button>
+        
+        <p style="font-size:10px; margin-top:10px; text-align:center; opacity:0.7;">Bezárás: 'L' billentyű</p>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // --- FIREBASE KONFIGURÁCIÓ ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyDKEMDbNKzJJTBYjhRCAKi9ct8861uvlao",
+        authDomain: "martinbikycle.firebaseapp.com",
+        databaseURL: "https://martinbikycle-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "martinbikycle",
+        storageBucket: "martinbikycle.firebasestorage.app",
+        messagingSenderId: "212874829220",
+        appId: "1:212874829220:web:70ba6c7f7a8e2ed8c87531",
+        measurementId: "G-32M4DHJ550"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // --- ALAP FEJLESZTÉSEK ---
+    const defaultUpgrades = [
+        { id: 0, icon: "👟", name: "Nyúlcipő", desc: "+1 pont kattintásonként", cost: 15, power: 1, type: "click", owned: 0 },
+        { id: 1, icon: "🥤", name: "Energiaital", desc: "+2 pont másodpercenként", cost: 100, power: 2, type: "bps", owned: 0 },
+        { id: 2, icon: "🚴", name: "Segédmunkás", desc: "+12 pont másodpercenként", cost: 500, power: 12, type: "bps", owned: 0 },
+        { id: 3, icon: "🛠️", name: "Gépkifújós kompenzátor", desc: "+55 pont másodpercenként", cost: 3000, power: 55, type: "bps", owned: 0 },
+        { id: 4, icon: "🖥️", name: "Gépújraindító", desc: "+250 pont másodpercenként", cost: 20000, power: 250, type: "bps", owned: 0 },
+        { id: 5, icon: "🌀", name: "Segédpropeller", desc: "+1,800 pont másodpercenként", cost: 150000, power: 1800, type: "bps", owned: 0 },
+        { id: 6, icon: "🧀", name: "Sajtgyár", desc: "+12,000 pont másodpercenként", cost: 1000000, power: 12000, type: "bps", owned: 0 },
+        { id: 7, icon: "❤️", name: "Eszter támogatása", desc: "Egy kis extra motiváció!", cost: 100000000, power: 0, type: "special", owned: 0 }
+    ];
+
+    window.currentUser = "";
+    let state = { 
+        bikes: 0, 
+        clickPower: 1, 
+        bps: 0, 
+        upgrades: []
+    };
     
-    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    // Arany Bicikli változók
+    let multiplier = 1;
 
-    <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-        const scoreElement = document.getElementById("score");
+    // --- RENDSZER FUNKCIÓK ---
 
-        let score = 0;
-        let keys = {};
+    window.login = function() {
+        const input = document.getElementById('username-input').value.trim();
+        if (input.length < 2) return;
+        window.currentUser = input;
+        document.getElementById('current-user-display').innerText = window.currentUser;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('game-container').style.display = 'flex';
+        
+        loadUserProgress();
+        initShopUI();
+        initLeaderboard();
+        gameLoop();
+        spawnGoldenBikeLoop(); // Arany bicikli indítása
+    };
 
-        // Gombnyomások figyelése
-        window.addEventListener("keydown", (e) => keys[e.code] = true);
-        window.addEventListener("keyup", (e) => keys[e.code] = false);
+    function initLeaderboard() {
+        const leaderboardRef = ref(db, 'users/');
+        onValue(leaderboardRef, (snapshot) => {
+            const data = snapshot.val();
+            const listDiv = document.getElementById('leaderboard-list');
+            if (!data) {
+                listDiv.innerHTML = "<div style='text-align:center; padding:20px; color:#999;'>A rangsor üres</div>";
+                return;
+            }
 
-        // Martin (Játékos) objektum beállításai
-        const martin = {
-            x: 275,
-            y: 330,
-            width: 50,
-            height: 50,
-            speed: 7,
-            emoji: '👦'
-        };
+            const usersArray = Object.keys(data).map(key => ({
+                name: key,
+                bikes: data[key].bikes
+            })).sort((a, b) => b.bikes - a.bikes);
 
-        // Biciklik beállításai
-        const bikes = [];
-        const bikeCount = 5;
-        const bikeEmoji = '🚲';
+            listDiv.innerHTML = "";
+            usersArray.slice(0, 15).forEach((user, index) => {
+                const div = document.createElement('div');
+                div.className = `leader-item ${user.name === window.currentUser ? 'current-user' : ''}`;
+                div.innerHTML = `
+                    <span>${index + 1}. ${user.name}</span>
+                    <span>${Math.floor(user.bikes).toLocaleString()} 🚲</span>
+                `;
+                listDiv.appendChild(div);
+            });
+        });
+    }
 
-        // Kezdeti biciklik legenerálása
-        for (let i = 0; i < bikeCount; i++) {
-            bikes.push({
-                x: Math.random() * (canvas.width - 40),
-                y: Math.random() * -500,
-                width: 40,
-                height: 40,
-                speed: 2 + Math.random() * 3
+    window.saveUserProgress = function() {
+        if (!window.currentUser) return;
+        localStorage.setItem(`martinGame_user_${window.currentUser}`, JSON.stringify(state));
+
+        // Firebase szinkronizáció
+        set(ref(db, 'users/' + window.currentUser), {
+            bikes: Math.floor(state.bikes),
+            lastSeen: Date.now()
+        });
+    };
+
+    function loadUserProgress() {
+        const saved = localStorage.getItem(`martinGame_user_${window.currentUser}`);
+        state.upgrades = JSON.parse(JSON.stringify(defaultUpgrades));
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            state.bikes = parsed.bikes || 0;
+            if (parsed.upgrades) {
+                state.upgrades.forEach(u => {
+                    const savedU = parsed.upgrades.find(s => s.id === u.id);
+                    if (savedU) {
+                        u.owned = savedU.owned;
+                        u.cost = savedU.cost;
+                        u.power = savedU.power || u.power;
+                    }
+                });
+            }
+        }
+        recalculateStats();
+        updateUI();
+    }
+
+    function recalculateStats() {
+        let b = 0; let c = 1;
+        state.upgrades.forEach(u => {
+            for(let i=0; i<u.owned; i++) {
+                let p = defaultUpgrades[u.id].power * Math.pow(1.1, i);
+                if(u.type === "bps") b += p;
+                if(u.type === "click") c += p;
+            }
+        });
+        state.bps = b;
+        state.clickPower = c;
+    }
+
+    function updateUI() {
+        document.getElementById('bike-count').innerText = Math.floor(state.bikes).toLocaleString() + " 🚲";
+        document.getElementById('bps-count').innerText = "Biciklik másodpercenként: " + Math.floor(state.bps * multiplier).toLocaleString();
+
+        const items = document.querySelectorAll('.upgrade-item');
+        state.upgrades.forEach((upg, index) => {
+            const item = items[index];
+            if (item) {
+                const costTag = item.querySelector('.upgrade-cost');
+                const ownedTag = item.querySelector('.upgrade-owned');
+                const descTag = item.querySelector('.upgrade-desc');
+
+                costTag.innerText = Math.floor(upg.cost).toLocaleString() + " 🚲";
+                ownedTag.innerText = upg.owned;
+                
+                if (upg.type !== "special") {
+                    descTag.innerText = `+${Math.ceil(upg.power).toLocaleString()} pont ${upg.type === 'click' ? 'kattintásonként' : 'másodpercenként'}`;
+                }
+
+                if (state.bikes >= upg.cost) {
+                    item.classList.add('affordable');
+                    item.classList.remove('disabled');
+                } else {
+                    item.classList.remove('affordable');
+                    item.classList.add('disabled');
+                }
+
+                if (upg.id === 7 && upg.owned > 0) {
+                    document.getElementById('motivation-banner').style.display = 'block';
+                    item.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    // --- INTERAKCIÓK ---
+
+    window.clickMartin = function(e) {
+        state.bikes += (state.clickPower * multiplier);
+        createParticle(e.clientX, e.clientY);
+        updateUI();
+    };
+
+    // Arany Bicikli Funkciók
+    window.catchGoldenBike = function() {
+        multiplier = 7;
+        document.getElementById('golden-bike').style.display = 'none';
+        document.getElementById('multiplier-info').style.display = 'block';
+        
+        setTimeout(() => {
+            multiplier = 1;
+            document.getElementById('multiplier-info').style.display = 'none';
+        }, 10000);
+    };
+
+    function spawnGoldenBikeLoop() {
+        setTimeout(() => {
+            const gb = document.getElementById('golden-bike');
+            gb.style.top = Math.random() * 50 + 25 + "%";
+            gb.style.display = 'block';
+            
+            // Ha nem kattintanak rá, 10 mp után eltűnik
+            setTimeout(() => {
+                gb.style.display = 'none';
+            }, 10000);
+            
+            spawnGoldenBikeLoop();
+        }, Math.random() * 60000 + 30000); // 30-90 másodpercenként jön
+    }
+
+    function createParticle(x, y) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.innerText = Math.random() > 0.1 ? '🚲' : '🧀';
+        p.style.left = x + 'px'; p.style.top = y + 'px';
+        p.style.setProperty('--x', (Math.random() - 0.5) * 300 + "px");
+        p.style.setProperty('--y', (Math.random() - 0.8) * 300 + "px");
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 800);
+    }
+
+    window.buyUpgrade = function(id) {
+        const upg = state.upgrades.find(u => u.id === id);
+        if (state.bikes >= upg.cost) {
+            state.bikes -= upg.cost;
+            
+            if (upg.type === "click") state.clickPower += upg.power;
+            if (upg.type === "bps") state.bps += upg.power;
+
+            upg.owned++;
+            if (upg.type !== "special") {
+                upg.power = Math.ceil(upg.power * 1.1); 
+                upg.cost *= 1.25;
+            }
+
+            updateUI();
+            window.saveUserProgress();
+        }
+    };
+
+    function initShopUI() {
+        const list = document.getElementById('upgrade-list');
+        list.innerHTML = "";
+        state.upgrades.forEach(upg => {
+            const div = document.createElement('div');
+            div.className = 'upgrade-item disabled';
+            div.onclick = () => window.buyUpgrade(upg.id);
+            div.innerHTML = `
+                <div class="upgrade-icon">${upg.icon}</div>
+                <div class="upgrade-info">
+                    <span class="upgrade-name">${upg.name}</span>
+                    <span class="upgrade-desc">${upg.desc}</span>
+                    <span class="upgrade-cost">${Math.floor(upg.cost).toLocaleString()} 🚲</span>
+                </div>
+                <div class="upgrade-owned">0</div>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    // --- ADMIN FUNKCIÓK ---
+
+    window.adminAddBikes = function() {
+        const val = document.getElementById('admin-bike-amount').value;
+        const amount = parseInt(val);
+        if(!isNaN(amount)) {
+            state.bikes += amount;
+            updateUI();
+            window.saveUserProgress();
+            document.getElementById('admin-bike-amount').value = "";
+        }
+    };
+
+    window.resetLeaderboard = function() {
+        if (confirm("BIZTOSAN törlöd a teljes rangsort?")) {
+            set(ref(db, 'users/'), null).then(() => {
+                alert("Rangsor törölve!");
             });
         }
+    };
 
-        // Bicikli visszaállítása a képernyő tetejére
-        function resetBike(bike) {
-            bike.y = Math.random() * -300 - 50;
-            bike.x = Math.random() * (canvas.width - bike.width);
-            // Kicsit gyorsulnak a bringák, ahogy nő a pontszám
-            bike.speed = 2 + Math.random() * 3 + (score / 150); 
+    // --- LOOP ÉS EVENTEK ---
+
+    function gameLoop() {
+        setInterval(() => {
+            state.bikes += ((state.bps * multiplier) / 10);
+            updateUI();
+        }, 100);
+        setInterval(window.saveUserProgress, 5000);
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if(e.key.toLowerCase() === 'l') {
+            const panel = document.getElementById('admin-panel');
+            panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
         }
+    });
 
-        // Játék logikájának frissítése
-        function update() {
-            // Martin mozgatása balra
-            if ((keys["ArrowLeft"] || keys["KeyA"]) && martin.x > 0) {
-                martin.x -= martin.speed;
-            }
-            // Martin mozgatása jobbra
-            if ((keys["ArrowRight"] || keys["KeyD"]) && martin.x < canvas.width - martin.width) {
-                martin.x += martin.speed;
-            }
-
-            // Biciklik mozgatása és ütközés vizsgálata
-            for (let bike of bikes) {
-                bike.y += bike.speed; // Eses lefelé
-
-                // Egyszerű négyszög-alapú ütközésvizsgálat
-                if (bike.x < martin.x + martin.width &&
-                    bike.x + bike.width > martin.x &&
-                    bike.y < martin.y + martin.height &&
-                    bike.y + bike.height > martin.y) {
-                    
-                    // Ha elkapta a biciklit!
-                    score += 10;
-                    scoreElement.innerText = score;
-                    resetBike(bike);
-                }
-
-                // Ha a bicikli kiesik alul a képernyőből
-                if (bike.y > canvas.height) {
-                    resetBike(bike);
-                    // Opcionális: Ha büntetést is akarsz: score = Math.max(0, score - 5);
-                }
-            }
-        }
-
-        // Megjelenítés a vásznon (Canvas)
-        function draw() {
-            // Töröljük a korábbi képkockát
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Zöld fű rajzolása alulra
-            ctx.fillStyle = "#8bc34a";
-            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
-
-            // Emojik beállítása (középre igazítva a koordinátákhoz)
-            ctx.textAlign = "center";
-            ctx.textBaseline = "top";
-
-            // Martin kirajzolása
-            ctx.font = "45px Arial";
-            ctx.fillText(martin.emoji, martin.x + martin.width / 2, martin.y);
-
-            // Biciklik kirajzolása
-            ctx.font = "35px Arial";
-            for (let bike of bikes) {
-                ctx.fillText(bikeEmoji, bike.x + bike.width / 2, bike.y);
-            }
-        }
-
-        // A játék fő ciklusa (folyamatosan fut)
-        function gameLoop() {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-
-        // Játék indítása
-        gameLoop();
-    </script>
+    document.getElementById('username-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') window.login();
+    });
+</script>
 </body>
 </html>
