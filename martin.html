@@ -271,9 +271,37 @@
 
         .btn-logout { margin: 10px; padding: 10px; background: #eee; border: none; cursor: pointer; font-size: 12px; font-weight: bold; }
         .btn-logout:hover { background: #ddd; }
+
+        /* --- ÚJ FUNKCIÓK STÍLUSAI --- */
+        #achievement-container {
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+        }
+
+        .achievement-toast {
+            background: white; border-left: 5px solid var(--gold);
+            padding: 15px 20px; border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: slideIn 0.5s forwards, fadeOut 0.5s 4.5s forwards;
+            font-weight: bold; font-size: 14px; color: #333; white-space: pre-line;
+        }
+
+        @keyframes slideIn { from { transform: translateX(120%); } to { transform: translateX(0); } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+        .magic-cloud {
+            position: absolute; cursor: pointer; user-select: none; z-index: 5;
+            animation: cloudFloat linear forwards; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));
+            transition: transform 0.1s;
+        }
+
+        .magic-cloud:active { transform: scale(0.9); }
+        @keyframes cloudFloat { from { left: -100px; } to { left: 100%; } }
     </style>
 </head>
 <body>
+
+    <div id="achievement-container"></div>
 
     <div id="login-screen">
         <div class="login-box">
@@ -286,7 +314,7 @@
 
     <div id="game-container">
         <div id="leaderboard">
-            <div class="leaderboard-header">🏆 RANGSOR</div>
+            <div class="leaderboard-header">🏆 RANGSOR (BPS)</div>
             <div class="leaderboard-list" id="leaderboard-list">
                 <div style="text-align:center; padding:20px; color:#999;">Betöltés...</div>
             </div>
@@ -380,7 +408,9 @@
         initShopUI();
         initLeaderboard();
         gameLoop();
-        spawnGoldenBikeLoop(); // Arany bicikli indítása
+        spawnGoldenBikeLoop(); 
+        
+        loadAchievements(); 
     };
 
     function initLeaderboard() {
@@ -393,18 +423,21 @@
                 return;
             }
 
+            // MODOSÍTVA: Itt mostantól BPS alapján sorba rendezi az embereket
             const usersArray = Object.keys(data).map(key => ({
                 name: key,
-                bikes: data[key].bikes
-            })).sort((a, b) => b.bikes - a.bikes);
+                bps: data[key].bps || 0 // Ha valakinek még nem mentett a játék BPS-t, akkor 0-nak veszi
+            })).sort((a, b) => b.bps - a.bps);
 
             listDiv.innerHTML = "";
             usersArray.slice(0, 15).forEach((user, index) => {
                 const div = document.createElement('div');
                 div.className = `leader-item ${user.name === window.currentUser ? 'current-user' : ''}`;
+                
+                // MODOSÍTVA: Itt mostantól a BPS-t írja ki a ranglistára
                 div.innerHTML = `
                     <span>${index + 1}. ${user.name}</span>
-                    <span>${Math.floor(user.bikes).toLocaleString()} 🚲</span>
+                    <span>${Math.floor(user.bps).toLocaleString()} BPS</span>
                 `;
                 listDiv.appendChild(div);
             });
@@ -416,8 +449,10 @@
         localStorage.setItem(`martinGame_user_${window.currentUser}`, JSON.stringify(state));
 
         // Firebase szinkronizáció
+        // MODOSÍTVA: Hozzáadtuk a 'bps' mentését is, hogy a ranglista lássa
         set(ref(db, 'users/' + window.currentUser), {
             bikes: Math.floor(state.bikes),
+            bps: Math.floor(state.bps),
             lastSeen: Date.now()
         });
     };
@@ -517,13 +552,12 @@
             gb.style.top = Math.random() * 50 + 25 + "%";
             gb.style.display = 'block';
             
-            // Ha nem kattintanak rá, 10 mp után eltűnik
             setTimeout(() => {
                 gb.style.display = 'none';
             }, 10000);
             
             spawnGoldenBikeLoop();
-        }, Math.random() * 60000 + 30000); // 30-90 másodpercenként jön
+        }, Math.random() * 60000 + 30000); 
     }
 
     function createParticle(x, y) {
@@ -617,6 +651,88 @@
     document.getElementById('username-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') window.login();
     });
+
+    // ==========================================
+    // --- ÚJ FUNKCIÓK ---
+    // ==========================================
+
+    const achievements = [
+        { threshold: 100, name: "Kezdő Tekerő", reward: 50, done: false },
+        { threshold: 1000, name: "Bicikli Mániás", reward: 500, done: false },
+        { threshold: 10000, name: "Birodalom Építő", reward: 5000, done: false },
+        { threshold: 100000, name: "Mester Vállalkozó", reward: 50000, done: false },
+        { threshold: 1000000, name: "Sajtos Martin Maga", reward: 500000, done: false }
+    ];
+
+    function showToast(text) {
+        const container = document.getElementById('achievement-container');
+        const toast = document.createElement('div');
+        toast.className = 'achievement-toast';
+        toast.innerText = text;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000); 
+    }
+
+    function loadAchievements() {
+        const savedAchs = localStorage.getItem(`martinGame_achs_${window.currentUser}`);
+        if(savedAchs) {
+            const parsed = JSON.parse(savedAchs);
+            achievements.forEach((ach, index) => ach.done = parsed[index]);
+        }
+    }
+
+    setInterval(() => {
+        if (!window.currentUser || document.getElementById('game-container').style.display === 'none') return;
+        
+        let changed = false;
+        achievements.forEach(ach => {
+            if (state.bikes >= ach.threshold && !ach.done) {
+                ach.done = true;
+                changed = true;
+                state.bikes += ach.reward; 
+                showToast(`🏆 SIKER ELÉRVE: ${ach.name}!\n🎁 Jutalom: +${ach.reward.toLocaleString()} 🚲`);
+            }
+        });
+
+        if(changed) {
+            localStorage.setItem(`martinGame_achs_${window.currentUser}`, JSON.stringify(achievements.map(a => a.done)));
+        }
+    }, 1000);
+
+    function spawnMagicCloud() {
+        if (!window.currentUser || document.getElementById('game-container').style.display === 'none') return;
+        
+        const cloud = document.createElement('div');
+        cloud.className = 'magic-cloud';
+        cloud.innerText = '☁️';
+        
+        const size = Math.random() * 30 + 40; 
+        cloud.style.fontSize = size + 'px';
+        cloud.style.top = (Math.random() * 30 + 5) + '%'; 
+        
+        const duration = Math.random() * 10 + 15; 
+        cloud.style.animationDuration = duration + 's';
+        
+        cloud.onclick = function(e) {
+            const bonus = Math.max(100, Math.floor(state.bps * 10)); 
+            state.bikes += bonus;
+            createParticle(e.clientX, e.clientY);
+            showToast(`☁️ Elkaptál egy felhőt!\n🎁 +${bonus.toLocaleString()} 🚲`);
+            cloud.remove();
+        };
+        
+        document.getElementById('game-world').appendChild(cloud);
+        
+        setTimeout(() => { if(cloud.parentElement) cloud.remove(); }, duration * 1000);
+    }
+
+    function cloudLoop() {
+        setTimeout(() => {
+            spawnMagicCloud();
+            cloudLoop();
+        }, Math.random() * 20000 + 20000);
+    }
+    cloudLoop(); 
 </script>
 </body>
 </html>
