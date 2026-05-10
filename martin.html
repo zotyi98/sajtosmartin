@@ -11,6 +11,8 @@
             --bg: #81d4fa;
             --love: #e91e63;
             --gold: #ffc107;
+            --silver: #e0e0e0;
+            --bronze: #cd7f32;
         }
 
         body {
@@ -23,9 +25,33 @@
             user-select: none;
         }
 
+        /* --- HÍRSÁV --- */
+        #news-ticker-container {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-weight: bold;
+            padding: 5px 0;
+            z-index: 500;
+            overflow: hidden;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        #news-ticker-text {
+            display: inline-block;
+            padding-left: 100%;
+            animation: tickerScroll 20s linear infinite;
+        }
+        @keyframes tickerScroll {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100%, 0); }
+        }
+
         /* --- RANGLISTA --- */
         #leaderboard {
-            width: 280px;
+            width: 300px;
             background: white;
             border-right: 3px solid var(--primary);
             display: flex;
@@ -43,22 +69,32 @@
             font-size: 1.2em;
         }
 
-        .leaderboard-list { flex: 1; overflow-y: auto; padding: 10px; }
+        .leaderboard-list { flex: 1; overflow-y: auto; padding: 10px; background: #fafafa; }
 
         .leader-item {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 12px 10px;
             border-bottom: 1px solid #eee;
             font-size: 14px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
         .leader-item.current-user { 
             background: #fff9c4; 
             font-weight: bold; 
-            border-radius: 8px;
             border: 1px solid var(--accent);
         }
+
+        /* TOP 3 Kiemelés */
+        .rank-0 { border-left: 5px solid var(--gold); font-weight: bold; font-size: 15px;}
+        .rank-1 { border-left: 5px solid var(--silver); font-weight: bold;}
+        .rank-2 { border-left: 5px solid var(--bronze); font-weight: bold;}
+        .rank-badge { font-size: 18px; margin-right: 5px; }
 
         /* --- LOGIN KÉPERNYŐ --- */
         #login-screen {
@@ -107,6 +143,7 @@
             display: none;
             flex: 1;
             width: 100%;
+            margin-top: 30px; 
         }
 
         #game-world {
@@ -163,8 +200,21 @@
         }
 
         #bike-count { font-size: 40px; font-weight: bold; color: var(--primary); display: block; }
-        #bps-count { font-size: 14px; color: #666; }
-        #multiplier-info { color: var(--gold); font-weight: bold; display: none; font-size: 18px; margin-top: 5px; }
+        #bps-count { font-size: 14px; color: #666; display: block; }
+        #prestige-count { font-size: 16px; font-weight: bold; color: var(--gold); display: none; margin-top: 5px; }
+        #multiplier-info { color: var(--love); font-weight: bold; display: none; font-size: 18px; margin-top: 5px; }
+
+        /* --- KOMBÓ SÁV --- */
+        #combo-container {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #d32f2f;
+            display: none;
+            transition: transform 0.1s;
+        }
+        #combo-bar-bg { width: 150px; height: 10px; background: #ddd; border-radius: 5px; margin: 5px auto 0; overflow: hidden; }
+        #combo-bar-fill { width: 0%; height: 100%; background: #d32f2f; transition: width 0.1s; }
 
         #martin-character {
             width: 180px; 
@@ -181,6 +231,22 @@
         }
 
         #martin-character:active { transform: scale(0.90); }
+
+        /* --- LEBEGŐ SZÁMOK --- */
+        .floating-number {
+            position: absolute;
+            color: white;
+            font-weight: bold;
+            font-size: 26px;
+            pointer-events: none;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            animation: floatUp 1s ease-out forwards;
+            z-index: 1000;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
+        }
 
         /* --- ARANY BICIKLI --- */
         #golden-bike {
@@ -221,6 +287,22 @@
 
         @keyframes roadMove { from { background-position: 0 0; } to { background-position: -80px 0; } }
 
+        /* --- TOLVAJ MECHANIKA --- */
+        #thief-character {
+            position: absolute;
+            bottom: 80px;
+            left: -100px;
+            font-size: 60px;
+            cursor: pointer;
+            z-index: 101;
+            display: none;
+            transition: transform 0.1s;
+        }
+        
+        #thief-character:active { transform: scale(0.8); }
+        .thief-walk { animation: walkAcrossThief 5s linear forwards; }
+        @keyframes walkAcrossThief { 0% { left: -100px; } 100% { left: 110vw; } }
+
         /* --- BOLT --- */
         #shop {
             width: 380px;
@@ -229,9 +311,45 @@
             flex-direction: column;
             box-shadow: -5px 0 15px rgba(0,0,0,0.2);
             z-index: 20;
+            overflow: hidden;
         }
 
         .shop-header { background: var(--primary); color: white; padding: 20px; text-align: center; font-weight: bold; }
+        
+        .shop-section-title {
+            background: #eee;
+            padding: 8px 15px;
+            font-weight: bold;
+            font-size: 14px;
+            border-bottom: 2px solid #ddd;
+            border-top: 2px solid #ddd;
+        }
+
+        #extra-upgrades-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px;
+            background: #fdfdfd;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+
+        .extra-upgrade-item {
+            flex: 1 1 45%;
+            background: white;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 12px;
+            transition: 0.2s;
+        }
+
+        .extra-upgrade-item.affordable { border-color: var(--gold); background: #fffde7; }
+        .extra-upgrade-item.disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
+
         .upgrade-list { flex: 1; overflow-y: auto; padding: 15px; background: #f5f5f5; }
 
         .upgrade-item {
@@ -269,12 +387,25 @@
             100% { transform: translate(var(--x), var(--y)); opacity: 0; }
         }
 
-        .btn-logout { margin: 10px; padding: 10px; background: #eee; border: none; cursor: pointer; font-size: 12px; font-weight: bold; }
+        #btn-prestige {
+            background: var(--gold);
+            color: #333;
+            border: none;
+            padding: 15px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            text-transform: uppercase;
+            animation: pulsePrestige 2s infinite;
+        }
+        @keyframes pulsePrestige { 0%, 100% { background: var(--gold); } 50% { background: #fff59d; } }
+
+        .btn-logout { padding: 10px; background: #eee; border: none; cursor: pointer; font-size: 12px; font-weight: bold; border-top: 1px solid #ddd;}
         .btn-logout:hover { background: #ddd; }
 
         /* --- ÚJ FUNKCIÓK STÍLUSAI --- */
         #achievement-container {
-            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            position: fixed; top: 40px; right: 20px; z-index: 9999;
             display: flex; flex-direction: column; gap: 10px; pointer-events: none;
         }
 
@@ -301,6 +432,10 @@
 </head>
 <body>
 
+    <div id="news-ticker-container">
+        <span id="news-ticker-text">Hírek: Martin épp most nyitotta meg élete első bicikliszerelő műhelyét! Tarts vele!</span>
+    </div>
+
     <div id="achievement-container"></div>
 
     <div id="login-screen">
@@ -314,7 +449,7 @@
 
     <div id="game-container">
         <div id="leaderboard">
-            <div class="leaderboard-header">🏆 RANGSOR (BPS)</div>
+            <div class="leaderboard-header">🏆 RANGSOR</div>
             <div class="leaderboard-list" id="leaderboard-list">
                 <div style="text-align:center; padding:20px; color:#999;">Betöltés...</div>
             </div>
@@ -322,13 +457,20 @@
 
         <div id="game-world">
             <div id="golden-bike" onclick="window.catchGoldenBike()">🚲</div>
+            <div id="thief-character" onclick="window.catchThief()">🦹‍♂️</div>
             <div class="user-tag">👤 <span id="current-user-display">Martin</span></div>
             <div id="motivation-banner">💖 gyerünk martin eszter nagyon szurkol neked 💖</div>
             
             <div class="stats-overlay">
                 <span id="bike-count">0 🚲</span>
                 <span id="bps-count">Biciklik másodpercenként: 0</span>
+                <span id="prestige-count">✨ Arany Küllők: 0 (+0% bónusz)</span>
                 <div id="multiplier-info">✨ 7x SZORZÓ AKTÍV! ✨</div>
+                
+                <div id="combo-container">
+                    Kattintás Kombó: <span id="combo-text">1.0</span>x!
+                    <div id="combo-bar-bg"><div id="combo-bar-fill"></div></div>
+                </div>
             </div>
 
             <img src="martin.jpg" id="martin-character" alt="Martin" onclick="window.clickMartin(event)">
@@ -337,7 +479,14 @@
 
         <div id="shop">
             <div class="shop-header">BOLT</div>
+            
+            <div class="shop-section-title">✨ Fejlesztések</div>
+            <div id="extra-upgrades-list"></div>
+
+            <div class="shop-section-title">🏢 Épületek</div>
             <div class="upgrade-list" id="upgrade-list"></div>
+            
+            <button id="btn-prestige" onclick="window.prestige()" style="display:none;">✨ ÚJRASZÜLETÉS ✨</button>
             <button class="btn-logout" onclick="location.reload()">Kijelentkezés</button>
         </div>
     </div>
@@ -346,9 +495,7 @@
         <h4 style="margin:0 0 10px 0; text-align:center; color: var(--accent);">Admin Mód</h4>
         <input type="number" id="admin-bike-amount" placeholder="Mennyiség" style="margin-bottom:10px; padding:8px;">
         <button onclick="window.adminAddBikes()" style="padding:8px; cursor:pointer; background:var(--primary); color:white; border:none; border-radius:5px; width:100%; font-weight:bold; margin-bottom:10px;">Hozzáad</button>
-        
         <button onclick="window.resetLeaderboard()" style="padding:8px; cursor:pointer; background:#d32f2f; color:white; border:none; border-radius:5px; width:100%; font-weight:bold;">Rangsor Reset</button>
-        
         <p style="font-size:10px; margin-top:10px; text-align:center; opacity:0.7;">Bezárás: 'L' billentyű</p>
     </div>
 
@@ -356,7 +503,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // --- FIREBASE KONFIGURÁCIÓ ---
     const firebaseConfig = {
         apiKey: "AIzaSyDKEMDbNKzJJTBYjhRCAKi9ct8861uvlao",
         authDomain: "martinbikycle.firebaseapp.com",
@@ -371,30 +517,58 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // --- ALAP FEJLESZTÉSEK ---
+    // ÉPÜLETEK (Újrabalanszolt árak és BPS)
     const defaultUpgrades = [
         { id: 0, icon: "👟", name: "Nyúlcipő", desc: "+1 pont kattintásonként", cost: 15, power: 1, type: "click", owned: 0 },
-        { id: 1, icon: "🥤", name: "Energiaital", desc: "+2 pont másodpercenként", cost: 100, power: 2, type: "bps", owned: 0 },
-        { id: 2, icon: "🚴", name: "Segédmunkás", desc: "+12 pont másodpercenként", cost: 500, power: 12, type: "bps", owned: 0 },
-        { id: 3, icon: "🛠️", name: "Gépkifújós kompenzátor", desc: "+55 pont másodpercenként", cost: 3000, power: 55, type: "bps", owned: 0 },
-        { id: 4, icon: "🖥️", name: "Gépújraindító", desc: "+250 pont másodpercenként", cost: 20000, power: 250, type: "bps", owned: 0 },
-        { id: 5, icon: "🌀", name: "Segédpropeller", desc: "+1,800 pont másodpercenként", cost: 150000, power: 1800, type: "bps", owned: 0 },
-        { id: 6, icon: "🧀", name: "Sajtgyár", desc: "+12,000 pont másodpercenként", cost: 1000000, power: 12000, type: "bps", owned: 0 },
-        { id: 7, icon: "❤️", name: "Eszter támogatása", desc: "Egy kis extra motiváció!", cost: 100000000, power: 0, type: "special", owned: 0 }
+        { id: 1, icon: "🥤", name: "Energiaital", desc: "+1 pont / mp", cost: 150, power: 1, type: "bps", owned: 0 },
+        { id: 2, icon: "🚴", name: "Segédmunkás", desc: "+5 pont / mp", cost: 1200, power: 5, type: "bps", owned: 0 },
+        { id: 3, icon: "🛠️", name: "Gépkifújós komp.", desc: "+30 pont / mp", cost: 14000, power: 30, type: "bps", owned: 0 },
+        { id: 4, icon: "🖥️", name: "Gépújraindító", desc: "+150 pont / mp", cost: 130000, power: 150, type: "bps", owned: 0 },
+        { id: 5, icon: "🌀", name: "Segédpropeller", desc: "+1,000 pont / mp", cost: 1500000, power: 1000, type: "bps", owned: 0 },
+        { id: 6, icon: "🧀", name: "Sajtgyár", desc: "+6,000 pont / mp", cost: 14000000, power: 6000, type: "bps", owned: 0 },
+        { id: 7, icon: "❤️", name: "Eszter támogatása", desc: "DUPLA BPS és Kattintás örökre!", cost: 5000000000, power: 0, type: "special", owned: 0 } // Brutális ár!
+    ];
+
+    // FEJLESZTÉSEK (Sokkal drágábbak lettek)
+    const extraUpgradesData = [
+        { id: 101, name: "Könnyített Cípőfűző", desc: "Nyúlcipők x2 BPS", cost: 5000, reqBuilding: 0, reqCount: 10, targetId: 0, mult: 2 },
+        { id: 102, name: "Koffein Túladagolás", desc: "Energiaitalok x3 BPS", cost: 25000, reqBuilding: 1, reqCount: 10, targetId: 1, mult: 3 },
+        { id: 103, name: "Olajozott Láncok", desc: "Segédmunkások x2 BPS", cost: 150000, reqBuilding: 2, reqCount: 10, targetId: 2, mult: 2 },
+        { id: 104, name: "Sajtos Munkások", desc: "Szinergia: Minden Sajtgyár +100 BPS-t ad a Segédmunkásoknak!", cost: 50000000, reqBuilding: 6, reqCount: 1, type: "synergy" }
     ];
 
     window.currentUser = "";
     let state = { 
         bikes: 0, 
+        lifetimeBikes: 0, 
+        goldenSpokes: 0,  
         clickPower: 1, 
         bps: 0, 
-        upgrades: []
+        lastSaved: Date.now(),
+        upgrades: [],
+        realUpgrades: [] 
     };
     
-    // Arany Bicikli változók
     let multiplier = 1;
+    let thiefActive = false;
+    let thiefTimeout;
 
-    // --- RENDSZER FUNKCIÓK ---
+    // KOMBÓ VÁLTOZÓK
+    let clickCombo = 1.0;
+    let lastClickTime = 0;
+
+    // A Te Hírsávod
+    const newsItems = [
+        "Martin szerint a dorogosok másnéven DROGISTÁK",
+        "Elvileg Esztert azóta is bántja az a sok csúnya üzenet Martintól",
+        "Daeron még mindig várja az aranybicikli felbukkanását",
+        "Egy jótanács: szombat este inkább csak egy filmet tegyél be",
+        "Gyerekek... képzeljétek el... szombaton...",
+        "Tudományosan bizonyított tény, hogy a repülőkön popeller van"
+    ];
+    setInterval(() => {
+        document.getElementById('news-ticker-text').innerText = newsItems[Math.floor(Math.random() * newsItems.length)];
+    }, 15000);
 
     window.login = function() {
         const input = document.getElementById('username-input').value.trim();
@@ -404,39 +578,41 @@
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('game-container').style.display = 'flex';
         
+        initShopUI(); 
         loadUserProgress();
-        initShopUI();
         initLeaderboard();
         gameLoop();
         spawnGoldenBikeLoop(); 
-        
+        spawnThiefLoop(); 
         loadAchievements(); 
     };
+
+    // RANG KALKULÁTOR
+    function getRankEmoji(bps) {
+        if(bps > 1000000) return "👑";
+        if(bps > 10000) return "💎";
+        if(bps > 1000) return "🔥";
+        if(bps > 100) return "⭐";
+        return "🚲";
+    }
 
     function initLeaderboard() {
         const leaderboardRef = ref(db, 'users/');
         onValue(leaderboardRef, (snapshot) => {
             const data = snapshot.val();
             const listDiv = document.getElementById('leaderboard-list');
-            if (!data) {
-                listDiv.innerHTML = "<div style='text-align:center; padding:20px; color:#999;'>A rangsor üres</div>";
-                return;
-            }
-
-            // MODOSÍTVA: Itt mostantól BPS alapján sorba rendezi az embereket
-            const usersArray = Object.keys(data).map(key => ({
-                name: key,
-                bps: data[key].bps || 0 // Ha valakinek még nem mentett a játék BPS-t, akkor 0-nak veszi
-            })).sort((a, b) => b.bps - a.bps);
-
+            if (!data) return;
+            const usersArray = Object.keys(data).map(key => ({ name: key, bps: data[key].bps || 0 })).sort((a, b) => b.bps - a.bps);
             listDiv.innerHTML = "";
             usersArray.slice(0, 15).forEach((user, index) => {
                 const div = document.createElement('div');
-                div.className = `leader-item ${user.name === window.currentUser ? 'current-user' : ''}`;
-                
-                // MODOSÍTVA: Itt mostantól a BPS-t írja ki a ranglistára
+                let rankClass = index < 3 ? `rank-${index}` : '';
+                let medalStr = index === 0 ? "🥇" : (index === 1 ? "🥈" : (index === 2 ? "🥉" : `<b>${index + 1}.</b>`));
+                let rankEmoji = getRankEmoji(user.bps);
+
+                div.className = `leader-item ${user.name === window.currentUser ? 'current-user' : ''} ${rankClass}`;
                 div.innerHTML = `
-                    <span>${index + 1}. ${user.name}</span>
+                    <div><span class="rank-badge">${medalStr} ${rankEmoji}</span> <span>${user.name}</span></div>
                     <span>${Math.floor(user.bps).toLocaleString()} BPS</span>
                 `;
                 listDiv.appendChild(div);
@@ -444,12 +620,32 @@
         });
     }
 
+    function initShopUI() {
+        const list = document.getElementById('upgrade-list');
+        list.innerHTML = "";
+        state.upgrades = JSON.parse(JSON.stringify(defaultUpgrades));
+        state.upgrades.forEach(upg => {
+            const div = document.createElement('div');
+            div.id = `upg-item-${upg.id}`;
+            div.className = 'upgrade-item disabled';
+            div.onclick = () => window.buyUpgrade(upg.id);
+            div.innerHTML = `
+                <div class="upgrade-icon">${upg.icon}</div>
+                <div class="upgrade-info">
+                    <span class="upgrade-name">${upg.name}</span>
+                    <span class="upgrade-desc" id="upg-desc-${upg.id}"></span>
+                    <span class="upgrade-cost" id="upg-cost-${upg.id}"></span>
+                </div>
+                <div class="upgrade-owned" id="upg-owned-${upg.id}">0</div>
+            `;
+            list.appendChild(div);
+        });
+    }
+
     window.saveUserProgress = function() {
         if (!window.currentUser) return;
+        state.lastSaved = Date.now();
         localStorage.setItem(`martinGame_user_${window.currentUser}`, JSON.stringify(state));
-
-        // Firebase szinkronizáció
-        // MODOSÍTVA: Hozzáadtuk a 'bps' mentését is, hogy a ranglista lássa
         set(ref(db, 'users/' + window.currentUser), {
             bikes: Math.floor(state.bikes),
             bps: Math.floor(state.bps),
@@ -463,6 +659,10 @@
         if (saved) {
             const parsed = JSON.parse(saved);
             state.bikes = parsed.bikes || 0;
+            state.lifetimeBikes = parsed.lifetimeBikes || parsed.bikes || 0;
+            state.goldenSpokes = parsed.goldenSpokes || 0;
+            state.realUpgrades = parsed.realUpgrades || [];
+            
             if (parsed.upgrades) {
                 state.upgrades.forEach(u => {
                     const savedU = parsed.upgrades.find(s => s.id === u.id);
@@ -473,6 +673,19 @@
                     }
                 });
             }
+
+            if (parsed.lastSaved) {
+                let secondsOffline = (Date.now() - parsed.lastSaved) / 1000;
+                if (secondsOffline > 60) { 
+                    recalculateStats(); 
+                    let offlineGains = state.bps * secondsOffline;
+                    if (offlineGains > 0) {
+                        state.bikes += offlineGains;
+                        state.lifetimeBikes += offlineGains;
+                        showToast(`😴 Üdv újra!\nTávolléted alatt termeltél:\n+${Math.floor(offlineGains).toLocaleString()} 🚲`);
+                    }
+                }
+            }
         }
         recalculateStats();
         updateUI();
@@ -480,70 +693,195 @@
 
     function recalculateStats() {
         let b = 0; let c = 1;
+        let sajtCount = state.upgrades.find(u => u.id === 6).owned || 0;
+        let hasSajtSynergy = state.realUpgrades.some(ru => ru.id === 104);
+
         state.upgrades.forEach(u => {
+            let basePower = defaultUpgrades[u.id].power;
+            let upgMult = 1;
+            state.realUpgrades.forEach(ru => {
+                let ext = extraUpgradesData.find(e => e.id === ru.id);
+                if(ext && ext.targetId === u.id) upgMult *= ext.mult;
+            });
+            if(u.id === 2 && hasSajtSynergy) { basePower += (100 * sajtCount); }
+
             for(let i=0; i<u.owned; i++) {
-                let p = defaultUpgrades[u.id].power * Math.pow(1.1, i);
+                let p = (basePower * upgMult) * Math.pow(1.15, i); // ÁTÍRVA 1.15-RE A BALANSZ MIATT!
                 if(u.type === "bps") b += p;
                 if(u.type === "click") c += p;
             }
         });
-        state.bps = b;
-        state.clickPower = c;
+
+        let prestigeMult = 1 + (state.goldenSpokes * 0.01);
+        let eszterMult = state.upgrades.find(u => u.id === 7).owned > 0 ? 2 : 1; 
+
+        state.bps = b * prestigeMult * eszterMult;
+        state.clickPower = c * prestigeMult * eszterMult;
     }
 
     function updateUI() {
         document.getElementById('bike-count').innerText = Math.floor(state.bikes).toLocaleString() + " 🚲";
         document.getElementById('bps-count').innerText = "Biciklik másodpercenként: " + Math.floor(state.bps * multiplier).toLocaleString();
 
-        const items = document.querySelectorAll('.upgrade-item');
-        state.upgrades.forEach((upg, index) => {
-            const item = items[index];
+        const presCountUI = document.getElementById('prestige-count');
+        if(state.goldenSpokes > 0) {
+            presCountUI.style.display = 'block';
+            presCountUI.innerText = `✨ Arany Küllők: ${state.goldenSpokes} (+${state.goldenSpokes}%)`;
+        }
+
+        // KOMBÓ UI
+        const comboContainer = document.getElementById('combo-container');
+        if(clickCombo > 1.0) {
+            comboContainer.style.display = 'block';
+            document.getElementById('combo-text').innerText = clickCombo.toFixed(1);
+            let percent = ((clickCombo - 1) / 2) * 100; // max 3.0
+            document.getElementById('combo-bar-fill').style.width = percent + '%';
+            if(clickCombo >= 3.0) comboContainer.style.transform = 'scale(1.1)';
+            else comboContainer.style.transform = 'scale(1)';
+        } else {
+            comboContainer.style.display = 'none';
+        }
+
+        state.upgrades.forEach(upg => {
+            const item = document.getElementById(`upg-item-${upg.id}`);
             if (item) {
-                const costTag = item.querySelector('.upgrade-cost');
-                const ownedTag = item.querySelector('.upgrade-owned');
-                const descTag = item.querySelector('.upgrade-desc');
-
-                costTag.innerText = Math.floor(upg.cost).toLocaleString() + " 🚲";
-                ownedTag.innerText = upg.owned;
+                let canAfford = state.bikes >= upg.cost;
+                item.className = 'upgrade-item ' + (canAfford ? 'affordable' : 'disabled');
                 
-                if (upg.type !== "special") {
-                    descTag.innerText = `+${Math.ceil(upg.power).toLocaleString()} pont ${upg.type === 'click' ? 'kattintásonként' : 'másodpercenként'}`;
-                }
-
-                if (state.bikes >= upg.cost) {
-                    item.classList.add('affordable');
-                    item.classList.remove('disabled');
-                } else {
-                    item.classList.remove('affordable');
-                    item.classList.add('disabled');
-                }
-
+                let descTxt = upg.type !== "special" ? `+${Math.ceil(upg.power).toLocaleString()} pont ${upg.type === 'click' ? 'katt.' : '/ mp'}` : upg.desc;
+                
+                document.getElementById(`upg-desc-${upg.id}`).innerText = descTxt;
+                document.getElementById(`upg-cost-${upg.id}`).innerText = Math.floor(upg.cost).toLocaleString() + " 🚲";
+                document.getElementById(`upg-owned-${upg.id}`).innerText = upg.owned;
+                
                 if (upg.id === 7 && upg.owned > 0) {
                     document.getElementById('motivation-banner').style.display = 'block';
                     item.style.display = 'none';
                 }
             }
         });
+
+        const extraList = document.getElementById('extra-upgrades-list');
+        extraUpgradesData.forEach(ext => {
+            let el = document.getElementById(`extra-upg-${ext.id}`);
+            let isOwned = state.realUpgrades.some(ru => ru.id === ext.id);
+            let reqBuildingCount = state.upgrades.find(u => u.id === ext.reqBuilding)?.owned || 0;
+            let shouldShow = !isOwned && (reqBuildingCount >= ext.reqCount);
+
+            if (shouldShow) {
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = `extra-upg-${ext.id}`;
+                    el.onclick = () => window.buyExtraUpgrade(ext.id);
+                    el.innerHTML = `<b>${ext.name}</b><br><span style="color:#666;">${ext.desc}</span><br><b style="color:#d32f2f;">${ext.cost.toLocaleString()} 🚲</b>`;
+                    extraList.appendChild(el);
+                }
+                let canAfford = state.bikes >= ext.cost;
+                el.className = 'extra-upgrade-item ' + (canAfford ? 'affordable' : 'disabled');
+            } else {
+                if (el) el.remove();
+            }
+        });
+
+        const prestigePoints = Math.floor(state.lifetimeBikes / 1000000);
+        if (prestigePoints > 0) {
+            document.getElementById('btn-prestige').style.display = 'block';
+            document.getElementById('btn-prestige').innerText = `✨ Újraszületés (+${prestigePoints} Küllő)`;
+        }
     }
 
-    // --- INTERAKCIÓK ---
+    function createFloatingNumber(x, y, amount) {
+        const el = document.createElement('div');
+        el.className = 'floating-number';
+        el.innerText = `+${Math.floor(amount)}`;
+        el.style.left = (x - 20) + 'px';
+        el.style.top = (y - 20) + 'px';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1000);
+    }
 
     window.clickMartin = function(e) {
-        state.bikes += (state.clickPower * multiplier);
+        let now = Date.now();
+        if (now - lastClickTime < 800) { // Ha gyorsan kattint
+            clickCombo = Math.min(3.0, clickCombo + 0.1);
+        } else {
+            clickCombo = 1.0;
+        }
+        lastClickTime = now;
+
+        let gained = (state.clickPower * multiplier * clickCombo); // Kombó szorzó beépítve!
+        state.bikes += gained;
+        state.lifetimeBikes += gained;
+        
+        createFloatingNumber(e.clientX, e.clientY, gained);
         createParticle(e.clientX, e.clientY);
         updateUI();
     };
 
-    // Arany Bicikli Funkciók
+    // KOMBÓ VISSZAESÉS (FADE)
+    setInterval(() => {
+        if (Date.now() - lastClickTime > 1000 && clickCombo > 1.0) {
+            clickCombo = Math.max(1.0, clickCombo - 0.2);
+            updateUI();
+        }
+    }, 500);
+
+    window.buyUpgrade = function(id) {
+        const upg = state.upgrades.find(u => u.id === id);
+        if (state.bikes >= upg.cost) {
+            state.bikes -= upg.cost;
+            upg.owned++;
+            if (upg.type !== "special") {
+                upg.power = Math.ceil(upg.power * 1.15); // Csak 15%-os drágulás, így vehetőbb!
+                upg.cost *= 1.15;
+            }
+            recalculateStats();
+            updateUI();
+            window.saveUserProgress();
+        }
+    };
+
+    window.buyExtraUpgrade = function(id) {
+        const ext = extraUpgradesData.find(e => e.id === id);
+        if (state.bikes >= ext.cost) {
+            state.bikes -= ext.cost;
+            state.realUpgrades.push({ id: id });
+            showToast(`✨ Új Fejlesztés: ${ext.name}!`);
+            recalculateStats();
+            updateUI();
+            window.saveUserProgress();
+        }
+    };
+
+    window.prestige = function() {
+        const gain = Math.floor(state.lifetimeBikes / 1000000);
+        if (gain > 0 && confirm(`Biztosan újraszületel?\nElveszítesz minden biciklit és épületet, de kapsz ${gain} Arany Küllőt (összesen +${gain}% BPS örökre)!`)) {
+            state.goldenSpokes += gain;
+            state.bikes = 0;
+            state.lifetimeBikes = 0;
+            state.upgrades.forEach(u => { u.owned = 0; u.cost = defaultUpgrades[u.id].cost; u.power = defaultUpgrades[u.id].power; });
+            state.realUpgrades = [];
+            window.saveUserProgress();
+            location.reload();
+        }
+    };
+
     window.catchGoldenBike = function() {
         multiplier = 7;
         document.getElementById('golden-bike').style.display = 'none';
+        document.getElementById('multiplier-info').innerText = "✨ 7x SZORZÓ AKTÍV! ✨";
+        document.getElementById('multiplier-info').style.color = "var(--gold)";
         document.getElementById('multiplier-info').style.display = 'block';
-        
-        setTimeout(() => {
-            multiplier = 1;
-            document.getElementById('multiplier-info').style.display = 'none';
-        }, 10000);
+        setTimeout(() => { if(multiplier === 7) { multiplier = 1; document.getElementById('multiplier-info').style.display = 'none'; } }, 10000);
+    };
+
+    window.catchThief = function() {
+        const thief = document.getElementById('thief-character');
+        thief.style.display = 'none';
+        thief.classList.remove('thief-walk');
+        thiefActive = false;
+        clearTimeout(thiefTimeout);
+        showToast("👮 Elzavartad a tolvajt! A biciklik biztonságban vannak.");
     };
 
     function spawnGoldenBikeLoop() {
@@ -551,13 +889,42 @@
             const gb = document.getElementById('golden-bike');
             gb.style.top = Math.random() * 50 + 25 + "%";
             gb.style.display = 'block';
-            
-            setTimeout(() => {
-                gb.style.display = 'none';
-            }, 10000);
-            
+            setTimeout(() => { gb.style.display = 'none'; }, 10000);
             spawnGoldenBikeLoop();
         }, Math.random() * 60000 + 30000); 
+    }
+
+    function spawnThiefLoop() {
+        setTimeout(() => {
+            if (!window.currentUser || document.getElementById('game-container').style.display === 'none') { spawnThiefLoop(); return; }
+            const thief = document.getElementById('thief-character');
+            thief.style.display = 'block';
+            thief.classList.add('thief-walk');
+            thiefActive = true;
+            showToast("⚠️ VIGYÁZAT! Egy Álarcos Tolvaj megjelent az úton! Kattints rá, mielőtt lelép!");
+
+            thiefTimeout = setTimeout(() => {
+                if (thiefActive) {
+                    thief.style.display = 'none';
+                    thief.classList.remove('thief-walk');
+                    thiefActive = false;
+                    
+                    const lostBikes = Math.floor(state.bikes * 0.20); 
+                    state.bikes -= lostBikes;
+                    if(state.bikes < 0) state.bikes = 0;
+                    
+                    multiplier = 0.5; 
+                    document.getElementById('multiplier-info').innerText = "⚠️ 0.5x BPS SZORZÓ (Szabotázs!) ⚠️";
+                    document.getElementById('multiplier-info').style.color = "red";
+                    document.getElementById('multiplier-info').style.display = 'block';
+                    
+                    setTimeout(() => { if(multiplier === 0.5) { multiplier = 1; document.getElementById('multiplier-info').style.display = 'none'; } }, 15000);
+                    updateUI();
+                    showToast(`😭 A tolvaj meglépett! Elvitt ${lostBikes.toLocaleString()} 🚲-t és szabotálta a termelést!`);
+                }
+            }, 5000);
+            spawnThiefLoop();
+        }, Math.random() * 60000 + 40000);
     }
 
     function createParticle(x, y) {
@@ -571,71 +938,11 @@
         setTimeout(() => p.remove(), 800);
     }
 
-    window.buyUpgrade = function(id) {
-        const upg = state.upgrades.find(u => u.id === id);
-        if (state.bikes >= upg.cost) {
-            state.bikes -= upg.cost;
-            
-            if (upg.type === "click") state.clickPower += upg.power;
-            if (upg.type === "bps") state.bps += upg.power;
-
-            upg.owned++;
-            if (upg.type !== "special") {
-                upg.power = Math.ceil(upg.power * 1.1); 
-                upg.cost *= 1.25;
-            }
-
-            updateUI();
-            window.saveUserProgress();
-        }
-    };
-
-    function initShopUI() {
-        const list = document.getElementById('upgrade-list');
-        list.innerHTML = "";
-        state.upgrades.forEach(upg => {
-            const div = document.createElement('div');
-            div.className = 'upgrade-item disabled';
-            div.onclick = () => window.buyUpgrade(upg.id);
-            div.innerHTML = `
-                <div class="upgrade-icon">${upg.icon}</div>
-                <div class="upgrade-info">
-                    <span class="upgrade-name">${upg.name}</span>
-                    <span class="upgrade-desc">${upg.desc}</span>
-                    <span class="upgrade-cost">${Math.floor(upg.cost).toLocaleString()} 🚲</span>
-                </div>
-                <div class="upgrade-owned">0</div>
-            `;
-            list.appendChild(div);
-        });
-    }
-
-    // --- ADMIN FUNKCIÓK ---
-
-    window.adminAddBikes = function() {
-        const val = document.getElementById('admin-bike-amount').value;
-        const amount = parseInt(val);
-        if(!isNaN(amount)) {
-            state.bikes += amount;
-            updateUI();
-            window.saveUserProgress();
-            document.getElementById('admin-bike-amount').value = "";
-        }
-    };
-
-    window.resetLeaderboard = function() {
-        if (confirm("BIZTOSAN törlöd a teljes rangsort?")) {
-            set(ref(db, 'users/'), null).then(() => {
-                alert("Rangsor törölve!");
-            });
-        }
-    };
-
-    // --- LOOP ÉS EVENTEK ---
-
     function gameLoop() {
         setInterval(() => {
-            state.bikes += ((state.bps * multiplier) / 10);
+            let gained = ((state.bps * multiplier) / 10);
+            state.bikes += gained;
+            state.lifetimeBikes += gained;
             updateUI();
         }, 100);
         setInterval(window.saveUserProgress, 5000);
@@ -648,20 +955,24 @@
         }
     });
 
-    document.getElementById('username-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') window.login();
-    });
+    document.getElementById('username-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') window.login(); });
 
-    // ==========================================
-    // --- ÚJ FUNKCIÓK ---
-    // ==========================================
+    window.adminAddBikes = function() {
+        const val = parseInt(document.getElementById('admin-bike-amount').value);
+        if(!isNaN(val)) { state.bikes += val; state.lifetimeBikes += val; updateUI(); window.saveUserProgress(); }
+    };
+    window.resetLeaderboard = function() {
+        if (confirm("BIZTOSAN törlöd a teljes rangsort?")) set(ref(db, 'users/'), null).then(() => alert("Rangsor törölve!"));
+    };
+
+    // --- ACHIEVEMENTS ÉS FELHŐ ---
 
     const achievements = [
-        { threshold: 100, name: "Kezdő Tekerő", reward: 50, done: false },
-        { threshold: 1000, name: "Bicikli Mániás", reward: 500, done: false },
-        { threshold: 10000, name: "Birodalom Építő", reward: 5000, done: false },
-        { threshold: 100000, name: "Mester Vállalkozó", reward: 50000, done: false },
-        { threshold: 1000000, name: "Sajtos Martin Maga", reward: 500000, done: false }
+        { threshold: 100, name: "Kezdő cigany", reward: 50, done: false },
+        { threshold: 1000, name: "Bicikli Mániás cigany", reward: 500, done: false },
+        { threshold: 10000, name: "Kötekedős cigány", reward: 5000, done: false },
+        { threshold: 100000, name: "Drogista", reward: 50000, done: false },
+        { threshold: 1000000, name: "Properrer hajlító", reward: 500000, done: false }
     ];
 
     function showToast(text) {
@@ -675,62 +986,45 @@
 
     function loadAchievements() {
         const savedAchs = localStorage.getItem(`martinGame_achs_${window.currentUser}`);
-        if(savedAchs) {
-            const parsed = JSON.parse(savedAchs);
-            achievements.forEach((ach, index) => ach.done = parsed[index]);
-        }
+        if(savedAchs) JSON.parse(savedAchs).forEach((done, i) => achievements[i].done = done);
     }
 
     setInterval(() => {
         if (!window.currentUser || document.getElementById('game-container').style.display === 'none') return;
-        
         let changed = false;
         achievements.forEach(ach => {
-            if (state.bikes >= ach.threshold && !ach.done) {
-                ach.done = true;
-                changed = true;
-                state.bikes += ach.reward; 
+            if (state.lifetimeBikes >= ach.threshold && !ach.done) {
+                ach.done = true; changed = true;
+                state.bikes += ach.reward; state.lifetimeBikes += ach.reward;
                 showToast(`🏆 SIKER ELÉRVE: ${ach.name}!\n🎁 Jutalom: +${ach.reward.toLocaleString()} 🚲`);
             }
         });
-
-        if(changed) {
-            localStorage.setItem(`martinGame_achs_${window.currentUser}`, JSON.stringify(achievements.map(a => a.done)));
-        }
+        if(changed) localStorage.setItem(`martinGame_achs_${window.currentUser}`, JSON.stringify(achievements.map(a => a.done)));
     }, 1000);
 
     function spawnMagicCloud() {
         if (!window.currentUser || document.getElementById('game-container').style.display === 'none') return;
-        
         const cloud = document.createElement('div');
         cloud.className = 'magic-cloud';
         cloud.innerText = '☁️';
-        
-        const size = Math.random() * 30 + 40; 
-        cloud.style.fontSize = size + 'px';
+        cloud.style.fontSize = (Math.random() * 30 + 40) + 'px';
         cloud.style.top = (Math.random() * 30 + 5) + '%'; 
-        
         const duration = Math.random() * 10 + 15; 
         cloud.style.animationDuration = duration + 's';
         
         cloud.onclick = function(e) {
             const bonus = Math.max(100, Math.floor(state.bps * 10)); 
-            state.bikes += bonus;
+            state.bikes += bonus; state.lifetimeBikes += bonus;
             createParticle(e.clientX, e.clientY);
             showToast(`☁️ Elkaptál egy felhőt!\n🎁 +${bonus.toLocaleString()} 🚲`);
             cloud.remove();
         };
-        
         document.getElementById('game-world').appendChild(cloud);
-        
         setTimeout(() => { if(cloud.parentElement) cloud.remove(); }, duration * 1000);
     }
 
     function cloudLoop() {
-        setTimeout(() => {
-            spawnMagicCloud();
-            cloudLoop();
-        }, Math.random() * 20000 + 20000);
+        setTimeout(() => { spawnMagicCloud(); cloudLoop(); }, Math.random() * 20000 + 20000);
     }
     cloudLoop(); 
 </script>
