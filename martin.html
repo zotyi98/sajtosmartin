@@ -13,6 +13,7 @@
             --gold: #ffc107;
             --silver: #e0e0e0;
             --bronze: #cd7f32;
+            --rust: #8d6e63;
         }
 
         body {
@@ -25,348 +26,92 @@
             user-select: none;
         }
 
-        /* --- HÍRSÁV --- */
-        #news-ticker-container {
-            position: absolute;
-            top: 0;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            font-weight: bold;
-            padding: 5px 0;
-            z-index: 500;
-            overflow: hidden;
-            white-space: nowrap;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
-        #news-ticker-text {
-            display: inline-block;
-            padding-left: 100%;
-            animation: tickerScroll 20s linear infinite;
-        }
-        @keyframes tickerScroll {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(-100%, 0); }
-        }
+        /* --- HÍRSÁV ÉS SZEZON --- */
+        #top-bar-container { position: absolute; top: 0; width: 100%; z-index: 500;}
+        #news-ticker-container { background: rgba(0, 0, 0, 0.8); color: white; font-weight: bold; padding: 5px 0; overflow: hidden; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        #news-ticker-text { display: inline-block; padding-left: 100%; animation: tickerScroll 20s linear infinite; }
+        @keyframes tickerScroll { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+        #season-banner { background: #ff9800; color: white; text-align: center; font-size: 12px; font-weight: bold; padding: 3px; display: none; }
 
         /* --- RANGLISTA --- */
-        #leaderboard {
-            width: 300px;
-            background: white;
-            border-right: 3px solid var(--primary);
-            display: flex;
-            flex-direction: column;
-            z-index: 20;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-
-        .leaderboard-header { 
-            background: var(--primary); 
-            color: white; 
-            padding: 20px; 
-            text-align: center; 
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-
+        #leaderboard { width: 300px; background: white; border-right: 3px solid var(--primary); display: flex; flex-direction: column; z-index: 20; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .leaderboard-header { background: var(--primary); color: white; padding: 20px; text-align: center; font-weight: bold; font-size: 1.2em; }
         .leaderboard-list { flex: 1; overflow-y: auto; padding: 10px; background: #fafafa; }
-
-        .leader-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 10px;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-            background: white;
-            border-radius: 8px;
-            margin-bottom: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .leader-item.current-user { 
-            background: #fff9c4; 
-            font-weight: bold; 
-            border: 1px solid var(--accent);
-        }
-
-        /* TOP 3 Kiemelés */
+        .leader-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid #eee; font-size: 14px; background: white; border-radius: 8px; margin-bottom: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .leader-item.current-user { background: #fff9c4; font-weight: bold; border: 1px solid var(--accent); }
         .rank-0 { border-left: 5px solid var(--gold); font-weight: bold; font-size: 15px;}
         .rank-1 { border-left: 5px solid var(--silver); font-weight: bold;}
         .rank-2 { border-left: 5px solid var(--bronze); font-weight: bold;}
         .rank-badge { font-size: 18px; margin-right: 5px; }
 
-        /* --- LOGIN KÉPERNYŐ --- */
-        #login-screen {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            width: 320px;
-        }
-
-        input[type="text"], input[type="number"] {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-
-        .btn-login {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            width: 100%;
-            font-size: 16px;
-        }
+        /* --- LOGIN ÉS MODÁLIS ABLAKOK --- */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-box { background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 320px; position: relative;}
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 20px; cursor: pointer; color: #888; }
+        input[type="text"], input[type="number"] { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; }
+        
+        /* Kocsma gombok */
+        .gamble-btn-red { background: #d32f2f; color: white; border: none; padding: 10px; cursor: pointer; font-weight: bold; width: 45%; border-radius: 5px;}
+        .gamble-btn-black { background: #212121; color: white; border: none; padding: 10px; cursor: pointer; font-weight: bold; width: 45%; border-radius: 5px;}
 
         /* --- JÁTÉK FELÜLET --- */
-        #game-container {
-            display: none;
-            flex: 1;
-            width: 100%;
-            margin-top: 30px; 
-        }
+        #game-container { display: none; flex: 1; width: 100%; margin-top: 50px; }
+        #game-world { flex: 1; position: relative; background: linear-gradient(to bottom, #81d4fa 60%, #7cb342 60%); display: flex; flex-direction: column; align-items: center; }
 
-        #game-world {
-            flex: 1;
-            position: relative;
-            background: linear-gradient(to bottom, #81d4fa 60%, #7cb342 60%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        .user-tag { position: absolute; top: 10px; left: 10px; background: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; border: 2px solid var(--primary); z-index: 10; }
+        
+        #inventory-tag { position: absolute; top: 50px; left: 10px; background: rgba(255,255,255,0.9); padding: 5px 15px; border-radius: 10px; font-size: 12px; font-weight: bold; border: 2px solid #ccc; z-index: 10; }
 
-        .user-tag {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            border: 2px solid var(--primary);
-            z-index: 10;
-        }
+        #motivation-banner { position: absolute; top: 90px; left: 10px; background: rgba(255, 255, 255, 0.95); padding: 10px 20px; border-radius: 10px; border: 3px solid var(--love); color: var(--love); font-weight: bold; font-size: 16px; display: none; animation: bounce 2s infinite; z-index: 100; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 
-        #motivation-banner {
-            position: absolute;
-            top: 60px;
-            left: 10px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 10px 20px;
-            border-radius: 10px;
-            border: 3px solid var(--love);
-            color: var(--love);
-            font-weight: bold;
-            font-size: 16px;
-            display: none;
-            animation: bounce 2s infinite;
-            z-index: 100;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-        }
-
-        .stats-overlay {
-            margin-top: 30px;
-            background: white;
-            padding: 15px 40px;
-            border-radius: 50px;
-            text-align: center;
-            border: 3px solid var(--primary);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            z-index: 10;
-        }
-
+        .stats-overlay { margin-top: 30px; background: white; padding: 15px 40px; border-radius: 50px; text-align: center; border: 3px solid var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 10; }
         #bike-count { font-size: 40px; font-weight: bold; color: var(--primary); display: block; }
         #bps-count { font-size: 14px; color: #666; display: block; }
         #prestige-count { font-size: 16px; font-weight: bold; color: var(--gold); display: none; margin-top: 5px; }
         #multiplier-info { color: var(--love); font-weight: bold; display: none; font-size: 18px; margin-top: 5px; }
 
         /* --- KOMBÓ SÁV --- */
-        #combo-container {
-            margin-top: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            color: #d32f2f;
-            display: none;
-            transition: transform 0.1s;
-        }
+        #combo-container { margin-top: 10px; font-size: 16px; font-weight: bold; color: #d32f2f; display: none; transition: transform 0.1s; }
         #combo-bar-bg { width: 150px; height: 10px; background: #ddd; border-radius: 5px; margin: 5px auto 0; overflow: hidden; }
         #combo-bar-fill { width: 0%; height: 100%; background: #d32f2f; transition: width 0.1s; }
 
-        #martin-character {
-            width: 180px; 
-            height: 180px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 6px solid white;
-            position: absolute;
-            bottom: 115px;
-            cursor: pointer;
-            transition: transform 0.05s;
-            z-index: 50; 
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
-        }
-
+        #martin-character { width: 180px; height: 180px; object-fit: cover; border-radius: 50%; border: 6px solid white; position: absolute; bottom: 115px; cursor: pointer; transition: transform 0.05s; z-index: 50; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3)); }
         #martin-character:active { transform: scale(0.90); }
 
-        /* --- LEBEGŐ SZÁMOK --- */
-        .floating-number {
-            position: absolute;
-            color: white;
-            font-weight: bold;
-            font-size: 26px;
-            pointer-events: none;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-            animation: floatUp 1s ease-out forwards;
-            z-index: 1000;
-        }
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
-        }
+        .floating-number { position: absolute; color: white; font-weight: bold; font-size: 26px; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.8); animation: floatUp 1s ease-out forwards; z-index: 1000; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-80px) scale(1.5); opacity: 0; } }
 
-        /* --- ARANY BICIKLI --- */
-        #golden-bike {
-            position: absolute;
-            width: 80px;
-            height: 80px;
-            font-size: 50px;
-            cursor: pointer;
-            z-index: 100;
-            display: none;
-            filter: drop-shadow(0 0 15px gold);
-            animation: goldenFloat 10s linear forwards;
-        }
+        /* --- EVENT OBJEKTUMOK --- */
+        .event-bike { position: absolute; width: 80px; height: 80px; font-size: 50px; cursor: pointer; z-index: 100; display: none; animation: goldenFloat 10s linear forwards; }
+        #golden-bike { filter: drop-shadow(0 0 15px gold); }
+        #rusty-bike { filter: sepia(1) saturate(3) hue-rotate(-50deg) drop-shadow(0 0 10px var(--rust)); }
+        @keyframes goldenFloat { 0% { left: -100px; transform: rotate(0deg); } 100% { left: 110vw; transform: rotate(360deg); } }
 
-        @keyframes goldenFloat {
-            0% { left: -100px; transform: rotate(0deg); }
-            100% { left: 110vw; transform: rotate(360deg); }
-        }
-
-        .road {
-            position: absolute;
-            bottom: 60px;
-            width: 100%;
-            height: 120px;
-            background: #444;
-            display: flex;
-            align-items: center;
-            z-index: 1;
-        }
-
-        .road-line {
-            width: 100%;
-            height: 6px;
-            background-image: linear-gradient(to right, white 50%, transparent 50%);
-            background-size: 80px 100%;
-            animation: roadMove 0.5s linear infinite;
-        }
-
-        @keyframes roadMove { from { background-position: 0 0; } to { background-position: -80px 0; } }
-
-        /* --- TOLVAJ MECHANIKA --- */
-        #thief-character {
-            position: absolute;
-            bottom: 80px;
-            left: -100px;
-            font-size: 60px;
-            cursor: pointer;
-            z-index: 101;
-            display: none;
-            transition: transform 0.1s;
-        }
-        
+        #thief-character { position: absolute; bottom: 80px; left: -100px; font-size: 60px; cursor: pointer; z-index: 101; display: none; transition: transform 0.1s; }
         #thief-character:active { transform: scale(0.8); }
         .thief-walk { animation: walkAcrossThief 5s linear forwards; }
         @keyframes walkAcrossThief { 0% { left: -100px; } 100% { left: 110vw; } }
 
+        .road { position: absolute; bottom: 60px; width: 100%; height: 120px; background: #444; display: flex; align-items: center; z-index: 1; }
+        .road-line { width: 100%; height: 6px; background-image: linear-gradient(to right, white 50%, transparent 50%); background-size: 80px 100%; animation: roadMove 0.5s linear infinite; }
+        @keyframes roadMove { from { background-position: 0 0; } to { background-position: -80px 0; } }
+
         /* --- BOLT --- */
-        #shop {
-            width: 380px;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
-            z-index: 20;
-            overflow: hidden;
-        }
-
+        #shop { width: 380px; background: white; display: flex; flex-direction: column; box-shadow: -5px 0 15px rgba(0,0,0,0.2); z-index: 20; overflow: hidden; }
         .shop-header { background: var(--primary); color: white; padding: 20px; text-align: center; font-weight: bold; }
-        
-        .shop-section-title {
-            background: #eee;
-            padding: 8px 15px;
-            font-weight: bold;
-            font-size: 14px;
-            border-bottom: 2px solid #ddd;
-            border-top: 2px solid #ddd;
-        }
+        .shop-section-title { background: #eee; padding: 8px 15px; font-weight: bold; font-size: 14px; border-bottom: 2px solid #ddd; border-top: 2px solid #ddd; }
 
-        #extra-upgrades-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding: 10px;
-            background: #fdfdfd;
-            max-height: 160px;
-            overflow-y: auto;
-        }
-
-        .extra-upgrade-item {
-            flex: 1 1 45%;
-            background: white;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            padding: 8px;
-            text-align: center;
-            cursor: pointer;
-            font-size: 12px;
-            transition: 0.2s;
-        }
-
+        #extra-upgrades-list { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; background: #fdfdfd; max-height: 160px; overflow-y: auto; }
+        .extra-upgrade-item { flex: 1 1 45%; background: white; border: 2px solid #ccc; border-radius: 8px; padding: 8px; text-align: center; cursor: pointer; font-size: 12px; transition: 0.2s; }
         .extra-upgrade-item.affordable { border-color: var(--gold); background: #fffde7; }
         .extra-upgrade-item.disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
 
         .upgrade-list { flex: 1; overflow-y: auto; padding: 15px; background: #f5f5f5; }
-
-        .upgrade-item {
-            background: white;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: 0.2s;
-        }
-
+        .upgrade-item { background: white; padding: 12px; margin-bottom: 10px; border-radius: 10px; display: flex; align-items: center; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
         .upgrade-item.affordable { border-color: #8bc34a; background: #f1f8e9; }
         .upgrade-item.disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
-
         .upgrade-icon { font-size: 30px; margin-right: 15px; }
         .upgrade-info { flex: 1; }
         .upgrade-name { font-weight: bold; display: block; }
@@ -374,76 +119,138 @@
         .upgrade-cost { color: #d32f2f; font-weight: bold; font-size: 14px; }
         .upgrade-owned { font-size: 20px; font-weight: bold; color: #ccc; margin-left: 10px; }
 
-        .particle {
-            position: absolute;
-            pointer-events: none;
-            animation: particleFly 0.8s ease-out forwards;
-            font-size: 24px;
-            z-index: 100;
-        }
+        .particle { position: absolute; pointer-events: none; animation: particleFly 0.8s ease-out forwards; font-size: 24px; z-index: 100; }
+        @keyframes particleFly { 0% { transform: translate(0,0); opacity: 1; } 100% { transform: translate(var(--x), var(--y)); opacity: 0; } }
 
-        @keyframes particleFly {
-            0% { transform: translate(0,0); opacity: 1; }
-            100% { transform: translate(var(--x), var(--y)); opacity: 0; }
-        }
-
-        #btn-prestige {
-            background: var(--gold);
-            color: #333;
-            border: none;
-            padding: 15px;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            text-transform: uppercase;
-            animation: pulsePrestige 2s infinite;
-        }
+        .shop-btn-row { display: flex; }
+        .shop-btn-row button { flex: 1; padding: 15px; font-weight: bold; cursor: pointer; border: none; border-top: 2px solid #ddd;}
+        #btn-kocsma { background: #ff9800; color: white; }
+        #btn-prestige-shop { background: #9c27b0; color: white; }
+        
+        #btn-prestige { background: var(--gold); color: #333; border: none; padding: 15px; font-weight: bold; font-size: 16px; cursor: pointer; text-transform: uppercase; animation: pulsePrestige 2s infinite; }
         @keyframes pulsePrestige { 0%, 100% { background: var(--gold); } 50% { background: #fff59d; } }
 
         .btn-logout { padding: 10px; background: #eee; border: none; cursor: pointer; font-size: 12px; font-weight: bold; border-top: 1px solid #ddd;}
         .btn-logout:hover { background: #ddd; }
 
-        /* --- ÚJ FUNKCIÓK STÍLUSAI --- */
-        #achievement-container {
-            position: fixed; top: 40px; right: 20px; z-index: 9999;
-            display: flex; flex-direction: column; gap: 10px; pointer-events: none;
-        }
-
-        .achievement-toast {
-            background: white; border-left: 5px solid var(--gold);
-            padding: 15px 20px; border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            animation: slideIn 0.5s forwards, fadeOut 0.5s 4.5s forwards;
-            font-weight: bold; font-size: 14px; color: #333; white-space: pre-line;
-        }
-
+        /* --- ACHIEVEMENTS --- */
+        #achievement-container { position: fixed; top: 60px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .achievement-toast { background: white; border-left: 5px solid var(--gold); padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); animation: slideIn 0.5s forwards, fadeOut 0.5s 4.5s forwards; font-weight: bold; font-size: 14px; color: #333; white-space: pre-line; }
         @keyframes slideIn { from { transform: translateX(120%); } to { transform: translateX(0); } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 
-        .magic-cloud {
-            position: absolute; cursor: pointer; user-select: none; z-index: 5;
-            animation: cloudFloat linear forwards; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));
-            transition: transform 0.1s;
-        }
-
+        .magic-cloud { position: absolute; cursor: pointer; user-select: none; z-index: 5; animation: cloudFloat linear forwards; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1)); transition: transform 0.1s; }
         .magic-cloud:active { transform: scale(0.9); }
         @keyframes cloudFloat { from { left: -100px; } to { left: 100%; } }
+        
+        /* Presztízs képesség lista */
+        .skill-item { background: #f3e5f5; border: 1px solid #9c27b0; margin-bottom: 10px; padding: 10px; border-radius: 8px; text-align: left;}
+        .skill-item button { float: right; background: #9c27b0; color: white; border: none; border-radius: 5px; cursor: pointer; padding: 5px 10px;}
+        .skill-item button:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* =========================================================
+           MOBIL OPTIMALIZÁLÁS (Reszponzív Dizájn)
+           Ettől lesz telefonon is tökéletes az elrendezés!
+        ========================================================= */
+        @media (max-width: 900px) {
+            body { 
+                display: block; 
+                overflow-y: auto; /* Telefonon lehessen görgetni */
+                height: auto; 
+            }
+            #top-bar-container { 
+                position: fixed; 
+                z-index: 1000; 
+            }
+            #game-container { 
+                flex-direction: column; 
+                display: flex; 
+                margin-top: 45px; 
+            }
+            
+            /* Elemek sorrendjének módosítása mobilon */
+            #game-world { 
+                order: 1; /* Legfelül a játék (Martin) */
+                width: 100%; 
+                height: 65vh; 
+                min-height: 450px; 
+                flex: none; 
+                border-bottom: 3px solid var(--primary);
+            }
+            #shop { 
+                order: 2; /* Középen a bolt */
+                width: 100%; 
+                flex: none; 
+                box-shadow: none; 
+            }
+            #leaderboard { 
+                order: 3; /* Legalul a ranglista */
+                width: 100%; 
+                height: 350px; 
+                border-right: none; 
+            }
+            
+            /* Kisebb méretek a telefonos kijelzőhöz */
+            .modal-box { width: 90%; padding: 30px 20px; }
+            #martin-character { width: 140px; height: 140px; bottom: 100px; }
+            .stats-overlay { margin-top: 15px; padding: 10px 20px; border-radius: 30px; border-width: 2px;}
+            #bike-count { font-size: 32px; }
+            .road { height: 90px; bottom: 30px; }
+            
+            /* Címkék és feliratok igazítása */
+            .user-tag { top: 10px; left: 5px; font-size: 12px; }
+            #inventory-tag { top: 40px; left: 5px; font-size: 11px; }
+            #motivation-banner { top: 75px; left: 5px; font-size: 12px; padding: 5px 10px; }
+            
+            #achievement-container { top: 50px; right: 10px; left: 10px; align-items: flex-end; }
+            #admin-panel { bottom: auto; top: 100px; right: 5px; }
+        }
     </style>
 </head>
 <body>
 
-    <div id="news-ticker-container">
-        <span id="news-ticker-text">Hírek: Martin épp most nyitotta meg élete első bicikliszerelő műhelyét! Tarts vele!</span>
+    <div id="top-bar-container">
+        <div id="news-ticker-container">
+            <span id="news-ticker-text">Hírek: Martin épp most nyitotta meg élete első bicikliszerelő műhelyét! Tarts vele!</span>
+        </div>
+        <div id="season-banner">Napszak / Szezon infó</div>
     </div>
 
     <div id="achievement-container"></div>
 
-    <div id="login-screen">
-        <div class="login-box">
+    <!-- BELÉPÉS MODAL -->
+    <div id="login-screen" class="modal-overlay" style="display: flex;">
+        <div class="modal-box">
             <h1>🚲 Bicikli Birodalom</h1>
             <p>Add meg a neved a belépéshez!</p>
             <input type="text" id="username-input" placeholder="Felhasználónév..." maxlength="12">
-            <button class="btn-login" onclick="window.login()">BELÉPÉS</button>
+            <button class="btn-primary" onclick="window.login()">BELÉPÉS</button>
+        </div>
+    </div>
+
+    <!-- KOCSMA MODAL -->
+    <div id="kocsma-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <span class="close-btn" onclick="document.getElementById('kocsma-modal').style.display='none'">&times;</span>
+            <h2>🍻 A Kocsma 🍻</h2>
+            <p>Tedd fel a biciklijeidet! 50% esély a duplázásra, 50% esély, hogy mindet elbukod.</p>
+            <input type="number" id="gamble-amount" placeholder="Tét (bicikli)">
+            <div style="display:flex; justify-content: space-between;">
+                <button class="gamble-btn-red" onclick="window.gamble()">Piros</button>
+                <button class="gamble-btn-black" onclick="window.gamble()">Fekete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRESZTÍZS BOLT MODAL -->
+    <div id="prestige-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-box" style="width: 400px; max-width: 90%;">
+            <span class="close-btn" onclick="document.getElementById('prestige-modal').style.display='none'">&times;</span>
+            <h2>🌟 Presztízs Képességek</h2>
+            <p>Elkölthető Arany Küllők: <strong id="modal-kullok" style="color:var(--gold)">0</strong></p>
+            <div id="skill-list-container" style="max-height: 300px; overflow-y:auto;">
+                <!-- Ide jönnek a skillek -->
+            </div>
         </div>
     </div>
 
@@ -456,9 +263,13 @@
         </div>
 
         <div id="game-world">
-            <div id="golden-bike" onclick="window.catchGoldenBike()">🚲</div>
+            <div id="golden-bike" class="event-bike" onclick="window.catchGoldenBike()">🚲</div>
+            <div id="rusty-bike" class="event-bike" onclick="window.catchRustyBike()">🚲</div>
             <div id="thief-character" onclick="window.catchThief()">🦹‍♂️</div>
+            
             <div class="user-tag">👤 <span id="current-user-display">Martin</span></div>
+            <div id="inventory-tag">🎒 Felszerelés: <span id="inventory-list" style="color:#666; font-weight:normal;">Üres</span></div>
+            
             <div id="motivation-banner">💖 gyerünk martin eszter nagyon szurkol neked 💖</div>
             
             <div class="stats-overlay">
@@ -486,6 +297,10 @@
             <div class="shop-section-title">🏢 Épületek</div>
             <div class="upgrade-list" id="upgrade-list"></div>
             
+            <div class="shop-btn-row">
+                <button id="btn-kocsma" onclick="document.getElementById('kocsma-modal').style.display='flex'">🎰 Kocsma</button>
+                <button id="btn-prestige-shop" onclick="window.openPrestigeShop()">🌟 Képességek</button>
+            </div>
             <button id="btn-prestige" onclick="window.prestige()" style="display:none;">✨ ÚJRASZÜLETÉS ✨</button>
             <button class="btn-logout" onclick="location.reload()">Kijelentkezés</button>
         </div>
@@ -517,25 +332,38 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // ÉPÜLETEK (Újrabalanszolt árak és BPS)
+    // ÉPÜLETEK (FIXÁLT ÉS BALANSZOLT ÉRTÉKEK)
     const defaultUpgrades = [
-        { id: 0, icon: "👟", name: "Nyúlcipő", desc: "+1 pont kattintásonként", cost: 15, power: 1, type: "click", owned: 0 },
-        { id: 1, icon: "🥤", name: "Energiaital", desc: "+1 pont / mp", cost: 150, power: 1, type: "bps", owned: 0 },
-        { id: 2, icon: "🚴", name: "Segédmunkás", desc: "+5 pont / mp", cost: 1200, power: 5, type: "bps", owned: 0 },
-        { id: 3, icon: "🛠️", name: "Gépkifújós komp.", desc: "+30 pont / mp", cost: 14000, power: 30, type: "bps", owned: 0 },
-        { id: 4, icon: "🖥️", name: "Gépújraindító", desc: "+150 pont / mp", cost: 130000, power: 150, type: "bps", owned: 0 },
-        { id: 5, icon: "🌀", name: "Segédpropeller", desc: "+1,000 pont / mp", cost: 1500000, power: 1000, type: "bps", owned: 0 },
-        { id: 6, icon: "🧀", name: "Sajtgyár", desc: "+6,000 pont / mp", cost: 14000000, power: 6000, type: "bps", owned: 0 },
-        { id: 7, icon: "❤️", name: "Eszter támogatása", desc: "DUPLA BPS és Kattintás örökre!", cost: 5000000000, power: 0, type: "special", owned: 0 } // Brutális ár!
+        { id: 0, icon: "👟", name: "Nyúlcipő", desc: "+1 pont katt.", cost: 15, power: 1, type: "click", owned: 0 },
+        { id: 1, icon: "🥤", name: "Energiaital", desc: "+2 pont / mp", cost: 100, power: 2, type: "bps", owned: 0 },
+        { id: 2, icon: "🚴", name: "Segédmunkás", desc: "+10 pont / mp", cost: 1000, power: 10, type: "bps", owned: 0 },
+        { id: 3, icon: "🛠️", name: "Gépkifújós komp.", desc: "+80 pont / mp", cost: 10000, power: 80, type: "bps", owned: 0 },
+        { id: 4, icon: "🖥️", name: "Gépújraindító", desc: "+600 pont / mp", cost: 100000, power: 600, type: "bps", owned: 0 },
+        { id: 5, icon: "🌀", name: "Segédpropeller", desc: "+7,000 pont / mp", cost: 1500000, power: 7000, type: "bps", owned: 0 },
+        { id: 6, icon: "🧀", name: "Sajtgyár", desc: "+90,000 pont / mp", cost: 25000000, power: 90000, type: "bps", owned: 0 },
+        { id: 7, icon: "❤️", name: "Eszter támogatása", desc: "DUPLA BPS és Kattintás!", cost: 10000000000, power: 0, type: "special", owned: 0 }
     ];
 
-    // FEJLESZTÉSEK (Sokkal drágábbak lettek)
+    // FEJLESZTÉSEK
     const extraUpgradesData = [
-        { id: 101, name: "Könnyített Cípőfűző", desc: "Nyúlcipők x2 BPS", cost: 5000, reqBuilding: 0, reqCount: 10, targetId: 0, mult: 2 },
+        { id: 101, name: "Könnyített Cípőfűző", desc: "Nyúlcipők x2 Erő", cost: 5000, reqBuilding: 0, reqCount: 10, targetId: 0, mult: 2 },
         { id: 102, name: "Koffein Túladagolás", desc: "Energiaitalok x3 BPS", cost: 25000, reqBuilding: 1, reqCount: 10, targetId: 1, mult: 3 },
         { id: 103, name: "Olajozott Láncok", desc: "Segédmunkások x2 BPS", cost: 150000, reqBuilding: 2, reqCount: 10, targetId: 2, mult: 2 },
         { id: 104, name: "Sajtos Munkások", desc: "Szinergia: Minden Sajtgyár +100 BPS-t ad a Segédmunkásoknak!", cost: 50000000, reqBuilding: 6, reqCount: 1, type: "synergy" }
     ];
+
+    // PRESZTÍZS SKILLEK
+    const prestigeSkillsData = [
+        { id: 201, name: "Lefizetett Rendőrség", desc: "A tolvaj fele olyan sűrűn jön.", cost: 2 },
+        { id: 202, name: "Szerencsés Kéz", desc: "Az Arany/Rozsdás biciklik kétszer sűrűbben jönnek.", cost: 3 },
+        { id: 203, name: "Eszter Titka", desc: "Eszter támogatása 20%-kal olcsóbb lesz.", cost: 5 }
+    ];
+
+    // RPG TÁRGYAK
+    const rpgItems = {
+        'helmet': { name: 'Sajtos Sisak', icon: '🧀', desc: 'A kombó lassabban esik' },
+        'chain': { name: 'Titánium Lánc', icon: '⛓️', desc: 'Alap kattintás +50' }
+    };
 
     window.currentUser = "";
     let state = { 
@@ -546,7 +374,9 @@
         bps: 0, 
         lastSaved: Date.now(),
         upgrades: [],
-        realUpgrades: [] 
+        realUpgrades: [],
+        prestigeSkills: [],
+        inventory: []
     };
     
     let multiplier = 1;
@@ -556,8 +386,13 @@
     // KOMBÓ VÁLTOZÓK
     let clickCombo = 1.0;
     let lastClickTime = 0;
+    
+    // SZEZON VÁLTOZÓK
+    let seasonBpsMult = 1;
+    let seasonClickMult = 1;
+    let isNightMode = false;
 
-    // A Te Hírsávod
+    // Hírsáv
     const newsItems = [
         "Martin szerint a dorogosok másnéven DROGISTÁK",
         "Elvileg Esztert azóta is bántja az a sok csúnya üzenet Martintól",
@@ -578,6 +413,7 @@
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('game-container').style.display = 'flex';
         
+        checkSeasons();
         initShopUI(); 
         loadUserProgress();
         initLeaderboard();
@@ -587,7 +423,30 @@
         loadAchievements(); 
     };
 
-    // RANG KALKULÁTOR
+    function checkSeasons() {
+        const d = new Date();
+        const day = d.getDay();
+        const hour = d.getHours();
+        let sTxt = "";
+        
+        seasonBpsMult = 1; seasonClickMult = 1; isNightMode = false;
+
+        if(day === 0) { seasonBpsMult = 1.1; sTxt += "☀️ Vasárnapi Pihenő (+10% BPS) "; }
+        if(day === 5) { seasonClickMult = 1.2; sTxt += "🔥 Pénteki Őrület (+20% Kattintás) "; }
+        
+        if(hour >= 20 || hour < 6) {
+            isNightMode = true;
+            sTxt += "🌙 Éjszakai Műszak (Tolvajok 2x, Felhők 2x) ";
+            document.getElementById('game-world').style.background = "linear-gradient(to bottom, #1a237e 60%, #1b5e20 60%)";
+        }
+
+        if(sTxt !== "") {
+            const banner = document.getElementById('season-banner');
+            banner.innerText = sTxt;
+            banner.style.display = 'block';
+        }
+    }
+
     function getRankEmoji(bps) {
         if(bps > 1000000) return "👑";
         if(bps > 10000) return "💎";
@@ -662,6 +521,8 @@
             state.lifetimeBikes = parsed.lifetimeBikes || parsed.bikes || 0;
             state.goldenSpokes = parsed.goldenSpokes || 0;
             state.realUpgrades = parsed.realUpgrades || [];
+            state.prestigeSkills = parsed.prestigeSkills || [];
+            state.inventory = parsed.inventory || [];
             
             if (parsed.upgrades) {
                 state.upgrades.forEach(u => {
@@ -669,7 +530,6 @@
                     if (savedU) {
                         u.owned = savedU.owned;
                         u.cost = savedU.cost;
-                        u.power = savedU.power || u.power;
                     }
                 });
             }
@@ -687,12 +547,38 @@
                 }
             }
         }
+        
+        updateInventoryUI();
         recalculateStats();
         updateUI();
     }
 
+    function updateInventoryUI() {
+        const invTag = document.getElementById('inventory-list');
+        if(state.inventory.length === 0) {
+            invTag.innerHTML = "Üres";
+        } else {
+            invTag.innerHTML = state.inventory.map(id => rpgItems[id].icon).join(' ');
+        }
+    }
+
+    function dropRPGItem() {
+        const items = Object.keys(rpgItems);
+        const unowned = items.filter(id => !state.inventory.includes(id));
+        if(unowned.length > 0 && Math.random() < 0.1) { 
+            const droppedId = unowned[Math.floor(Math.random() * unowned.length)];
+            state.inventory.push(droppedId);
+            showToast(`🎒 ÚJ FELSZERELÉS TALÁLVA!\n${rpgItems[droppedId].icon} ${rpgItems[droppedId].name}\n(${rpgItems[droppedId].desc})`);
+            updateInventoryUI();
+            recalculateStats();
+        }
+    }
+
     function recalculateStats() {
         let b = 0; let c = 1;
+        
+        if(state.inventory.includes('chain')) c += 50;
+
         let sajtCount = state.upgrades.find(u => u.id === 6).owned || 0;
         let hasSajtSynergy = state.realUpgrades.some(ru => ru.id === 104);
 
@@ -705,18 +591,16 @@
             });
             if(u.id === 2 && hasSajtSynergy) { basePower += (100 * sajtCount); }
 
-            for(let i=0; i<u.owned; i++) {
-                let p = (basePower * upgMult) * Math.pow(1.15, i); // ÁTÍRVA 1.15-RE A BALANSZ MIATT!
-                if(u.type === "bps") b += p;
-                if(u.type === "click") c += p;
-            }
+            let p = (basePower * upgMult) * u.owned; 
+            if(u.type === "bps") b += p;
+            if(u.type === "click") c += p;
         });
 
         let prestigeMult = 1 + (state.goldenSpokes * 0.01);
         let eszterMult = state.upgrades.find(u => u.id === 7).owned > 0 ? 2 : 1; 
 
-        state.bps = b * prestigeMult * eszterMult;
-        state.clickPower = c * prestigeMult * eszterMult;
+        state.bps = b * prestigeMult * eszterMult * seasonBpsMult;
+        state.clickPower = c * prestigeMult * eszterMult * seasonClickMult;
     }
 
     function updateUI() {
@@ -729,12 +613,11 @@
             presCountUI.innerText = `✨ Arany Küllők: ${state.goldenSpokes} (+${state.goldenSpokes}%)`;
         }
 
-        // KOMBÓ UI
         const comboContainer = document.getElementById('combo-container');
         if(clickCombo > 1.0) {
             comboContainer.style.display = 'block';
             document.getElementById('combo-text').innerText = clickCombo.toFixed(1);
-            let percent = ((clickCombo - 1) / 2) * 100; // max 3.0
+            let percent = ((clickCombo - 1) / 2) * 100; 
             document.getElementById('combo-bar-fill').style.width = percent + '%';
             if(clickCombo >= 3.0) comboContainer.style.transform = 'scale(1.1)';
             else comboContainer.style.transform = 'scale(1)';
@@ -742,16 +625,21 @@
             comboContainer.style.display = 'none';
         }
 
+        let hasEszterDiscount = state.prestigeSkills.includes(203);
+
         state.upgrades.forEach(upg => {
             const item = document.getElementById(`upg-item-${upg.id}`);
             if (item) {
-                let canAfford = state.bikes >= upg.cost;
+                let actualCost = upg.cost;
+                if(upg.id === 7 && hasEszterDiscount) actualCost *= 0.8;
+
+                let canAfford = state.bikes >= actualCost;
                 item.className = 'upgrade-item ' + (canAfford ? 'affordable' : 'disabled');
                 
                 let descTxt = upg.type !== "special" ? `+${Math.ceil(upg.power).toLocaleString()} pont ${upg.type === 'click' ? 'katt.' : '/ mp'}` : upg.desc;
                 
                 document.getElementById(`upg-desc-${upg.id}`).innerText = descTxt;
-                document.getElementById(`upg-cost-${upg.id}`).innerText = Math.floor(upg.cost).toLocaleString() + " 🚲";
+                document.getElementById(`upg-cost-${upg.id}`).innerText = Math.floor(actualCost).toLocaleString() + " 🚲";
                 document.getElementById(`upg-owned-${upg.id}`).innerText = upg.owned;
                 
                 if (upg.id === 7 && upg.owned > 0) {
@@ -802,14 +690,14 @@
 
     window.clickMartin = function(e) {
         let now = Date.now();
-        if (now - lastClickTime < 800) { // Ha gyorsan kattint
+        if (now - lastClickTime < 800) { 
             clickCombo = Math.min(3.0, clickCombo + 0.1);
         } else {
             clickCombo = 1.0;
         }
         lastClickTime = now;
 
-        let gained = (state.clickPower * multiplier * clickCombo); // Kombó szorzó beépítve!
+        let gained = (state.clickPower * multiplier * clickCombo); 
         state.bikes += gained;
         state.lifetimeBikes += gained;
         
@@ -818,22 +706,24 @@
         updateUI();
     };
 
-    // KOMBÓ VISSZAESÉS (FADE)
     setInterval(() => {
+        let dropRate = state.inventory.includes('helmet') ? 0.1 : 0.2;
         if (Date.now() - lastClickTime > 1000 && clickCombo > 1.0) {
-            clickCombo = Math.max(1.0, clickCombo - 0.2);
+            clickCombo = Math.max(1.0, clickCombo - dropRate);
             updateUI();
         }
     }, 500);
 
     window.buyUpgrade = function(id) {
         const upg = state.upgrades.find(u => u.id === id);
-        if (state.bikes >= upg.cost) {
-            state.bikes -= upg.cost;
+        let actualCost = upg.cost;
+        if(id === 7 && state.prestigeSkills.includes(203)) actualCost *= 0.8;
+
+        if (state.bikes >= actualCost) {
+            state.bikes -= actualCost;
             upg.owned++;
             if (upg.type !== "special") {
-                upg.power = Math.ceil(upg.power * 1.15); // Csak 15%-os drágulás, így vehetőbb!
-                upg.cost *= 1.15;
+                upg.cost *= 1.15; 
             }
             recalculateStats();
             updateUI();
@@ -853,26 +743,96 @@
         }
     };
 
+    // --- KOCSMA ---
+    window.gamble = function() {
+        let amt = parseInt(document.getElementById('gamble-amount').value);
+        if(isNaN(amt) || amt <= 0 || amt > state.bikes) {
+            alert("Nincs ennyi biciklid, vagy hibás összeg!"); return;
+        }
+        let win = Math.random() > 0.5;
+        if(win) {
+            state.bikes += amt;
+            state.lifetimeBikes += amt;
+            showToast(`🎰 NYERTÉL! +${amt.toLocaleString()} 🚲`);
+        } else {
+            state.bikes -= amt;
+            showToast(`🎰 VESZTETTÉL! Elbuktál ${amt.toLocaleString()} 🚲-t.`);
+        }
+        updateUI();
+        window.saveUserProgress();
+    };
+
+    // --- PRESZTÍZS BOLT ---
+    window.openPrestigeShop = function() {
+        document.getElementById('modal-kullok').innerText = state.goldenSpokes;
+        const c = document.getElementById('skill-list-container');
+        c.innerHTML = "";
+        prestigeSkillsData.forEach(sk => {
+            let owned = state.prestigeSkills.includes(sk.id);
+            let aff = state.goldenSpokes >= sk.cost;
+            let div = document.createElement('div');
+            div.className = 'skill-item';
+            div.innerHTML = `
+                <b>${sk.name}</b> <br> <span style="font-size:12px; color:#555;">${sk.desc}</span>
+                ${owned ? '<button disabled>Megvan</button>' : `<button ${aff ? `onclick="window.buySkill(${sk.id})"` : 'disabled'}>${sk.cost} Küllő</button>`}
+            `;
+            c.appendChild(div);
+        });
+        document.getElementById('prestige-modal').style.display = 'flex';
+    };
+
+    window.buySkill = function(id) {
+        let sk = prestigeSkillsData.find(s => s.id === id);
+        if(state.goldenSpokes >= sk.cost && !state.prestigeSkills.includes(id)) {
+            state.goldenSpokes -= sk.cost;
+            state.prestigeSkills.push(id);
+            window.saveUserProgress();
+            window.openPrestigeShop();
+            updateUI();
+        }
+    }
+
     window.prestige = function() {
         const gain = Math.floor(state.lifetimeBikes / 1000000);
-        if (gain > 0 && confirm(`Biztosan újraszületel?\nElveszítesz minden biciklit és épületet, de kapsz ${gain} Arany Küllőt (összesen +${gain}% BPS örökre)!`)) {
+        if (gain > 0 && confirm(`Biztosan újraszületel?\nElveszítesz minden biciklit és épületet, de kapsz ${gain} Arany Küllőt (összesen +${gain}% BPS örökre, és vehetsz belőle skilleket)!`)) {
             state.goldenSpokes += gain;
             state.bikes = 0;
             state.lifetimeBikes = 0;
-            state.upgrades.forEach(u => { u.owned = 0; u.cost = defaultUpgrades[u.id].cost; u.power = defaultUpgrades[u.id].power; });
+            state.upgrades.forEach(u => { u.owned = 0; u.cost = defaultUpgrades[u.id].cost; });
             state.realUpgrades = [];
             window.saveUserProgress();
             location.reload();
         }
     };
 
+    // --- KÜLÖNLEGES BICIKLIK ---
     window.catchGoldenBike = function() {
         multiplier = 7;
         document.getElementById('golden-bike').style.display = 'none';
         document.getElementById('multiplier-info').innerText = "✨ 7x SZORZÓ AKTÍV! ✨";
         document.getElementById('multiplier-info').style.color = "var(--gold)";
         document.getElementById('multiplier-info').style.display = 'block';
+        dropRPGItem();
         setTimeout(() => { if(multiplier === 7) { multiplier = 1; document.getElementById('multiplier-info').style.display = 'none'; } }, 10000);
+    };
+
+    window.catchRustyBike = function() {
+        document.getElementById('rusty-bike').style.display = 'none';
+        if(Math.random() > 0.5) {
+            multiplier = 10;
+            document.getElementById('multiplier-info').innerText = "🔥 10x ROZSDÁS SZORZÓ! 🔥";
+            document.getElementById('multiplier-info').style.color = "var(--rust)";
+            document.getElementById('multiplier-info').style.display = 'block';
+            setTimeout(() => { if(multiplier === 10) { multiplier = 1; document.getElementById('multiplier-info').style.display = 'none'; } }, 10000);
+        } else {
+            multiplier = 0;
+            document.getElementById('multiplier-info').innerText = "💥 DEFEKT! 0 BPS 💥";
+            document.getElementById('multiplier-info').style.color = "red";
+            document.getElementById('multiplier-info').style.display = 'block';
+            showToast("Beleszaladtál egy rozsdás szögbe... 10 másodpercig megállt a termelés!");
+            setTimeout(() => { if(multiplier === 0) { multiplier = 1; document.getElementById('multiplier-info').style.display = 'none'; } }, 10000);
+        }
+        dropRPGItem();
     };
 
     window.catchThief = function() {
@@ -885,16 +845,24 @@
     };
 
     function spawnGoldenBikeLoop() {
+        let baseTime = Math.random() * 60000 + 30000;
+        if(state.prestigeSkills.includes(202)) baseTime *= 0.5; 
+
         setTimeout(() => {
-            const gb = document.getElementById('golden-bike');
-            gb.style.top = Math.random() * 50 + 25 + "%";
-            gb.style.display = 'block';
-            setTimeout(() => { gb.style.display = 'none'; }, 10000);
+            const isRusty = Math.random() < 0.3; 
+            const bike = isRusty ? document.getElementById('rusty-bike') : document.getElementById('golden-bike');
+            bike.style.top = Math.random() * 50 + 25 + "%";
+            bike.style.display = 'block';
+            setTimeout(() => { bike.style.display = 'none'; }, 10000);
             spawnGoldenBikeLoop();
-        }, Math.random() * 60000 + 30000); 
+        }, baseTime); 
     }
 
     function spawnThiefLoop() {
+        let baseTime = Math.random() * 60000 + 40000;
+        if(isNightMode) baseTime *= 0.5;
+        if(state.prestigeSkills.includes(201)) baseTime *= 2; 
+
         setTimeout(() => {
             if (!window.currentUser || document.getElementById('game-container').style.display === 'none') { spawnThiefLoop(); return; }
             const thief = document.getElementById('thief-character');
@@ -913,25 +881,27 @@
                     state.bikes -= lostBikes;
                     if(state.bikes < 0) state.bikes = 0;
                     
+                    let preMult = multiplier;
                     multiplier = 0.5; 
                     document.getElementById('multiplier-info').innerText = "⚠️ 0.5x BPS SZORZÓ (Szabotázs!) ⚠️";
                     document.getElementById('multiplier-info').style.color = "red";
                     document.getElementById('multiplier-info').style.display = 'block';
                     
-                    setTimeout(() => { if(multiplier === 0.5) { multiplier = 1; document.getElementById('multiplier-info').style.display = 'none'; } }, 15000);
+                    setTimeout(() => { if(multiplier === 0.5) { multiplier = preMult > 0 ? preMult : 1; document.getElementById('multiplier-info').style.display = 'none'; } }, 15000);
                     updateUI();
                     showToast(`😭 A tolvaj meglépett! Elvitt ${lostBikes.toLocaleString()} 🚲-t és szabotálta a termelést!`);
                 }
             }, 5000);
             spawnThiefLoop();
-        }, Math.random() * 60000 + 40000);
+        }, baseTime);
     }
 
     function createParticle(x, y) {
         const p = document.createElement('div');
         p.className = 'particle';
         p.innerText = Math.random() > 0.1 ? '🚲' : '🧀';
-        p.style.left = x + 'px'; p.style.top = y + 'px';
+        p.style.left = x + 'px';
+        p.style.top = y + 'px';
         p.style.setProperty('--x', (Math.random() - 0.5) * 300 + "px");
         p.style.setProperty('--y', (Math.random() - 0.8) * 300 + "px");
         document.body.appendChild(p);
@@ -973,6 +943,7 @@
         { threshold: 10000, name: "Kötekedős cigány", reward: 5000, done: false },
         { threshold: 100000, name: "Drogista", reward: 50000, done: false },
         { threshold: 1000000, name: "Properrer hajlító", reward: 500000, done: false }
+
     ];
 
     function showToast(text) {
@@ -1013,10 +984,13 @@
         cloud.style.animationDuration = duration + 's';
         
         cloud.onclick = function(e) {
-            const bonus = Math.max(100, Math.floor(state.bps * 10)); 
+            let bonus = Math.max(100, Math.floor(state.bps * 10)); 
+            if(isNightMode) bonus *= 2; 
+            
             state.bikes += bonus; state.lifetimeBikes += bonus;
             createParticle(e.clientX, e.clientY);
             showToast(`☁️ Elkaptál egy felhőt!\n🎁 +${bonus.toLocaleString()} 🚲`);
+            dropRPGItem();
             cloud.remove();
         };
         document.getElementById('game-world').appendChild(cloud);
