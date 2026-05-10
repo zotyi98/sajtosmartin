@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Martin Bringát Gyűjt!</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e0f7fa;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #006064;
+            margin-bottom: 5px;
+        }
+        #instructions {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        #score-board {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #d32f2f;
+            background-color: white;
+            display: inline-block;
+            padding: 10px 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        canvas {
+            background-color: #b3e5fc;
+            border: 5px solid #0288d1;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Martin Bringát Gyűjt!</h1>
+    <div id="instructions">Irányítsd Martint a <b>Bal / Jobb nyilakkal</b> vagy az <b>A / D</b> gombokkal!</div>
+    <div id="score-board">Pontszám: <span id="score">0</span></div>
+    
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreElement = document.getElementById("score");
+
+        let score = 0;
+        let keys = {};
+
+        // Gombnyomások figyelése
+        window.addEventListener("keydown", (e) => keys[e.code] = true);
+        window.addEventListener("keyup", (e) => keys[e.code] = false);
+
+        // Martin (Játékos) objektum beállításai
+        const martin = {
+            x: 275,
+            y: 330,
+            width: 50,
+            height: 50,
+            speed: 7,
+            emoji: '👦'
+        };
+
+        // Biciklik beállításai
+        const bikes = [];
+        const bikeCount = 5;
+        const bikeEmoji = '🚲';
+
+        // Kezdeti biciklik legenerálása
+        for (let i = 0; i < bikeCount; i++) {
+            bikes.push({
+                x: Math.random() * (canvas.width - 40),
+                y: Math.random() * -500,
+                width: 40,
+                height: 40,
+                speed: 2 + Math.random() * 3
+            });
+        }
+
+        // Bicikli visszaállítása a képernyő tetejére
+        function resetBike(bike) {
+            bike.y = Math.random() * -300 - 50;
+            bike.x = Math.random() * (canvas.width - bike.width);
+            // Kicsit gyorsulnak a bringák, ahogy nő a pontszám
+            bike.speed = 2 + Math.random() * 3 + (score / 150); 
+        }
+
+        // Játék logikájának frissítése
+        function update() {
+            // Martin mozgatása balra
+            if ((keys["ArrowLeft"] || keys["KeyA"]) && martin.x > 0) {
+                martin.x -= martin.speed;
+            }
+            // Martin mozgatása jobbra
+            if ((keys["ArrowRight"] || keys["KeyD"]) && martin.x < canvas.width - martin.width) {
+                martin.x += martin.speed;
+            }
+
+            // Biciklik mozgatása és ütközés vizsgálata
+            for (let bike of bikes) {
+                bike.y += bike.speed; // Eses lefelé
+
+                // Egyszerű négyszög-alapú ütközésvizsgálat
+                if (bike.x < martin.x + martin.width &&
+                    bike.x + bike.width > martin.x &&
+                    bike.y < martin.y + martin.height &&
+                    bike.y + bike.height > martin.y) {
+                    
+                    // Ha elkapta a biciklit!
+                    score += 10;
+                    scoreElement.innerText = score;
+                    resetBike(bike);
+                }
+
+                // Ha a bicikli kiesik alul a képernyőből
+                if (bike.y > canvas.height) {
+                    resetBike(bike);
+                    // Opcionális: Ha büntetést is akarsz: score = Math.max(0, score - 5);
+                }
+            }
+        }
+
+        // Megjelenítés a vásznon (Canvas)
+        function draw() {
+            // Töröljük a korábbi képkockát
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Zöld fű rajzolása alulra
+            ctx.fillStyle = "#8bc34a";
+            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+
+            // Emojik beállítása (középre igazítva a koordinátákhoz)
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+
+            // Martin kirajzolása
+            ctx.font = "45px Arial";
+            ctx.fillText(martin.emoji, martin.x + martin.width / 2, martin.y);
+
+            // Biciklik kirajzolása
+            ctx.font = "35px Arial";
+            for (let bike of bikes) {
+                ctx.fillText(bikeEmoji, bike.x + bike.width / 2, bike.y);
+            }
+        }
+
+        // A játék fő ciklusa (folyamatosan fut)
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Játék indítása
+        gameLoop();
+    </script>
+</body>
+</html>
