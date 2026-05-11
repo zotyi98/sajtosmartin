@@ -636,9 +636,11 @@
     function initLeaderboard() {
         const leaderboardRef = ref(db, 'users/');
         onValue(leaderboardRef, (snapshot) => {
-            const data = snapshot.val(); const listDiv = document.getElementById('leaderboard-list');
+            const data = snapshot.val(); 
+            const listDiv = document.getElementById('leaderboard-list');
             if (!data) { listDiv.innerHTML = "<div style='text-align:center; padding:20px; font-weight:bold; color:#795548;'>Üres a ranglista!</div>"; return; }
             
+            // Rendezzük Küllő, majd BPS alapján
             const usersArray = Object.keys(data).map(key => ({ 
                 name: key, 
                 bps: data[key].bps || 0,
@@ -656,17 +658,23 @@
                 div.className = `leader-item ${user.name === window.currentUser ? 'current-user' : ''} ${rankClass}`;
                 div.onclick = function() { window.playSound('click'); window.openInteractModal(user.name); };
                 
-                let prestigeHtml = user.prestigeCount > 0 
-                    ? `<br><span style="font-size:11px; color:#555; font-family:'Fredoka', sans-serif;">🔄 ${user.prestigeCount}x Újrakezdve | ✨ ${user.goldenSpokes} Küllő</span>` 
-                    : '';
+                // JAVÍTÁS: Mostantól MINDIG kiírjuk az adatokat! Ha valakinek nincs, 0-t mutat. 
+                // Kicsit formáztam rajta, hogy szép feltűnő legyen!
+                let prestigeHtml = `
+                    <div style="margin-top: 4px; font-size:12px; color:#555; font-family:'Fredoka', sans-serif; font-weight: 600; line-height: 1.2;">
+                        🔄 <span style="color:#d32f2f;">${user.prestigeCount}x</span> Újrakezdve | ✨ <span style="color:#fbc02d;">${user.goldenSpokes}</span> Küllő
+                    </div>
+                `;
 
                 div.innerHTML = `
                     <div style="flex:1;">
-                        <span class="rank-badge">${medalStr} ${rankEmoji}</span> 
-                        <span style="font-size:16px;">${user.name}</span>
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <span class="rank-badge">${medalStr} ${rankEmoji}</span> 
+                            <span style="font-size:17px;">${user.name}</span>
+                        </div>
                         ${prestigeHtml}
                     </div>
-                    <span style="font-family:'Bangers'; font-size:18px; color:#d32f2f;">${Math.floor(user.bps).toLocaleString()} BPS</span>
+                    <span style="font-family:'Bangers'; font-size:18px; color:#d32f2f; white-space: nowrap;">${Math.floor(user.bps).toLocaleString()} BPS</span>
                 `;
                 listDiv.appendChild(div);
             });
