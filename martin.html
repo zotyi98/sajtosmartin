@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Martin: Bicikli Birodalom v2.2</title>
+    <title>Martin: Bicikli Birodalom v2.8</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
@@ -45,7 +45,7 @@
         @keyframes tickerScroll { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
         #season-banner { background: #ff9800; color: white; text-align: center; font-size: 14px; font-family: 'Bangers', cursive; letter-spacing: 1px; padding: 4px; display: none; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
 
-        #leaderboard { width: 300px; display: flex; flex-direction: column; z-index: 20; background-color: #e5c08f; background-image: radial-gradient(#c79e65 15%, transparent 16%), radial-gradient(#c79e65 15%, transparent 16%); background-size: 20px 20px; background-position: 0 0, 10px 10px; border-right: 15px solid #5d4037; box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 5px 0 15px rgba(0,0,0,0.3); }
+        #leaderboard { width: 300px; display: flex; flex-direction: column; z-index: 20; background-color: #e5c08f; background-image: radial-gradient(#c79e65 15%, transparent 16%), radial-gradient(#c79e65 15%, transparent 16%), radial-gradient(rgba(255,255,255,0.1) 15%, transparent 16%); background-size: 20px 20px; background-position: 0 0, 10px 10px; border-right: 15px solid #5d4037; box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 5px 0 15px rgba(0,0,0,0.3); }
         .leaderboard-header { background: #3e2723; color: white; padding: 15px; text-align: center; font-family: 'Bangers', cursive; font-size: 28px; letter-spacing: 2px; box-shadow: 0 5px 5px rgba(0,0,0,0.3); z-index: 2; position: relative;}
         .leaderboard-list { flex: 1; overflow-y: auto; padding: 20px 15px; }
         .leader-item { background: #fff59d; border: 1px solid #e6c513; transform: rotate(-2deg); padding: 12px 10px; font-size: 15px; margin-bottom: 15px; box-shadow: 2px 3px 5px rgba(0,0,0,0.3); position: relative; display: flex; justify-content: space-between; align-items: center; font-weight: 600;}
@@ -54,21 +54,26 @@
         .leader-item.current-user { background: #ffab91; border-color: #ff7043; transform: scale(1.05) rotate(0deg); z-index: 2; box-shadow: 0 5px 15px rgba(0,0,0,0.4); border-width: 2px;}
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-        .modal-box { background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 15px 50px rgba(0,0,0,0.8); width: 320px; position: relative; border: 5px solid var(--primary);}
+        .modal-box { background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 15px 50px rgba(0,0,0,0.8); width: 340px; position: relative; border: 5px solid var(--primary);}
         .modal-box h1, .modal-box h2 { font-family: 'Bangers', cursive; font-size: 36px; margin-top: 0; letter-spacing: 1px; color: var(--primary);}
         .close-btn { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #888; font-family: 'Bangers', cursive; }
-        input[type="text"], input[type="number"] { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #b0bec5; border-radius: 8px; font-size: 18px; box-sizing: border-box; font-family: 'Fredoka', sans-serif; font-weight: 600; text-align: center;}
+        input[type="text"], input[type="number"] { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #b0bec5; border-radius: 8px; font-size: 18px; box-sizing: border-box; font-family: 'Fredoka', sans-serif; font-weight: 600; text-align: center;}
         .btn-primary { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-family: 'Bangers', cursive; font-size: 22px; width: 100%; letter-spacing: 1px; transition: transform 0.1s, filter 0.1s; box-shadow: 0 4px 0 #1b5e20;}
         .btn-primary:active { transform: translateY(4px); box-shadow: 0 0 0 #1b5e20; }
         .btn-primary:disabled { background: #999; box-shadow: 0 4px 0 #666; cursor: not-allowed; }
 
         /* Szerencsekerék */
-        .wheel-box { position: relative; width: 280px; height: 280px; margin: 15px auto 25px auto; }
+        .wheel-box { position: relative; width: 220px; height: 220px; margin: 10px auto; }
         .wheel-wrapper { width: 100%; height: 100%; border-radius: 50%; border: 6px solid #333; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.5); box-sizing: border-box;}
         .wheel { width: 100%; height: 100%; transition: transform 3s cubic-bezier(0.25, 1, 0.25, 1); position: relative;}
-        .wheel-number { position: absolute; top: 2px; left: 50%; transform-origin: 50% 134px; font-size: 8px; font-weight: bold; font-family: Arial, sans-serif; pointer-events: none; color: #333;}
-        .wheel-arrow { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #d32f2f; z-index: 10; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
-        .wheel-inner-circle { position: absolute; width: 60px; height: 60px; background: white; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; justify-content: center; align-items: center; font-size: 26px; font-family: 'Bangers', cursive; color: #333; border: 4px solid #ccc; box-shadow: inset 0 2px 5px rgba(0,0,0,0.3), 0 2px 5px rgba(0,0,0,0.3); z-index: 5; }
+        .wheel-number { position: absolute; top: 2px; left: 50%; transform-origin: 50% 104px; font-size: 7px; font-weight: bold; font-family: Arial, sans-serif; pointer-events: none; color: #333;}
+        .wheel-arrow { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 25px solid #d32f2f; z-index: 10; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+        .wheel-inner-circle { position: absolute; width: 50px; height: 50px; background: white; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; justify-content: center; align-items: center; font-size: 22px; font-family: 'Bangers', cursive; color: #333; border: 4px solid #ccc; box-shadow: inset 0 2px 5px rgba(0,0,0,0.3), 0 2px 5px rgba(0,0,0,0.3); z-index: 5; }
+
+        /* --- AIM LAB KINÉZET --- */
+        #aimlab-area { width: 100%; height: 250px; background: #111; border-radius: 10px; position: relative; overflow: hidden; cursor: crosshair; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); border: 2px solid #555; }
+        .aimlab-target { position: absolute; width: 40px; height: 40px; background: #00e5ff; border-radius: 50%; box-shadow: 0 0 10px #00e5ff; transform: translate(-50%, -50%); transition: transform 0.05s; }
+        .aimlab-target:active { transform: translate(-50%, -50%) scale(0.8); filter: brightness(1.5); }
 
         #game-container { display: none; flex: 1; width: 100%; margin-top: 40px; }
         #game-world { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; overflow: hidden; z-index: 10; transition: box-shadow 0.3s; }
@@ -110,10 +115,28 @@
         .confetti-particle { position: absolute; pointer-events: none; font-size: 24px; z-index: 100; animation: confettiFall cubic-bezier(0.25, 1, 0.5, 1) forwards; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); }
         @keyframes confettiFall { 0% { transform: translate(0, 0) rotate(0deg); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) rotate(720deg); opacity: 0; } }
 
+        /* --- EVENT OBJEKTUMOK --- */
         .event-bike { position: absolute; width: 80px; height: 80px; font-size: 60px; cursor: pointer; z-index: 100; display: none; animation: goldenFloat 10s linear forwards; }
         #golden-bike { filter: drop-shadow(0 0 20px gold) drop-shadow(0 0 40px #ff9800); }
         #rusty-bike { filter: sepia(1) saturate(3) hue-rotate(-50deg) drop-shadow(0 0 15px var(--rust)); }
+        #aimlab-event-obj { filter: drop-shadow(0 0 15px #00e5ff) drop-shadow(0 0 30px #0288d1); }
         @keyframes goldenFloat { 0% { left: -100px; transform: rotate(0deg) scale(0.8); } 50% { transform: rotate(180deg) scale(1.2); } 100% { left: 110vw; transform: rotate(360deg) scale(0.8); } }
+
+        /* HARRY POTTER EVENT - Kiszámíthatatlan, cikk-cakkos mozgás 10 másodpercig */
+        .hp-event { position: absolute; font-size: 40px; cursor: pointer; z-index: 105; display: none; filter: drop-shadow(0 0 10px #9c27b0); }
+        @keyframes hpErraticFly {
+            0%   { left: -100px; top: 80%; transform: rotate(-20deg) scale(0.5); }
+            10%  { left: 30vw;   top: 10%; transform: rotate(40deg) scale(1.2); }
+            20%  { left: 70vw;   top: 90%; transform: rotate(-50deg) scale(0.8); }
+            30%  { left: 10vw;   top: 40%; transform: rotate(80deg) scale(1.5); }
+            40%  { left: 80vw;   top: 20%; transform: rotate(-30deg) scale(1.0); }
+            50%  { left: 40vw;   top: 80%; transform: rotate(20deg) scale(1.3); }
+            60%  { left: 90vw;   top: 50%; transform: rotate(-80deg) scale(0.7); }
+            70%  { left: 20vw;   top: 80%; transform: rotate(50deg) scale(1.1); }
+            80%  { left: 60vw;   top: 10%; transform: rotate(-40deg) scale(1.4); }
+            90%  { left: 80vw;   top: 70%; transform: rotate(30deg) scale(0.9); }
+            100% { left: 110vw;  top: 30%; transform: rotate(0deg) scale(0.5); }
+        }
 
         #puke-event-container { position: absolute; bottom: 70px; right: 15%; width: 100px; height: 100px; z-index: 45; display: none; }
         #puke-sofa { font-size: 70px; position: absolute; bottom: 0; right: 0; z-index: 45; filter: drop-shadow(0 10px 5px rgba(0,0,0,0.5));}
@@ -127,7 +150,6 @@
 
         #shop { width: 380px; display: flex; flex-direction: column; z-index: 20; background: #cfd8dc; border-left: 10px solid #90a4ae; box-shadow: inset -5px 0 20px rgba(0,0,0,0.1), -5px 0 15px rgba(0,0,0,0.3); overflow: hidden; }
         .shop-header { background: linear-gradient(to bottom, #607d8b, #455a64); color: white; padding: 20px; text-align: center; font-family: 'Bangers', cursive; font-size: 28px; border-bottom: 4px solid #263238; letter-spacing: 2px; text-shadow: 2px 2px 4px #000; position: relative;}
-        
         .shop-section-title { background: #90a4ae; color: white; padding: 8px 15px; font-family: 'Bangers', cursive; font-size: 20px; border-bottom: 2px solid #78909c; border-top: 2px solid #b0bec5; text-shadow: 1px 1px 2px #000; letter-spacing: 1px;}
 
         #extra-upgrades-list { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; background: #eceff1; max-height: 160px; overflow-y: auto; box-shadow: inset 0 5px 10px rgba(0,0,0,0.05);}
@@ -149,21 +171,18 @@
         .upgrade-owned { font-family: 'Bangers', cursive; font-size: 28px; color: #90a4ae; margin-left: 10px; text-shadow: 1px 1px 0 #fff; }
 
         .shop-btn-row { display: flex; }
-        .shop-btn-row button { flex: 1; padding: 15px; font-family: 'Bangers', cursive; font-size: 20px; letter-spacing: 1px; cursor: pointer; border: none; border-top: 3px solid #263238; transition: 0.1s; text-shadow: 1px 1px 2px #000; box-shadow: inset 0 5px 10px rgba(255,255,255,0.2);}
+        .shop-btn-row button { flex: 1; padding: 15px; font-family: 'Bangers', cursive; font-size: 18px; letter-spacing: 1px; cursor: pointer; border: none; border-top: 3px solid #263238; border-right: 1px solid #263238; transition: 0.1s; text-shadow: 1px 1px 2px #000; box-shadow: inset 0 5px 10px rgba(255,255,255,0.2);}
         .shop-btn-row button:active { filter: brightness(0.8); }
-        #btn-kocsma { background: #ff9800; color: white; border-right: 2px solid #263238;}
-        #btn-prestige-shop { background: #9c27b0; color: white; border-left: 1px solid #263238;}
+        #btn-kocsma { background: #ff9800; color: white; }
+        #btn-prestige-shop { background: #9c27b0; color: white; border-right: none;}
         
-        #btn-prestige { background: var(--gold); color: #3e2723; border: none; border-top: 3px solid #263238; padding: 18px; font-family: 'Bangers', cursive; font-size: 22px; letter-spacing: 2px; cursor: pointer; text-transform: uppercase; animation: pulsePrestige 2s infinite; text-shadow: none;}
+        #btn-prestige { background: var(--gold); color: #3e2723; border: none; border-top: 3px solid #263238; padding: 18px; font-family: 'Bangers', cursive; font-size: 22px; letter-spacing: 2px; cursor: pointer; text-transform: uppercase; animation: pulsePrestige 2s infinite; text-shadow: none; width: 100%;}
 
-        .btn-logout { padding: 12px; background: #b0bec5; border: none; border-top: 3px solid #263238; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; color: #37474f; letter-spacing: 1px;}
+        .btn-logout { width: 100%; padding: 12px; background: #b0bec5; border: none; border-top: 3px solid #263238; cursor: pointer; font-family: 'Bangers', cursive; font-size: 16px; color: #37474f; letter-spacing: 1px;}
         .btn-logout:hover { background: #90a4ae; color: white; }
 
         #achievement-container { position: fixed; top: 60px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
         .achievement-toast { background: white; border-left: 8px solid var(--gold); padding: 15px 25px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, fadeOut 0.5s 4.5s forwards; font-weight: 600; font-size: 15px; color: #333; white-space: pre-line; border-top: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;}
-
-        .magic-cloud { position: absolute; cursor: pointer; user-select: none; z-index: 5; animation: cloudFloat linear forwards; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3)); transition: transform 0.1s; }
-        .magic-cloud:active { transform: scale(0.8); }
 
         .skill-item { background: #f3e5f5; border: 2px solid #9c27b0; margin-bottom: 12px; padding: 12px; border-radius: 10px; text-align: left; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); font-weight: 600;}
         .skill-item button { float: right; background: #9c27b0; color: white; border: none; border-radius: 6px; cursor: pointer; padding: 8px 15px; font-family: 'Bangers', cursive; font-size: 16px; letter-spacing: 1px;}
@@ -171,7 +190,7 @@
 
         #version-number { position: absolute; bottom: 5px; left: 5px; font-size: 14px; font-family: 'Bangers', cursive; color: rgba(255,255,255,0.7); z-index: 1000; letter-spacing: 1px; text-shadow: 1px 1px 2px #000; }
 
-        .admin-action-btn { padding: 8px; cursor: pointer; border: none; border-radius: 6px; font-family: 'Bangers', cursive; font-size: 16px; letter-spacing: 1px; margin-bottom: 6px; width: 48%; display: inline-block; box-shadow: 0 3px 0 rgba(0,0,0,0.2); transition: 0.1s;}
+        .admin-action-btn { padding: 6px; cursor: pointer; border: none; border-radius: 6px; font-family: 'Bangers', cursive; font-size: 15px; letter-spacing: 1px; margin-bottom: 6px; width: 48%; display: inline-block; box-shadow: 0 3px 0 rgba(0,0,0,0.2); transition: 0.1s;}
         .admin-action-btn:active { transform: translateY(3px); box-shadow: 0 0 0 rgba(0,0,0,0.2); }
 
         @media (max-width: 900px) {
@@ -203,7 +222,7 @@
 </head>
 <body>
 
-    <div id="version-number">v2.2.0 (Stacking Buffs & Cars)</div>
+    <div id="version-number">v2.8.0 (Catch & Shoot Update)</div>
 
     <div id="top-bar-container">
         <div id="news-ticker-container">
@@ -228,20 +247,33 @@
     <div id="kocsma-modal" class="modal-overlay" style="display: none;">
         <div class="modal-box" style="width: 320px;">
             <span class="close-btn" onclick="document.getElementById('kocsma-modal').style.display='none'">&times;</span>
-            <h2>🎡 Szerencsekerék 🎡</h2>
-            <p style="font-size: 14px; font-weight:600; color: #555;">Tedd fel a bicikliket egy számra (1-100)!<br><strong style="color:var(--love); font-size: 18px; font-family:'Bangers', cursive; letter-spacing:1px;">TELITALÁLAT = 80x-os NYEREMÉNY!</strong></p>
+            <h2 style="margin-bottom:5px;">🎰 Kaszinó 🎰</h2>
+            <p style="font-size: 12px; font-weight:600; color: #555; margin:5px 0;">Tedd fel a bicikliket egy számra (1-100)! <strong style="color:var(--love);">TELITALÁLAT = 80x NYEREMÉNY!</strong></p>
             
-            <div class="wheel-box">
-                <div class="wheel-arrow"></div>
-                <div class="wheel-wrapper">
-                    <div class="wheel" id="spinning-wheel"></div>
-                </div>
-                <div class="wheel-inner-circle" id="wheel-result">?</div>
+            <div class="wheel-box" style="width: 180px; height: 180px;">
+                <div class="wheel-arrow" style="top:-10px; border-left:10px solid transparent; border-right:10px solid transparent; border-top:20px solid #d32f2f;"></div>
+                <div class="wheel-wrapper"><div class="wheel" id="spinning-wheel"></div></div>
+                <div class="wheel-inner-circle" id="wheel-result" style="width:40px; height:40px; font-size:20px;">?</div>
             </div>
 
-            <input type="number" id="gamble-amount" placeholder="Tét (bicikli)" style="margin-bottom: 10px;">
-            <input type="number" id="gamble-number" placeholder="Megjátszott szám (1-100)" min="1" max="100">
-            <button class="btn-primary" id="btn-spin" onclick="window.spinWheel()" style="background: #9c27b0; font-size: 24px; box-shadow: 0 4px 0 #6a1b9a;">PÖRGETÉS</button>
+            <input type="number" id="gamble-amount" placeholder="Tét (bicikli)" style="margin-bottom: 5px; padding:8px; font-size:14px;">
+            <input type="number" id="gamble-number" placeholder="Megjátszott szám (1-100)" min="1" max="100" style="margin-bottom:10px; padding:8px; font-size:14px;">
+            <button class="btn-primary" id="btn-spin" onclick="window.spinWheel()" style="background: #ff9800; font-size: 18px; box-shadow: 0 4px 0 #e65100; padding:10px;">PÖRGETÉS</button>
+        </div>
+    </div>
+
+    <!-- AIM LAB MODAL -->
+    <div id="aimlab-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-box" style="width: 450px; max-width: 95%;">
+            <span class="close-btn" onclick="if(!aimlabActive) document.getElementById('aimlab-modal').style.display='none'">&times;</span>
+            <h2>🎮 Aim Lab 🎮</h2>
+            <p style="font-size: 14px; font-weight:600; color: #555;">Kattints a kék célpontokra minél gyorsabban! <br>A célpontok <strong style="color:red;">0.6 másodperc</strong> után eltűnnek!<br>Cél: <strong style="color:var(--love);">Min. 10 találat és 90%+ pontosság 10s alatt!</strong><br><br><span style="color:#d32f2f; font-size:16px;">⚠️ VIGYÁZAT: A belépő a biciklijeid 90%-a! Ha nyersz, MEGSZOROZZA 5-TEL az eredeti biciklijeid számát!</span></p>
+            
+            <div style="font-family:'Bangers', cursive; font-size:20px; color:var(--primary); margin-bottom:10px;" id="aimlab-stats">Készen állsz?</div>
+            
+            <div id="aimlab-area"></div>
+            
+            <button class="btn-primary" id="btn-start-aimlab" onclick="window.startAimlab()" style="background: #0288d1; margin-top: 15px; font-size: 20px; box-shadow: 0 4px 0 #01579b;">START (Tét: <span id="aimlab-cost">0</span> 🚲)</button>
         </div>
     </div>
 
@@ -272,6 +304,9 @@
             
             <div id="golden-bike" class="event-bike" onclick="window.catchGoldenBike()">🚲</div>
             <div id="rusty-bike" class="event-bike" onclick="window.catchRustyBike()">🚲</div>
+            <!-- Új Aim Lab Orb a képernyőn -->
+            <div id="aimlab-event-obj" class="event-bike" style="filter: drop-shadow(0 0 15px #00e5ff);" onclick="window.catchAimlabEvent()">🎯</div>
+            <div id="harry-potter-event" class="hp-event" onclick="window.catchHarry()">🧙‍♂️</div>
             
             <div id="puke-event-container">
                 <div id="puke-sofa">🛋️</div>
@@ -297,7 +332,6 @@
                 <span id="bike-count">0 🚲</span>
                 <span id="bps-count">Biciklik másodpercenként: 0</span>
                 <span id="prestige-count">✨ Arany Küllők: 0 (+0% bónusz)</span>
-                <!-- BÓNUSZ MANAGER INFO -->
                 <div id="multiplier-info"></div>
             </div>
 
@@ -342,6 +376,8 @@
                 <button class="admin-action-btn" style="background:#8d6e63; color:white; box-shadow: 0 3px 0 #5d4037;" onclick="window.forceRustyBike()">🔥 Rozsdás</button>
                 <button class="admin-action-btn" style="background:#4fc3f7; color:#333; box-shadow: 0 3px 0 #0288d1;" onclick="window.forceCloud()">☁️ Felhő</button>
                 <button class="admin-action-btn" style="background:#8bc34a; color:white; box-shadow: 0 3px 0 #558b2f;" onclick="window.forcePuke()">🤮 Hányás</button>
+                <button class="admin-action-btn" style="background:#9c27b0; color:white; box-shadow: 0 3px 0 #6a1b9a;" onclick="window.forceHarry()">🧙‍♂️ Harry</button>
+                <button class="admin-action-btn" style="background:#0288d1; color:white; box-shadow: 0 3px 0 #01579b;" onclick="window.forceAimlabEvent()">🎯 Aim Lab</button>
                 <button class="admin-action-btn" style="background:#795548; color:white; width:100%; box-shadow: 0 3px 0 #4e342e;" onclick="window.triggerKitchenMeeting()">☕ Konyha</button>
             </div>
         </div>
@@ -367,25 +403,40 @@
     const db = getDatabase(app);
     const appInitTime = Date.now(); 
 
-    // Frissített Bolt, Autóbiznisz (ID 8) a Sajtgyár és Eszter (ID 7) közé szúrva a megfelelő sorrendért!
     const defaultUpgrades = [
         { id: 0, icon: "👟", name: "Nyúlcipő", desc: "+1 pont katt.", cost: 50, power: 1, type: "click", owned: 0 },
         { id: 1, icon: "🥤", name: "Energiaital", desc: "+1 pont / mp", cost: 150, power: 1, type: "bps", owned: 0 },
         { id: 2, icon: "🚴", name: "Segédmunkás", desc: "+8 pont / mp", cost: 1100, power: 8, type: "bps", owned: 0 },
-        { id: 3, icon: "🛠️", name: "Gépkifújós komp.", desc: "+47 pont / mp", cost: 12000, power: 47, type: "bps", owned: 0 },
-        { id: 4, icon: "🖥️", name: "Gépújraindító", desc: "+260 pont / mp", cost: 130000, power: 260, type: "bps", owned: 0 },
+        { id: 9, icon: "🛏️", name: "Munkásszálló", desc: "+25 pont / mp", cost: 4500, power: 25, type: "bps", owned: 0 },
+        { id: 3, icon: "🛠️", name: "Gépkifújós komp.", desc: "+60 pont / mp", cost: 12000, power: 60, type: "bps", owned: 0 },
+        { id: 10, icon: "🏡", name: "Nagy ház", desc: "+150 pont / mp", cost: 45000, power: 150, type: "bps", owned: 0 },
+        { id: 4, icon: "🖥️", name: "Gépújraindító", desc: "+350 pont / mp", cost: 130000, power: 350, type: "bps", owned: 0 },
         { id: 5, icon: "🌀", name: "Segédpropeller", desc: "+1,400 pont / mp", cost: 1400000, power: 1400, type: "bps", owned: 0 },
-        { id: 6, icon: "🧀", name: "Sajtgyár", desc: "+7,800 pont / mp", cost: 20000000, power: 7800, type: "bps", owned: 0 },
+        { id: 11, icon: "🍻", name: "Garrison tavern", desc: "+4,000 pont / mp", cost: 5000000, power: 4000, type: "bps", owned: 0 },
+        { id: 6, icon: "🧀", name: "Sajtgyár", desc: "+9,500 pont / mp", cost: 20000000, power: 9500, type: "bps", owned: 0 },
         { id: 8, icon: "🚗", name: "Autóbiznisz", desc: "+65,000 pont / mp", cost: 500000000, power: 65000, type: "bps", owned: 0 },
-        { id: 7, icon: "❤️", name: "Eszter támogatása", desc: "DUPLA BPS és Kattintás!", cost: 10000000000, power: 0, type: "special", owned: 0 }
+        { id: 12, icon: "🏰", name: "Roxfort", desc: "+300,000 pont / mp", cost: 3000000000, power: 300000, type: "bps", owned: 0 },
+        { id: 7, icon: "❤️", name: "Eszter támogatása", desc: "DUPLA BPS és Kattintás!", cost: 10000000000, power: 0, type: "special", owned: 0 },
+        { id: 13, icon: "👁️", name: "Mordor", desc: "+2,000,000 pont / mp", cost: 50000000000, power: 2000000, type: "bps", owned: 0 }
     ];
 
     const extraUpgradesData = [
         { id: 101, name: "Könnyített Cípőfűző", desc: "Nyúlcipők x2 Erő", cost: 5000, reqBuilding: 0, reqCount: 10, targetId: 0, mult: 2 },
         { id: 102, name: "Koffein Túladagolás", desc: "Energiaitalok x3 BPS", cost: 7500, reqBuilding: 1, reqCount: 10, targetId: 1, mult: 3 },
         { id: 103, name: "Olajozott Láncok", desc: "Segédmunkások x2 BPS", cost: 55000, reqBuilding: 2, reqCount: 10, targetId: 2, mult: 2 },
-        { id: 104, name: "Sajtos Munkások", desc: "Szinergia: Minden Sajtgyár +100 BPS-t ad a Segédmunkásoknak!", cost: 50000000, reqBuilding: 6, reqCount: 1, type: "synergy" },
-        { id: 105, name: "Használtautó Kereskedés", desc: "Autóbizniszek x2 BPS", cost: 1500000000, reqBuilding: 8, reqCount: 5, targetId: 8, mult: 2 }
+        { id: 106, name: "Emeletes ágyak", desc: "Munkásszállók x2 BPS", cost: 200000, reqBuilding: 9, reqCount: 10, targetId: 9, mult: 2 },
+        { id: 107, name: "Napelemek", desc: "Nagy ház x2 BPS", cost: 1000000, reqBuilding: 10, reqCount: 10, targetId: 10, mult: 2 },
+        { id: 108, name: "Shelby Különítmény", desc: "Garrison tavern x2 BPS", cost: 25000000, reqBuilding: 11, reqCount: 5, targetId: 11, mult: 2 },
+        { id: 104, name: "Sajtos Munkások", desc: "Szinergia: Sajtgyár ad +100 BPS a Munkásnak", cost: 50000000, reqBuilding: 6, reqCount: 1, type: "synergy" },
+        { id: 105, name: "Használtautó Keresk.", desc: "Autóbizniszek x2 BPS", cost: 1500000000, reqBuilding: 8, reqCount: 5, targetId: 8, mult: 2 },
+        { id: 109, name: "Pálcás Futárok", desc: "Roxfort x2 BPS", cost: 15000000000, reqBuilding: 12, reqCount: 3, targetId: 12, mult: 2 },
+        { id: 110, name: "Szauron Szeme", desc: "Mordor x2 BPS", cost: 250000000000, reqBuilding: 13, reqCount: 1, targetId: 13, mult: 2 },
+        
+        { id: 111, name: "Gyémánt Cipőfűző", desc: "Nyúlcipők x3 Erő", cost: 50000, reqBuilding: 0, reqCount: 30, targetId: 0, mult: 3 },
+        { id: 112, name: "Koffein Sokk", desc: "Energiaitalok x3 BPS", cost: 150000, reqBuilding: 1, reqCount: 30, targetId: 1, mult: 3 },
+        { id: 113, name: "Robot Munkások", desc: "Segédmunkások x2 BPS", cost: 500000, reqBuilding: 2, reqCount: 30, targetId: 2, mult: 2 },
+        { id: 115, name: "Luxuslakosztályok", desc: "Nagy ház x3 BPS", cost: 20000000, reqBuilding: 10, reqCount: 25, targetId: 10, mult: 3 },
+        { id: 114, name: "Trappista Hegység", desc: "Sajtgyár x2 BPS", cost: 500000000, reqBuilding: 6, reqCount: 15, targetId: 6, mult: 2 }
     ];
 
     const prestigeSkillsData = [
@@ -402,10 +453,10 @@
     window.currentUser = "";
     let state = { bikes: 0, lifetimeBikes: 0, goldenSpokes: 0, clickPower: 1, bps: 0, lastSaved: Date.now(), upgrades: [], realUpgrades: [], prestigeSkills: [], inventory: [] };
     
-    // --- STACKELŐDŐ BÓNUSZ MANAGER ---
     let activeBuffs = []; 
     let multiplier = 1;
-    
+    window.clickMultiplier = 1;
+
     let seasonBpsMult = 1;
     let seasonClickMult = 1;
     let isNightMode = false;
@@ -417,6 +468,16 @@
     let isKitchenMeetingActive = false;
     let kitchenMeetingInterval;
     let lastBuildingSum = -1;
+
+    // --- AIM LAB VÁLTOZÓK ---
+    window.aimlabActive = false;
+    let aimlabHits = 0;
+    let aimlabClicks = 0;
+    let aimlabTimeLeft = 10;
+    let aimlabTimer;
+    let aimlabTargetTimer; 
+    let aimlabCurrentTarget = null;
+    window.aimlabOriginalBikes = 0;
 
     function initWheel() {
         const wheel = document.getElementById('spinning-wheel');
@@ -437,7 +498,8 @@
         "Elvileg Esztert azóta is bántja az a sok csúnya üzenet Martintól",
         "Daeron még mindig várja az aranybicikli felbukkanását",
         "Egy jótanács: szombat este inkább csak egy filmet tegyél be",
-        "Martin büszkén jelenti: Készülnek az autók az új bizniszben!"
+        "A Garrison Tavernben állítólag gyanús alakok tanyáznak...",
+        "Harry Potter elhagyta Roxfortot. Kapd el, ha tudod!"
     ];
     setInterval(() => { document.getElementById('news-ticker-text').innerText = newsItems[Math.floor(Math.random() * newsItems.length)]; }, 15000);
 
@@ -468,6 +530,8 @@
         initLeaderboard();
         gameLoop();
         spawnGoldenBikeLoop(); 
+        spawnHarryPotterLoop();
+        spawnAimlabEventLoop(); // ÚJ
         pukeLoop();
         kitchenLoop();
         loadAchievements(); 
@@ -499,9 +563,9 @@
     }
 
     function getRankEmoji(bps) {
-        if(bps > 1000000) return "👑";
-        if(bps > 10000) return "💎";
-        if(bps > 1000) return "🔥";
+        if(bps > 100000000) return "👑";
+        if(bps > 1000000) return "💎";
+        if(bps > 10000) return "🔥";
         if(bps > 100) return "⭐";
         return "🚲";
     }
@@ -627,7 +691,7 @@
         let hasSajtSynergy = state.realUpgrades.some(ru => ru.id === 104);
 
         state.upgrades.forEach(u => {
-            let basePower = defaultUpgrades[u.id].power;
+            let basePower = defaultUpgrades.find(def => def.id === u.id).power; 
             let upgMult = 1;
             state.realUpgrades.forEach(ru => {
                 let ext = extraUpgradesData.find(e => e.id === ru.id);
@@ -640,7 +704,7 @@
         });
 
         let prestigeMult = 1 + (state.goldenSpokes * 0.01);
-        let eszterMult = state.upgrades.find(u => u.id === 7).owned > 0 ? 2 : 1; // ID 7 továbbra is Eszter!
+        let eszterMult = state.upgrades.find(u => u.id === 7).owned > 0 ? 2 : 1; 
         state.bps = b * prestigeMult * eszterMult * seasonBpsMult;
         state.clickPower = c * prestigeMult * eszterMult * seasonClickMult;
     }
@@ -661,32 +725,41 @@
         });
     }
 
-    // --- BÓNUSZ (BUFF) MENEDZSER RENDSZER ---
     function recalcMultiplier() {
-        let effectiveMult = 1;
-        let isZero = false;
+        let effectiveBpsMult = 1;
+        let effectiveClickMult = 1;
+        let isBpsZero = false;
+        let isClickZero = false;
         let texts = [];
         let displayColor = "white"; 
         
         let now = Date.now();
-        // Lejárt bónuszok törlése
         activeBuffs = activeBuffs.filter(b => b.endTime > now);
         
         activeBuffs.forEach(b => {
-            if (b.mult === 0) isZero = true;
-            else effectiveMult *= b.mult;
+            if (b.target === 'both') {
+                if (b.mult === 0) { isBpsZero = true; isClickZero = true; }
+                else { effectiveBpsMult *= b.mult; effectiveClickMult *= b.mult; }
+            } else if (b.target === 'click') {
+                if (b.mult === 0) isClickZero = true;
+                else effectiveClickMult *= b.mult;
+            } else {
+                if (b.mult === 0) isBpsZero = true;
+                else effectiveBpsMult *= b.mult;
+            }
             texts.push(b.text);
-            displayColor = b.color; // Az utolsó színe lesz a domináns
+            displayColor = b.color;
         });
         
-        multiplier = isZero ? 0 : effectiveMult;
+        multiplier = isBpsZero ? 0 : effectiveBpsMult;
+        window.clickMultiplier = isClickZero ? 0 : effectiveClickMult;
         
         const infoDiv = document.getElementById('multiplier-info');
         if (activeBuffs.length > 0) {
             infoDiv.innerHTML = texts.join('<br>');
             infoDiv.style.color = displayColor;
             infoDiv.style.display = 'block';
-            if (effectiveMult > 1 && !isZero) {
+            if ((effectiveBpsMult > 1 || effectiveClickMult > 1) && !isBpsZero) {
                  document.getElementById('game-world').classList.add('world-golden');
             } else {
                  document.getElementById('game-world').classList.remove('world-golden');
@@ -723,7 +796,7 @@
                 document.getElementById(`upg-cost-${upg.id}`).innerText = Math.floor(actualCost).toLocaleString() + " 🚲";
                 document.getElementById(`upg-owned-${upg.id}`).innerText = upg.owned;
                 
-                if (upg.id === 7 && upg.owned > 0) { // ID 7 az Eszter
+                if (upg.id === 7 && upg.owned > 0) {
                     document.getElementById('motivation-banner').style.display = 'block';
                     item.style.display = 'none';
                 }
@@ -795,7 +868,7 @@
             return;
         }
 
-        let gained = (state.clickPower * multiplier); 
+        let gained = (state.clickPower * window.clickMultiplier); 
         state.bikes += gained;
         state.lifetimeBikes += gained;
         createFloatingNumber(e.clientX, e.clientY, gained);
@@ -901,6 +974,141 @@
         }, baseTime);
     }
 
+    // --- AIM LAB LOGIKA ---
+    window.catchAimlabEvent = function() {
+        document.getElementById('aimlab-event-obj').style.display = 'none';
+        window.openAimlab();
+    };
+
+    function spawnAimlabEventLoop() {
+        let baseTime = Math.random() * 240000 + 240000; // 4 - 8 perc
+        setTimeout(() => {
+            if (window.currentUser && document.getElementById('game-container').style.display !== 'none') {
+                const orb = document.getElementById('aimlab-event-obj');
+                orb.style.top = Math.random() * 50 + 25 + "%";
+                orb.style.display = 'block';
+                setTimeout(() => { orb.style.display = 'none'; }, 15000); 
+            }
+            spawnAimlabEventLoop();
+        }, baseTime); 
+    }
+
+    window.openAimlab = function() {
+        let cost = Math.floor(state.bikes * 0.9);
+        document.getElementById('aimlab-cost').innerText = cost.toLocaleString();
+        document.getElementById('aimlab-modal').style.display = 'flex';
+    };
+
+    window.startAimlab = function() {
+        if (state.bikes < 100) {
+            alert("Nincs elég biciklid! (Legalább 100 🚲 kell a játékhoz)");
+            return;
+        }
+
+        let cost = Math.floor(state.bikes * 0.9);
+        window.aimlabOriginalBikes = state.bikes; 
+        
+        state.bikes -= cost;
+        updateUI();
+        window.saveUserProgress();
+        
+        document.getElementById('btn-start-aimlab').style.display = 'none';
+        window.aimlabActive = true;
+        aimlabHits = 0;
+        aimlabClicks = 0;
+        aimlabTimeLeft = 10;
+        updateAimlabStats();
+        
+        const area = document.getElementById('aimlab-area');
+        area.addEventListener('mousedown', aimlabMiss);
+        
+        if (aimlabTargetTimer) clearTimeout(aimlabTargetTimer);
+        
+        aimlabTimer = setInterval(() => {
+            aimlabTimeLeft--;
+            updateAimlabStats();
+            if (aimlabTimeLeft <= 0) endAimlab();
+        }, 1000);
+        
+        spawnAimlabTarget();
+    };
+
+    function spawnAimlabTarget() {
+        if (!window.aimlabActive) return;
+        const area = document.getElementById('aimlab-area');
+        if (aimlabCurrentTarget) aimlabCurrentTarget.remove();
+        if (aimlabTargetTimer) clearTimeout(aimlabTargetTimer);
+        
+        aimlabCurrentTarget = document.createElement('div');
+        aimlabCurrentTarget.className = 'aimlab-target';
+        
+        let x = Math.random() * (area.clientWidth - 50) + 25;
+        let y = Math.random() * (area.clientHeight - 50) + 25;
+        
+        aimlabCurrentTarget.style.left = x + 'px';
+        aimlabCurrentTarget.style.top = y + 'px';
+        
+        aimlabCurrentTarget.onmousedown = function(e) {
+            e.stopPropagation(); 
+            if (!window.aimlabActive) return;
+            clearTimeout(aimlabTargetTimer); 
+            aimlabHits++;
+            aimlabClicks++;
+            updateAimlabStats();
+            spawnAimlabTarget();
+        };
+        
+        area.appendChild(aimlabCurrentTarget);
+        
+        aimlabTargetTimer = setTimeout(() => {
+            if (!window.aimlabActive) return;
+            aimlabClicks++; 
+            updateAimlabStats();
+            spawnAimlabTarget();
+        }, 600);
+    }
+
+    function aimlabMiss(e) {
+        if (!window.aimlabActive) return;
+        aimlabClicks++;
+        updateAimlabStats();
+    }
+
+    function updateAimlabStats() {
+        let acc = aimlabClicks === 0 ? 0 : Math.floor((aimlabHits / aimlabClicks) * 100);
+        document.getElementById('aimlab-stats').innerText = `Találat: ${aimlabHits} | Pontosság: ${acc}% | Idő: ${aimlabTimeLeft}s`;
+    }
+
+    function endAimlab() {
+        window.aimlabActive = false;
+        clearInterval(aimlabTimer);
+        if (aimlabTargetTimer) clearTimeout(aimlabTargetTimer);
+        
+        const area = document.getElementById('aimlab-area');
+        area.removeEventListener('mousedown', aimlabMiss);
+        
+        if (aimlabCurrentTarget) { aimlabCurrentTarget.remove(); aimlabCurrentTarget = null; }
+        document.getElementById('btn-start-aimlab').style.display = 'block';
+        
+        let acc = aimlabClicks === 0 ? 0 : Math.floor((aimlabHits / aimlabClicks) * 100);
+        
+        if (aimlabHits >= 10 && acc >= 90) {
+            let winTotal = window.aimlabOriginalBikes * 5;
+            let reward = winTotal - state.bikes; 
+            
+            state.bikes += reward;
+            state.lifetimeBikes += reward;
+            updateUI();
+            window.saveUserProgress();
+            
+            spawnConfetti();
+            showToast(`🎮 AIM LAB GYŐZELEM!\n${acc}% pontosság! Nyeremény: 5x szorzó (Összesen: ${winTotal.toLocaleString()} 🚲)!`);
+        } else {
+            showToast(`❌ Aim Lab Vége.\n${acc}% pontosság (${aimlabHits} találat). Elbuktad a biciklijeid 90%-át!`);
+        }
+    }
+
+
     window.forceGoldenBike = function() {
         const bike = document.getElementById('golden-bike');
         bike.style.top = Math.random() * 50 + 25 + "%";
@@ -917,6 +1125,21 @@
 
     window.forceCloud = function() { window.spawnMagicCloud(); };
     window.forcePuke = function() { window.spawnPukeEvent(); };
+    window.forceAimlabEvent = function() { 
+        const orb = document.getElementById('aimlab-event-obj');
+        orb.style.top = Math.random() * 50 + 25 + "%";
+        orb.style.display = 'block';
+        setTimeout(() => { orb.style.display = 'none'; }, 15000); 
+    };
+
+    window.forceHarry = function() {
+        const hp = document.getElementById('harry-potter-event');
+        hp.style.display = 'block';
+        hp.style.animation = 'none';
+        hp.offsetHeight; 
+        hp.style.animation = 'hpErraticFly 10s linear forwards';
+        setTimeout(() => { hp.style.display = 'none'; }, 10000); 
+    }
 
     window.spinWheel = function() {
         if (isWheelSpinning) return;
@@ -982,19 +1205,38 @@
         const gain = Math.floor(state.lifetimeBikes / 1000000000); 
         if (gain > 0 && confirm(`Biztosan újraszületel?\nElveszítesz minden biciklit és épületet, de kapsz ${gain} Arany Küllőt (összesen +${gain}% BPS örökre, és vehetsz belőle skilleket)!`)) {
             state.goldenSpokes += gain; state.bikes = 0; state.lifetimeBikes = 0;
-            state.upgrades.forEach(u => { u.owned = 0; u.cost = defaultUpgrades[u.id].cost; });
+            state.upgrades.forEach(u => { u.owned = 0; u.cost = defaultUpgrades.find(d => d.id === u.id).cost; });
             state.realUpgrades = []; window.saveUserProgress(); location.reload();
         }
     };
 
-    // --- BÓNUSZ MEGJELENÉSEK ---
+    window.catchHarry = function() {
+        document.getElementById('harry-potter-event').style.display = 'none';
+        activeBuffs.push({ mult: 777, target: 'click', endTime: Date.now() + 10000, text: "⚡ 777x KATTINTÁS (HARRY)! ⚡", color: "#9c27b0" });
+        recalcMultiplier();
+        spawnConfetti();
+        showToast("🧙‍♂️ Elkaptad Harry Pottert! 777x Kattintás szorzó 10 másodpercig!");
+    };
+
+    function spawnHarryPotterLoop() {
+        let baseTime = Math.random() * 300000 + 400000; 
+        setTimeout(() => {
+            if (window.currentUser && document.getElementById('game-container').style.display !== 'none') {
+                const hp = document.getElementById('harry-potter-event');
+                hp.style.display = 'block';
+                hp.style.animation = 'none';
+                hp.offsetHeight; 
+                hp.style.animation = 'hpErraticFly 10s linear forwards';
+                setTimeout(() => { hp.style.display = 'none'; }, 10000); 
+            }
+            spawnHarryPotterLoop();
+        }, baseTime);
+    }
+
     window.catchGoldenBike = function() {
         document.getElementById('golden-bike').style.display = 'none';
-        
-        // Hozzáadjuk a bónuszt a Stackhez (7x 30 másodpercig)
-        activeBuffs.push({ mult: 7, endTime: Date.now() + 30000, text: "✨ 7x SZORZÓ AKTÍV! ✨", color: "var(--gold)" });
+        activeBuffs.push({ mult: 7, target: 'both', endTime: Date.now() + 30000, text: "✨ 7x SZORZÓ AKTÍV! ✨", color: "var(--gold)" });
         recalcMultiplier();
-        
         spawnConfetti();
         dropRPGItem();
     };
@@ -1002,12 +1244,9 @@
     window.catchRustyBike = function() {
         document.getElementById('rusty-bike').style.display = 'none';
         if(Math.random() > 0.5) {
-            // Hozzáadjuk a bónuszt a Stackhez (10x 15 másodpercig)
-            activeBuffs.push({ mult: 10, endTime: Date.now() + 15000, text: "🔥 10x ROZSDÁS SZORZÓ! 🔥", color: "var(--rust)" });
+            activeBuffs.push({ mult: 10, target: 'bps', endTime: Date.now() + 15000, text: "🔥 10x ROZSDÁS SZORZÓ! 🔥", color: "var(--rust)" });
         } else {
-            // DEFEKT! 0x szorzó
-            activeBuffs.push({ mult: 0, endTime: Date.now() + 15000, text: "💥 DEFEKT! 0 BPS 💥", color: "red" });
-            
+            activeBuffs.push({ mult: 0, target: 'bps', endTime: Date.now() + 15000, text: "💥 DEFEKT! 0 BPS 💥", color: "red" });
             document.getElementById('game-world').classList.add('world-shake');
             setTimeout(() => { document.getElementById('game-world').classList.remove('world-shake'); }, 500);
             showToast("Beleszaladtál egy rozsdás szögbe... 15 másodpercig megállt a termelés!");
@@ -1044,9 +1283,7 @@
 
     function gameLoop() {
         setInterval(() => {
-            // Bónuszok automatikus frissítése
             recalcMultiplier();
-
             if (!isKitchenMeetingActive) {
                 let gained = ((state.bps * multiplier) / 10);
                 state.bikes += gained; 
@@ -1126,12 +1363,22 @@
         cloud.style.animationDuration = duration + 's';
         
         cloud.onclick = function(e) {
-            let bonus = Math.max(50, Math.floor(state.bps * 5)); 
-            if(isNightMode) bonus *= 2; 
-            state.bikes += bonus; state.lifetimeBikes += bonus;
+            let cloudMult = 10;
+            if(isNightMode) cloudMult = 20; 
+            
+            activeBuffs.push({ 
+                mult: cloudMult, 
+                target: 'bps',
+                endTime: Date.now() + 20000, 
+                text: `☁️ ${cloudMult}x FELHŐ SZORZÓ! ☁️`, 
+                color: "#81d4fa" 
+            });
+            recalcMultiplier();
+            
             createParticle(e.clientX, e.clientY);
-            showToast(`☁️ Elkaptál egy felhőt!\n🎁 +${bonus.toLocaleString()} 🚲`);
-            dropRPGItem(); cloud.remove();
+            showToast(`☁️ Elkaptál egy felhőt!\n🎁 ${cloudMult}x BPS szorzó 20 másodpercig!`);
+            dropRPGItem(); 
+            cloud.remove();
         };
         document.getElementById('game-world').appendChild(cloud);
         setTimeout(() => { if(cloud.parentElement) cloud.remove(); }, duration * 1000);
@@ -1142,6 +1389,8 @@
         if(state.prestigeSkills.includes(201)) baseTime *= 0.5;
         setTimeout(() => { window.spawnMagicCloud(); cloudLoop(); }, baseTime);
     }
+    
+    spawnAimlabEventLoop(); // Inicializáljuk a hurkot bejelentkezéskor
     cloudLoop(); 
 </script>
 </body>
