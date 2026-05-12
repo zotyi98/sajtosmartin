@@ -25,10 +25,7 @@ window.mpTarget = "";
 // --- HÍRSZALAG (TICKER) ---
 const tickerEl = document.getElementById('news-ticker-text');
 if (tickerEl) {
-    // Első betöltéskor egyből kap egy szöveget (a "Hírek:" szó nélkül)
     tickerEl.innerText = newsItems[Math.floor(Math.random() * newsItems.length)];
-    
-    // Amikor az animáció újraindul, új szöveget sorsol
     tickerEl.addEventListener('animationiteration', () => {
         tickerEl.innerText = newsItems[Math.floor(Math.random() * newsItems.length)];
     });
@@ -44,7 +41,6 @@ window.toggleMute = function() {
 };
 
 // --- SEGÉDFUNKCIÓK (UI ÉS GRAFIKA) ---
-
 function createFloatingNumber(x, y, amount) {
     const el = document.createElement('div');
     el.className = 'floating-number';
@@ -83,7 +79,6 @@ function spawnConfetti() {
 }
 
 // --- FELSZERELÉS ÉS STATISZTIKA ---
-
 function updateInventoryUI() {
     const invTag = document.getElementById('inventory-list');
     if(GameState.inventory.length === 0) invTag.innerHTML = "Üres"; 
@@ -166,7 +161,6 @@ function recalcMultiplier() {
 }
 
 // --- RANGLISTA ---
-
 function getRankEmoji(bps) {
     if(bps > 100000000) return "👑"; if(bps > 1000000) return "💎"; if(bps > 10000) return "🔥"; if(bps > 100) return "⭐"; return "🚲";
 }
@@ -216,7 +210,6 @@ function initLeaderboard() {
 }
 
 // --- UI FRISSÍTÉS ÉS GRAFIKA ---
-
 function updateBuildingsVisuals() {
     const container = document.getElementById('buildings-layer'); container.innerHTML = '';
     GameState.upgrades.forEach(upg => {
@@ -230,79 +223,78 @@ function updateBuildingsVisuals() {
 }
 
 function updateUI() {
-        document.getElementById('bike-count').innerText = Math.floor(state.bikes).toLocaleString();
-        document.getElementById('bps-count').innerText = "Biciklik másodpercenként: " + Math.floor(state.bps * multiplier).toLocaleString();
+    document.getElementById('bike-count').innerText = Math.floor(GameState.bikes).toLocaleString();
+    document.getElementById('bps-count').innerText = "Biciklik másodpercenként: " + Math.floor(GameState.bps * multiplier).toLocaleString();
 
-        const presCountUI = document.getElementById('prestige-count');
-        const ascInfoUI = document.getElementById('ascension-info');
+    const presCountUI = document.getElementById('prestige-count');
+    const ascInfoUI = document.getElementById('ascension-info');
+    
+    if(GameState.goldenSpokes > 0 || GameState.prestigeSkills.length > 0) {
+        presCountUI.style.display = 'block';
+        presCountUI.innerText = `✨ Arany Küllők: ${GameState.goldenSpokes} (+${GameState.goldenSpokes}%)`;
         
-        if(state.goldenSpokes > 0 || state.prestigeSkills.length > 0) {
-            presCountUI.style.display = 'block';
-            presCountUI.innerText = `✨ Arany Küllők: ${state.goldenSpokes} (+${state.goldenSpokes}%)`;
-            
-            let doubleCount301 = state.prestigeSkills.filter(id => id === 301).length;
-            let doubleCount302 = state.prestigeSkills.filter(id => id === 302).length;
-            let ascMult = Math.pow(2, doubleCount301) * Math.pow(2, doubleCount302);
-            if(ascMult > 1) { ascInfoUI.style.display = 'block'; ascInfoUI.innerText = `🌌 Felemelkedés Szorzó: ${ascMult}x`; }
-        }
-
-        let hasEszterDiscount = state.prestigeSkills.includes(203);
-        let hasKupon = state.prestigeSkills.includes(207);
-        let currentBuildingSum = 0;
-
-        state.upgrades.forEach(upg => {
-            currentBuildingSum += upg.owned;
-            const item = document.getElementById(`upg-item-${upg.id}`);
-            if (item) {
-                let actualCost = upg.cost;
-                if(upg.id === 7 && hasEszterDiscount) actualCost *= 0.8;
-                else if (upg.id !== 7 && hasKupon) actualCost *= 0.9; 
-                
-                let canAfford = state.bikes >= actualCost;
-                item.className = 'upgrade-item ' + (canAfford ? 'affordable' : 'disabled');
-                let descTxt = upg.type !== "special" ? `+${Math.ceil(upg.power).toLocaleString()} pont ${upg.type === 'click' ? 'katt.' : '/ mp'}` : upg.desc;
-                document.getElementById(`upg-desc-${upg.id}`).innerText = descTxt;
-                document.getElementById(`upg-cost-${upg.id}`).innerText = Math.floor(actualCost).toLocaleString() + " 🚲";
-                document.getElementById(`upg-owned-${upg.id}`).innerText = upg.owned;
-                
-                if (upg.id === 7 && upg.owned > 0) {
-                    document.getElementById('motivation-banner').style.display = 'block';
-                    item.style.display = 'none';
-                }
-            }
-        });
-
-        if (currentBuildingSum !== lastBuildingSum) { updateBuildingsVisuals(); lastBuildingSum = currentBuildingSum; }
-
-        const extraList = document.getElementById('extra-upgrades-list');
-        extraUpgradesData.forEach(ext => {
-            let el = document.getElementById(`extra-upg-${ext.id}`);
-            let isOwned = state.realUpgrades.some(ru => ru.id === ext.id);
-            let reqBuildingCount = state.upgrades.find(u => u.id === ext.reqBuilding)?.owned || 0;
-            let shouldShow = !isOwned && (reqBuildingCount >= ext.reqCount);
-
-            if (shouldShow) {
-                if (!el) {
-                    el = document.createElement('div'); el.id = `extra-upg-${ext.id}`; el.onclick = () => window.buyExtraUpgrade(ext.id);
-                    el.innerHTML = `<b>${ext.name}</b><br><span style="color:#78909c;">${ext.desc}</span><br><b style="color:#d32f2f; font-family:'Bangers'; font-size:16px;">${ext.cost.toLocaleString()} 🚲</b>`;
-                    extraList.appendChild(el);
-                }
-                let canAfford = state.bikes >= ext.cost; el.className = 'extra-upgrade-item ' + (canAfford ? 'affordable' : 'disabled');
-            } else { if (el) el.remove(); }
-        });
-
-        const prestigePoints = Math.floor(GameState.lifetimeBikes / 1000000000);
-        if (prestigePoints > 0) { document.getElementById('btn-prestige').style.display = 'block'; document.getElementById('btn-prestige').innerText = `✨ ÚJRASZÜLETÉS (+${prestigePoints} Küllő)`; }
-
-        if (!window.aimlabActive) {
-            const costEl = document.getElementById('aimlab-cost');
-            if (costEl) costEl.innerText = Math.floor(GameState.bikes * 0.9).toLocaleString();
-        }
+        let doubleCount301 = GameState.prestigeSkills.filter(id => id === 301).length;
+        let doubleCount302 = GameState.prestigeSkills.filter(id => id === 302).length;
+        let ascMult = Math.pow(2, doubleCount301) * Math.pow(2, doubleCount302);
+        if(ascMult > 1) { ascInfoUI.style.display = 'block'; ascInfoUI.innerText = `🌌 Felemelkedés Szorzó: ${ascMult}x`; }
     }
+
+    let hasEszterDiscount = GameState.prestigeSkills.includes(203);
+    let hasKupon = GameState.prestigeSkills.includes(207);
+    let currentBuildingSum = 0;
+
+    GameState.upgrades.forEach(upg => {
+        currentBuildingSum += upg.owned;
+        const item = document.getElementById(`upg-item-${upg.id}`);
+        if (item) {
+            let actualCost = upg.cost;
+            if(upg.id === 7 && hasEszterDiscount) actualCost *= 0.8;
+            else if (upg.id !== 7 && hasKupon) actualCost *= 0.9; 
+            
+            let canAfford = GameState.bikes >= actualCost;
+            item.className = 'upgrade-item ' + (canAfford ? 'affordable' : 'disabled');
+            let descTxt = upg.type !== "special" ? `+${Math.ceil(upg.power).toLocaleString()} pont ${upg.type === 'click' ? 'katt.' : '/ mp'}` : upg.desc;
+            document.getElementById(`upg-desc-${upg.id}`).innerText = descTxt;
+            document.getElementById(`upg-cost-${upg.id}`).innerText = Math.floor(actualCost).toLocaleString() + " 🚲";
+            document.getElementById(`upg-owned-${upg.id}`).innerText = upg.owned;
+            
+            if (upg.id === 7 && upg.owned > 0) {
+                document.getElementById('motivation-banner').style.display = 'block';
+                item.style.display = 'none';
+            }
+        }
+    });
+
+    if (currentBuildingSum !== lastBuildingSum) { updateBuildingsVisuals(); lastBuildingSum = currentBuildingSum; }
+
+    const extraList = document.getElementById('extra-upgrades-list');
+    extraUpgradesData.forEach(ext => {
+        let el = document.getElementById(`extra-upg-${ext.id}`);
+        let isOwned = GameState.realUpgrades.some(ru => ru.id === ext.id);
+        let reqBuildingCount = GameState.upgrades.find(u => u.id === ext.reqBuilding)?.owned || 0;
+        let shouldShow = !isOwned && (reqBuildingCount >= ext.reqCount);
+
+        if (shouldShow) {
+            if (!el) {
+                el = document.createElement('div'); el.id = `extra-upg-${ext.id}`; el.onclick = () => window.buyExtraUpgrade(ext.id);
+                el.innerHTML = `<b>${ext.name}</b><br><span style="color:#78909c;">${ext.desc}</span><br><b style="color:#d32f2f; font-family:'Bangers'; font-size:16px;">${ext.cost.toLocaleString()} 🚲</b>`;
+                extraList.appendChild(el);
+            }
+            let canAfford = GameState.bikes >= ext.cost; el.className = 'extra-upgrade-item ' + (canAfford ? 'affordable' : 'disabled');
+        } else { if (el) el.remove(); }
+    });
+
+    const prestigePoints = Math.floor(GameState.lifetimeBikes / 1000000000);
+    if (prestigePoints > 0) { document.getElementById('btn-prestige').style.display = 'block'; document.getElementById('btn-prestige').innerText = `✨ ÚJRASZÜLETÉS (+${prestigePoints} Küllő)`; }
+
+    if (!window.aimlabActive) {
+        const costEl = document.getElementById('aimlab-cost');
+        if (costEl) costEl.innerText = Math.floor(GameState.bikes * 0.9).toLocaleString();
+    }
+}
 setUpdateUI(updateUI); 
 
 // --- BOLT ÉS VÁSÁRLÁS ---
-
 window.clickMartin = function(e) {
     if (isKitchenMeetingActive) { showToast("☕ Martin a konyhában van, most nem tudsz kattintani!"); return; }
     let gained = (GameState.clickPower * window.clickMultiplier); 
@@ -333,7 +325,6 @@ window.buyExtraUpgrade = function(id) {
 };
 
 // --- SKILL TREE (PRESZTÍZS) ---
-
 window.openPrestigeShop = function() {
     document.getElementById('modal-kullok').innerText = GameState.goldenSpokes;
     const container = document.getElementById('skill-tree-container');
@@ -343,8 +334,6 @@ window.openPrestigeShop = function() {
 
     prestigeSkillsData.forEach(sk => {
         let ownedCount = GameState.prestigeSkills.filter(sid => sid === sk.id).length;
-        
-        // ÚJ: Kiszámoljuk, hogy elérte-e a maximumot
         let isMaxed = sk.repeatable ? (sk.maxLevel && ownedCount >= sk.maxLevel) : ownedCount > 0;
         let cost = sk.repeatable ? sk.baseCost * Math.pow(2, ownedCount) : sk.baseCost;
         
@@ -361,12 +350,10 @@ window.openPrestigeShop = function() {
         let aff = GameState.goldenSpokes >= cost;
         let statusClass = "locked";
         
-        // ÚJ: CSS státuszok beállítása a maximum szint szerint
         if (reqMet) statusClass = aff ? "affordable" : "unaffordable";
         if (isMaxed) statusClass = "owned";
         else if (ownedCount > 0 && sk.repeatable) statusClass = aff ? "owned affordable" : "owned"; 
 
-        // ÚJ: Gomb szöveg és szint kijelzés módosítása
         let btnTxt = isMaxed ? "MAX" : `${cost} Küllő`;
         let levelTxt = sk.repeatable ? `<div style="color:#00e5ff; font-weight:bold; margin-top:2px;">Szint: ${ownedCount}${sk.maxLevel ? '/' + sk.maxLevel : ''}</div>` : "";
 
@@ -390,8 +377,6 @@ window.openPrestigeShop = function() {
 window.buySkill = function(id) {
     let sk = prestigeSkillsData.find(s => s.id === id);
     let ownedCount = GameState.prestigeSkills.filter(sid => sid === id).length;
-    
-    // ÚJ: Megnézzük a maximumot vásárlás előtt is
     let isMaxed = sk.repeatable ? (sk.maxLevel && ownedCount >= sk.maxLevel) : ownedCount > 0;
     let cost = sk.repeatable ? sk.baseCost * Math.pow(2, ownedCount) : sk.baseCost;
     
@@ -418,7 +403,6 @@ window.prestige = function() {
 };
 
 // --- MULTIPLAYER ESEMÉNYEK ---
-
 window.openInteractModal = function(targetPlayer) {
     if(targetPlayer === GameState.currentUser) { showToast("Magaddal nem tudsz interakcióba lépni!"); return; }
     window.mpTarget = targetPlayer; document.getElementById('interact-target-name').innerText = targetPlayer;
@@ -472,11 +456,8 @@ function spawnMPThief(senderName) {
 }
 
 // --- EGYÉB ESEMÉNYEK ---
-
-// --- EGYÉB ESEMÉNYEK ---
-
 window.catchGoldenBike = function() {
-    if (isKitchenMeetingActive) return; // Konyhagyűlés védelem
+    if (isKitchenMeetingActive) return; 
     document.getElementById('golden-bike').style.display = 'none';
     let dur = GameState.prestigeSkills.includes(204) ? 35000 : 30000;
     activeBuffs.push({ mult: 7, target: 'both', endTime: Date.now() + dur, text: "✨ 7x SZORZÓ AKTÍV! ✨", color: "var(--gold)" });
@@ -484,7 +465,7 @@ window.catchGoldenBike = function() {
 };
 
 window.catchRustyBike = function() {
-    if (isKitchenMeetingActive) return; // Konyhagyűlés védelem
+    if (isKitchenMeetingActive) return; 
     document.getElementById('rusty-bike').style.display = 'none';
     let dur = GameState.prestigeSkills.includes(204) ? 20000 : 15000;
     if(Math.random() > 0.5) {
@@ -499,7 +480,7 @@ window.catchRustyBike = function() {
 };
 
 window.catchHarry = function() {
-    if (isKitchenMeetingActive) return; // Konyhagyűlés védelem
+    if (isKitchenMeetingActive) return; 
     document.getElementById('harry-potter-event').style.display = 'none';
     activeBuffs.push({ mult: 777, target: 'click', endTime: Date.now() + 10000, text: "⚡ 777x KATTINTÁS (HARRY)! ⚡", color: "#9c27b0" });
     recalcMultiplier(); spawnConfetti(); showToast("🧙‍♂️ Elkaptad Harry Pottert! 777x Kattintás szorzó 10 mp-ig!");
@@ -513,7 +494,6 @@ window.spawnMagicCloud = function() {
     cloud.style.animation = `cloudFloat ${duration}s linear forwards`;
     
     cloud.onclick = function(e) {
-        // Konyhagyűlés védelem a felhőnél is!
         if (isKitchenMeetingActive) {
             showToast("☕ Martin a konyhában van, most nem tudsz felhőt fogni!");
             return;
@@ -541,7 +521,7 @@ window.spawnPukeEvent = function() {
 };
 
 window.cleanPuke = function(e) {
-    if(!isPukeEventActive || isKitchenMeetingActive) return; // Konyhagyűlés védelem!
+    if(!isPukeEventActive || isKitchenMeetingActive) return; 
     let pukeBase = GameState.prestigeSkills.includes(303) ? 30 : 15; let reward = Math.max(200, Math.floor(GameState.bps * pukeBase)); 
     GameState.bikes += reward; GameState.lifetimeBikes += reward; isPukeEventActive = false; document.getElementById('puke-event-container').style.display = 'none';
     createFloatingNumber(e.clientX, e.clientY, reward); updateUI(); saveUserProgress();
@@ -560,99 +540,104 @@ window.triggerKitchenMeeting = function() {
 };
 
 window.catchAimlabEvent = function() { 
-    if (isKitchenMeetingActive) return; // Konyhagyűlés védelem!
+    if (isKitchenMeetingActive) return; 
     document.getElementById('aimlab-event-obj').style.display = 'none'; 
     openAimlab(); 
 };
 
-window.catchAimlabEvent = function() { document.getElementById('aimlab-event-obj').style.display = 'none'; openAimlab(); };
+// --- BEJELENTKEZÉS ÉS BETÖLTÉS ---
+function checkSeasons() {
+    const d = new Date(); const day = d.getDay(); const hour = d.getHours(); let sTxt = "";
+    seasonBpsMult = 1; seasonClickMult = 1; isNightMode = false; document.body.classList.remove('night-mode');
+    if(day === 0) { seasonBpsMult = 1.1; sTxt += "☀️ Vasárnapi Pihenő (+10% BPS) "; }
+    if(day === 5) { seasonClickMult = 1.2; sTxt += "🔥 Pénteki Őrület (+20% Kattintás) "; }
+    if(hour >= 20 || hour < 6) { isNightMode = true; document.body.classList.add('night-mode'); sTxt += "🌙 Éjszakai Műszak (Gyakoribb felhők) "; }
+    if(sTxt !== "") { const banner = document.getElementById('season-banner'); banner.innerText = sTxt; banner.style.display = 'block'; }
+}
 
-// --- JÁTÉK INDÍTÁSA, MENTÉS BETÖLTÉSE ---
+function initShopUI() {
+    const list = document.getElementById('upgrade-list'); list.innerHTML = "";
+    GameState.upgrades = JSON.parse(JSON.stringify(defaultUpgrades));
+    GameState.upgrades.forEach(upg => {
+        const div = document.createElement('div'); div.id = `upg-item-${upg.id}`; div.className = 'upgrade-item disabled'; div.onclick = () => window.buyUpgrade(upg.id);
+        div.innerHTML = `<div class="upgrade-icon">${upg.icon}</div><div class="upgrade-info"><span class="upgrade-name">${upg.name}</span><span class="upgrade-desc" id="upg-desc-${upg.id}"></span><span class="upgrade-cost" id="upg-cost-${upg.id}"></span></div><div class="upgrade-owned" id="upg-owned-${upg.id}">0</div>`;
+        list.appendChild(div);
+    });
+}
 
 async function loadUserProgressFromDB() {
-        state.upgrades = JSON.parse(JSON.stringify(defaultUpgrades));
-        const dbRef = ref(db); 
+    GameState.upgrades = JSON.parse(JSON.stringify(defaultUpgrades));
+    const dbRef = ref(db); 
+    
+    let resetTime = 0;
+    try {
+        const resetSnap = await get(child(dbRef, 'admin/reset'));
+        if (resetSnap.exists()) resetTime = resetSnap.val();
+    } catch(e) {}
+
+    let firebaseData = null;
+    try {
+        const snapshot = await get(child(dbRef, `users/${GameState.currentUser}`));
+        if (snapshot.exists()) { firebaseData = snapshot.val(); }
+    } catch (e) { console.warn("Firebase betöltési hiba, offline mód aktiválva:", e); }
+
+    let localData = null;
+    try {
+        const localRaw = localStorage.getItem(`martinGame_user_${GameState.currentUser}`);
+        if (localRaw) localData = JSON.parse(localRaw);
+    } catch (e) {}
+
+    let parsed = null;
+    if (firebaseData && localData) {
+        parsed = (firebaseData.lastSaved > localData.lastSaved) ? firebaseData : localData;
+    } else {
+        parsed = firebaseData || localData;
+    }
+    
+    if (parsed && parsed.lastSaved && parsed.lastSaved < resetTime) {
+        console.log("Elavult mentés észlelve a reset óta! Adatok törlése...");
+        parsed = null; 
+    }
+
+    if (parsed) {
+        GameState.bikes = parsed.bikes || 0; 
+        GameState.lifetimeBikes = parsed.lifetimeBikes || parsed.bikes || 0; 
+        GameState.goldenSpokes = parsed.goldenSpokes || 0;
+        GameState.prestigeCount = parsed.prestigeCount || 0; 
         
-        // --- 1. ÚJ: Lekérjük az utolsó szerver reset idejét ---
-        let resetTime = 0;
-        try {
-            const resetSnap = await get(child(dbRef, 'admin/reset'));
-            if (resetSnap.exists()) resetTime = resetSnap.val();
-        } catch(e) {}
-
-        let firebaseData = null;
-        try {
-            const snapshot = await get(child(dbRef, `users/${window.currentUser}`));
-            if (snapshot.exists()) {
-                firebaseData = snapshot.val();
-            }
-        } catch (e) {
-            console.warn("Firebase betöltési hiba, offline mód aktiválva:", e);
-        }
-
-        let localData = null;
-        try {
-            const localRaw = localStorage.getItem(`martinGame_user_${window.currentUser}`);
-            if (localRaw) localData = JSON.parse(localRaw);
-        } catch (e) {}
-
-        let parsed = null;
-        if (firebaseData && localData) {
-            parsed = (firebaseData.lastSaved > localData.lastSaved) ? firebaseData : localData;
-        } else {
-            parsed = firebaseData || localData;
-        }
+        GameState.realUpgrades = Array.isArray(parsed.realUpgrades) ? parsed.realUpgrades : Object.values(parsed.realUpgrades || {});
+        GameState.prestigeSkills = Array.isArray(parsed.prestigeSkills) ? parsed.prestigeSkills : Object.values(parsed.prestigeSkills || {});
+        GameState.inventory = Array.isArray(parsed.inventory) ? parsed.inventory : Object.values(parsed.inventory || {});
         
-        // --- 2. ÚJ: Ha a betöltött mentés RÉGEBBI, mint a reset időpontja, akkor KUKA ---
-        if (parsed && parsed.lastSaved && parsed.lastSaved < resetTime) {
-            console.log("Elavult mentés észlelve a reset óta! Adatok törlése...");
-            parsed = null; 
+        let loadedUpgrades = Array.isArray(parsed.upgrades) ? parsed.upgrades : Object.values(parsed.upgrades || {});
+        
+        if (loadedUpgrades.length > 0) {
+            GameState.upgrades.forEach(u => {
+                const savedU = loadedUpgrades.find(s => s.id === u.id);
+                if (savedU) { u.owned = savedU.owned || 0; u.cost = savedU.cost || u.cost; }
+            });
         }
 
-        if (parsed) {
-            state.bikes = parsed.bikes || 0; 
-            state.lifetimeBikes = parsed.lifetimeBikes || parsed.bikes || 0; 
-            state.goldenSpokes = parsed.goldenSpokes || 0;
-            state.prestigeCount = parsed.prestigeCount || 0; 
-            
-            state.realUpgrades = Array.isArray(parsed.realUpgrades) ? parsed.realUpgrades : Object.values(parsed.realUpgrades || {});
-            state.prestigeSkills = Array.isArray(parsed.prestigeSkills) ? parsed.prestigeSkills : Object.values(parsed.prestigeSkills || {});
-            state.inventory = Array.isArray(parsed.inventory) ? parsed.inventory : Object.values(parsed.inventory || {});
-            
-            let loadedUpgrades = Array.isArray(parsed.upgrades) ? parsed.upgrades : Object.values(parsed.upgrades || {});
-            
-            if (loadedUpgrades.length > 0) {
-                state.upgrades.forEach(u => {
-                    const savedU = loadedUpgrades.find(s => s.id === u.id);
-                    if (savedU) { 
-                        u.owned = savedU.owned || 0; 
-                        u.cost = savedU.cost || u.cost; 
-                    }
-                });
-            }
-
-            if (parsed.lastSaved) {
-                let secondsOffline = (Date.now() - parsed.lastSaved) / 1000;
-                if (secondsOffline > 60) { 
-                    recalculateStats(); 
-                    let offlineGains = state.bps * secondsOffline;
-                    if (offlineGains > 0) {
-                        state.bikes += offlineGains; 
-                        state.lifetimeBikes += offlineGains;
-                        showToast(`😴 Üdv újra!\nTávolléted alatt termeltél:\n+${Math.floor(offlineGains).toLocaleString()} 🚲`);
-                    }
+        if (parsed.lastSaved) {
+            let secondsOffline = (Date.now() - parsed.lastSaved) / 1000;
+            if (secondsOffline > 60) { 
+                recalculateStats(); 
+                let offlineGains = GameState.bps * secondsOffline;
+                if (offlineGains > 0) {
+                    GameState.bikes += offlineGains; GameState.lifetimeBikes += offlineGains;
+                    showToast(`😴 Üdv újra!\nTávolléted alatt termeltél:\n+${Math.floor(offlineGains).toLocaleString()} 🚲`);
                 }
             }
-        } else {
-            // Nullázás és helyi "szemetelés" eltakarítása
-            state.bikes = 0; state.lifetimeBikes = 0; state.goldenSpokes = 0; state.prestigeCount = 0; state.bps = 0; state.clickPower = 1;
-            state.realUpgrades = []; state.prestigeSkills = []; state.inventory = [];
-            localStorage.removeItem(`martinGame_user_${window.currentUser}`);
-            localStorage.removeItem(`martinGame_achs_${window.currentUser}`);
         }
-        
-        updateInventoryUI(); recalculateStats(); updateUI();
+    } else {
+        GameState.bikes = 0; GameState.lifetimeBikes = 0; GameState.goldenSpokes = 0; GameState.prestigeCount = 0; GameState.bps = 0; GameState.clickPower = 1;
+        GameState.realUpgrades = []; GameState.prestigeSkills = []; GameState.inventory = [];
+        localStorage.removeItem(`martinGame_user_${GameState.currentUser}`);
+        localStorage.removeItem(`martinGame_achs_${GameState.currentUser}`);
     }
+    
+    updateInventoryUI(); recalculateStats(); updateUI();
+}
 
 window.login = async function() {
     const input = document.getElementById('username-input').value.trim();
@@ -693,23 +678,7 @@ window.login = async function() {
         }
     });
 
-    // Évszak ellenőrzése
-    const d = new Date(); const day = d.getDay(); const hour = d.getHours(); let sTxt = "";
-    if(day === 0) { seasonBpsMult = 1.1; sTxt += "☀️ Vasárnapi Pihenő (+10% BPS) "; }
-    if(day === 5) { seasonClickMult = 1.2; sTxt += "🔥 Pénteki Őrület (+20% Kattintás) "; }
-    if(hour >= 20 || hour < 6) { isNightMode = true; document.body.classList.add('night-mode'); sTxt += "🌙 Éjszakai Műszak (Gyakoribb felhők) "; }
-    if(sTxt !== "") { const banner = document.getElementById('season-banner'); banner.innerText = sTxt; banner.style.display = 'block'; }
-
-    // UI Generálása
-    const list = document.getElementById('upgrade-list'); list.innerHTML = "";
-    GameState.upgrades = JSON.parse(JSON.stringify(defaultUpgrades));
-    GameState.upgrades.forEach(upg => {
-        const div = document.createElement('div'); div.id = `upg-item-${upg.id}`; div.className = 'upgrade-item disabled'; div.onclick = () => window.buyUpgrade(upg.id);
-        div.innerHTML = `<div class="upgrade-icon">${upg.icon}</div><div class="upgrade-info"><span class="upgrade-name">${upg.name}</span><span class="upgrade-desc" id="upg-desc-${upg.id}"></span><span class="upgrade-cost" id="upg-cost-${upg.id}"></span></div><div class="upgrade-owned" id="upg-owned-${upg.id}">0</div>`;
-        list.appendChild(div);
-    });
-
-    await loadUserProgressFromDB();
+    checkSeasons(); initShopUI(); await loadUserProgressFromDB();
     document.getElementById('current-user-display').innerText = GameState.currentUser;
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('game-container').style.display = 'flex';
@@ -755,7 +724,13 @@ window.login = async function() {
 
     setInterval(() => { window.spawnPukeEvent(); }, Math.random() * 300000 + 300000);
     setInterval(() => { if (!isKitchenMeetingActive) window.triggerKitchenMeeting(); }, Math.random() * 600000 + 600000);
-    setInterval(() => { window.spawnMagicCloud(); }, Math.random() * 300000 + (GameState.prestigeSkills.includes(201) ? 90000 : 180000));
+    
+    function cloudLoop() {
+        let baseTime = Math.random() * 300000 + 180000;
+        if(GameState.prestigeSkills.includes(201)) baseTime *= 0.5;
+        setTimeout(() => { window.spawnMagicCloud(); cloudLoop(); }, baseTime);
+    }
+    cloudLoop();
 };
 
 // --- ACHIEVEMENTS CHECKER ---
@@ -771,6 +746,11 @@ setInterval(() => {
     });
     if(changed) localStorage.setItem(`martinGame_achs_${GameState.currentUser}`, JSON.stringify(achievements.map(a => a.done)));
 }, 1000);
+
+function loadAchievements() {
+    const savedAchs = localStorage.getItem(`martinGame_achs_${GameState.currentUser}`);
+    if(savedAchs) { const parsed = JSON.parse(savedAchs); achievements.forEach((ach, i) => { if (parsed[i]) ach.done = true; }); }
+}
 
 // --- ADMIN ÉS GYORSGOMBOK ---
 window.addEventListener('keydown', (e) => {
@@ -790,22 +770,13 @@ window.adminAddBikes = function() {
 window.resetLeaderboard = async function() {
     if (confirm("BIZTOSAN törlöd a teljes rangsort MINDENKINÉL? (A bent lévő játékosok mentése is nullázódik)")) {
         
-        // 1. Azonnal lenullázzuk a memóriát, hogy az automata mentés ne mentsen vissza semmit!
-        GameState.bikes = 0; 
-        GameState.lifetimeBikes = 0;
-        GameState.goldenSpokes = 0;
-        GameState.prestigeCount = 0;
-        GameState.bps = 0;
+        GameState.bikes = 0; GameState.lifetimeBikes = 0; GameState.goldenSpokes = 0; GameState.prestigeCount = 0; GameState.bps = 0;
         
-        // 2. Megvárjuk (await), amíg a Firebase TÉNYLEG mindent töröl az interneten
         await set(ref(db, 'users/'), null); 
         await set(ref(db, 'admin/reset'), Date.now()); 
         
-        // 3. Töröljük a böngésző saját, helyi memóriáját
         localStorage.removeItem(`martinGame_user_${GameState.currentUser}`); 
         localStorage.removeItem(`martinGame_achs_${GameState.currentUser}`); 
-        
-        // 4. Most már biztonságosan frissíthetünk
         location.reload();
     }
 };
@@ -822,6 +793,3 @@ window.forceCloud = function() { window.spawnMagicCloud(); };
 window.forcePuke = function() { window.spawnPukeEvent(); };
 window.forceAimlabEvent = function() { const o = document.getElementById('aimlab-event-obj'); o.style.top = Math.random()*50+25+"%"; o.style.display='block'; o.style.animation='none'; o.offsetHeight; o.style.animation='goldenFloat 10s linear forwards'; setTimeout(()=>o.style.display='none', 10000); };
 window.forceHarry = function() { const hp = document.getElementById('harry-potter-event'); hp.style.display='block'; hp.style.animation='none'; hp.offsetHeight; hp.style.animation='hpErraticFly 10s linear forwards'; setTimeout(()=>hp.style.display='none', 10000); };
-
-// DOM Indulás
-document.addEventListener("DOMContentLoaded", () => { initWheel(); });
