@@ -1,46 +1,73 @@
 export const defaultUpgrades = [
     { id: 0, icon: "👟", name: "Nyúlcipő", desc: "+1 pont katt.", cost: 50, power: 1, type: "click", owned: 0 },
-    { id: 1, icon: "🥤", name: "Energiaital", desc: "+1 pont / mp", cost: 150, power: 1, type: "bps", owned: 0 },
-    { id: 14, icon: "🛴", name: "Roller Kölcsönző", desc: "+4 pont / mp", cost: 500, power: 4, type: "bps", owned: 0 }, // ÚJ (Early)
-    { id: 2, icon: "🚴", name: "Segédmunkás", desc: "+8 pont / mp", cost: 1100, power: 8, type: "bps", owned: 0 },
-    { id: 9, icon: "🛏️", name: "Munkásszálló", desc: "+25 pont / mp", cost: 4500, power: 25, type: "bps", owned: 0 },
-    { id: 3, icon: "🛠️", name: "Gépkifújós komp.", desc: "+60 pont / mp", cost: 12000, power: 60, type: "bps", owned: 0 },
-    { id: 10, icon: "🏡", name: "Nagy ház", desc: "+150 pont / mp", cost: 45000, power: 150, type: "bps", owned: 0 },
-    { id: 17, icon: "🏢", name: "Irodaház", desc: "+500 pont / mp", cost: 250000, power: 500, type: "bps", owned: 0 }, // ÚJ (Mid)
-    { id: 4, icon: "🖥️", name: "Gépújraindító", desc: "+1,200 pont / mp", cost: 800000, power: 1200, type: "bps", owned: 0 },
-    { id: 5, icon: "🌀", name: "Segédpropeller", desc: "+4,500 pont / mp", cost: 5000000, power: 4500, type: "bps", owned: 0 },
-    { id: 11, icon: "🍻", name: "Garrison tavern", desc: "+12,000 pont / mp", cost: 25000000, power: 12000, type: "bps", owned: 0 },
-    { id: 18, icon: "🎰", name: "Kaszinó", desc: "+45,000 pont / mp", cost: 120000000, power: 45000, type: "bps", owned: 0 }, // ÚJ (Mid-Late)
-    { id: 6, icon: "🧀", name: "Sajtgyár", desc: "+110,000 pont / mp", cost: 450000000, power: 110000, type: "bps", owned: 0 },
-    { id: 8, icon: "🚗", name: "Autóbiznisz", desc: "+350,000 pont / mp", cost: 2000000000, power: 350000, type: "bps", owned: 0 },
-    { id: 12, icon: "🏰", name: "Roxfort", desc: "+1,200,000 pont / mp", cost: 10000000000, power: 1200000, type: "bps", owned: 0 },
-    { id: 20, icon: "🏭", name: "Nano-Gyár", desc: "+5,000,000 pont / mp", cost: 75000000000, power: 5000000, type: "bps", owned: 0 }, // ÚJ (Late)
-    { id: 7, icon: "❤️", name: "Eszter támogatása", desc: "DUPLA BPS és Kattintás!", cost: 250000000000, power: 0, type: "special", owned: 0 },
-    { id: 13, icon: "👁️", name: "Mordor", desc: "+15,000,000 pont / mp", cost: 800000000000, power: 15000000, type: "bps", owned: 0 },
-    { id: 21, icon: "🚀", name: "Űrállomás", desc: "+60,000,000 pont / mp", cost: 5000000000000, power: 60000000, type: "bps", owned: 0 }, // ÚJ (Late)
-    { id: 22, icon: "⏱️", name: "Időgép", desc: "+250,000,000 pont / mp", cost: 25000000000000, power: 250000000, type: "bps", owned: 0 }, // ÚJ (Late)
-    { id: 23, icon: "🌌", name: "Multiverzum Kapu", desc: "+1,500,000,000 pont / mp", cost: 150000000000000, power: 1500000000, type: "bps", owned: 0 } // ÚJ (Late)
+    { id: 1, icon: "🥤", name: "Energiaital", desc: "+1 pont / mp", cost: 100, power: 1, type: "bps", owned: 0 },
+    { id: 14, icon: "🛴", name: "Roller Kölcsönző", desc: "+5 pont / mp", cost: 600, power: 5, type: "bps", owned: 0 },
+    { id: 2, icon: "🚴", name: "Segédmunkás", desc: "+20 pont / mp", cost: 2500, power: 20, type: "bps", owned: 0 },
+    { id: 9, icon: "🛏️", name: "Munkásszálló", desc: "+80 pont / mp", cost: 12000, power: 80, type: "bps", owned: 0 },
+    { id: 3, icon: "🛠️", name: "Gépkifújós komp.", desc: "+350 pont / mp", cost: 60000, power: 350, type: "bps", owned: 0 },
+    { id: 10, icon: "🏡", name: "Nagy ház", desc: "+1,500 pont / mp", cost: 300000, power: 1500, type: "bps", owned: 0 },
+    { id: 17, icon: "🏢", name: "Irodaház", desc: "+6,500 pont / mp", cost: 1500000, power: 6500, type: "bps", owned: 0 },
+    { id: 4, icon: "🖥️", name: "Gépújraindító", desc: "+30,000 pont / mp", cost: 8000000, power: 30000, type: "bps", owned: 0 },
+    { id: 5, icon: "🌀", name: "Segédpropeller", desc: "+150,000 pont / mp", cost: 45000000, power: 150000, type: "bps", owned: 0 },
+    { id: 11, icon: "🍻", name: "Garrison tavern", desc: "+750,000 pont / mp", cost: 250000000, power: 750000, type: "bps", owned: 0 },
+    { id: 18, icon: "🎰", name: "Kaszinó", desc: "+4,000,000 pont / mp", cost: 1500000000, power: 4000000, type: "bps", owned: 0 },
+    { id: 6, icon: "🧀", name: "Sajtgyár", desc: "+25,000,000 pont / mp", cost: 10000000000, power: 25000000, type: "bps", owned: 0 },
+    { id: 8, icon: "🚗", name: "Autóbiznisz", desc: "+150,000,000 pont / mp", cost: 75000000000, power: 150000000, type: "bps", owned: 0 },
+    { id: 12, icon: "🏰", name: "Roxfort", desc: "+1,000,000,000 pont / mp", cost: 500000000000, power: 1000000000, type: "bps", owned: 0 },
+    { id: 20, icon: "🏭", name: "Nano-Gyár", desc: "+6,500,000,000 pont / mp", cost: 3500000000000, power: 6500000000, type: "bps", owned: 0 },
+    { id: 7, icon: "❤️", name: "Eszter támogatása", desc: "DUPLA BPS és Kattintás!", cost: 10000000000000, power: 0, type: "special", owned: 0 },
+    { id: 13, icon: "👁️", name: "Mordor", desc: "+50,000,000,000 pont / mp", cost: 25000000000000, power: 50000000000, type: "bps", owned: 0 },
+    { id: 21, icon: "🚀", name: "Űrállomás", desc: "+350,000,000,000 pont / mp", cost: 200000000000000, power: 350000000000, type: "bps", owned: 0 },
+    { id: 22, icon: "⏱️", name: "Időgép", desc: "+3,000,000,000,000 pont / mp", cost: 1500000000000000, power: 3000000000000, type: "bps", owned: 0 },
+    { id: 23, icon: "🌌", name: "Multiverzum Kapu", desc: "+25,000,000,000,000 pont / mp", cost: 10000000000000000, power: 25000000000000, type: "bps", owned: 0 }
 ];
 
 export const extraUpgradesData = [
     { id: 101, name: "Könnyített Cípőfűző", desc: "Nyúlcipők x2 Erő", cost: 5000, reqBuilding: 0, reqCount: 10, targetId: 0, mult: 2 },
-    { id: 118, name: "Tapadós Kesztyű", desc: "Roller Kölcsönző x2 BPS", cost: 15000, reqBuilding: 14, reqCount: 10, targetId: 14, mult: 2 }, // ÚJ Extra
+    { id: 118, name: "Tapadós Kesztyű", desc: "Roller Kölcsönző x2 BPS", cost: 15000, reqBuilding: 14, reqCount: 10, targetId: 14, mult: 2 },
     { id: 102, name: "Koffein Túladagolás", desc: "Energiaitalok x3 BPS", cost: 7500, reqBuilding: 1, reqCount: 10, targetId: 1, mult: 3 },
-    { id: 119, name: "Részvényopció", desc: "Irodaház x2 BPS", cost: 2500000, reqBuilding: 17, reqCount: 10, targetId: 17, mult: 2 }, // ÚJ Extra
-    { id: 120, name: "High Roller", desc: "Kaszinó x2 BPS", cost: 500000000, reqBuilding: 18, reqCount: 10, targetId: 18, mult: 2 }, // ÚJ Extra
-    { id: 121, name: "Plazma Hegesztő", desc: "Nano-Gyár x2 BPS", cost: 150000000000, reqBuilding: 20, reqCount: 10, targetId: 20, mult: 2 }, // ÚJ Extra
-    { id: 122, name: "Műholdas Adatátvitel", desc: "Űrállomás x2 BPS", cost: 10000000000000, reqBuilding: 21, reqCount: 5, targetId: 21, mult: 2 }, // ÚJ Extra
-    { id: 123, name: "Paradoxon Pajzs", desc: "Időgép x2 BPS", cost: 80000000000000, reqBuilding: 22, reqCount: 5, targetId: 22, mult: 2 } // ÚJ Extra
+    { id: 103, name: "Olajozott Láncok", desc: "Segédmunkások x2 BPS", cost: 55000, reqBuilding: 2, reqCount: 10, targetId: 2, mult: 2 },
+    { id: 106, name: "Emeletes ágyak", desc: "Munkásszállók x2 BPS", cost: 200000, reqBuilding: 9, reqCount: 10, targetId: 9, mult: 2 },
+    { id: 107, name: "Napelemek", desc: "Nagy ház x2 BPS", cost: 1000000, reqBuilding: 10, reqCount: 10, targetId: 10, mult: 2 },
+    { id: 119, name: "Részvényopció", desc: "Irodaház x2 BPS", cost: 2500000, reqBuilding: 17, reqCount: 10, targetId: 17, mult: 2 },
+    { id: 108, name: "Shelby Különítmény", desc: "Garrison tavern x2 BPS", cost: 25000000, reqBuilding: 11, reqCount: 5, targetId: 11, mult: 2 },
+    { id: 120, name: "High Roller", desc: "Kaszinó x2 BPS", cost: 500000000, reqBuilding: 18, reqCount: 10, targetId: 18, mult: 2 },
+    { id: 104, name: "Sajtos Munkások", desc: "Szinergia: Sajtgyár +100 BPS a Munkásnak", cost: 500000000, reqBuilding: 6, reqCount: 1, type: "synergy" },
+    { id: 105, name: "Használtautó Keresk.", desc: "Autóbizniszek x2 BPS", cost: 1500000000, reqBuilding: 8, reqCount: 5, targetId: 8, mult: 2 },
+    { id: 109, name: "Pálcás Futárok", desc: "Roxfort x2 BPS", cost: 15000000000, reqBuilding: 12, reqCount: 3, targetId: 12, mult: 2 },
+    { id: 121, name: "Plazma Hegesztő", desc: "Nano-Gyár x2 BPS", cost: 150000000000, reqBuilding: 20, reqCount: 10, targetId: 20, mult: 2 },
+    { id: 110, name: "Szauron Szeme", desc: "Mordor x2 BPS", cost: 250000000000, reqBuilding: 13, reqCount: 1, targetId: 13, mult: 2 },
+    { id: 122, name: "Műholdas Adatátvitel", desc: "Űrállomás x2 BPS", cost: 10000000000000, reqBuilding: 21, reqCount: 5, targetId: 21, mult: 2 },
+    { id: 123, name: "Paradoxon Pajzs", desc: "Időgép x2 BPS", cost: 80000000000000, reqBuilding: 22, reqCount: 5, targetId: 22, mult: 2 }
 ];
 
 export const prestigeSkillsData = [
+    // --- KÖZÉPSŐ FŐÁG ---
     { id: 301, name: "Isteni Láncolaj", desc: "Minden BPS és Kattintás 2x! (Max 3x vehető)", baseCost: 2, repeatable: true, maxLevel: 3, req: null, x: 50, y: 10 },
-    { id: 202, name: "Szerencsés Kéz", desc: "Az Arany/Rozsdás biciklik 2x sűrűbben jönnek.", baseCost: 3, repeatable: false, req: 301, x: 65, y: 25 },
-    { id: 206, name: "Mesterlövész", desc: "Az Aim Lab győzelem 5x helyett 10x-es nyereményt ad!", baseCost: 25, repeatable: false, req: 205, x: 70, y: 75 },
-    { id: 304, name: "Küllő-Mágnes", desc: "A megmaradt Küllőid 1% helyett 2% bónuszt adnak!", baseCost: 15, repeatable: false, req: 301, x: 50, y: 85 }, // ÚJ Skill
-    { id: 401, name: "Aranyásó", desc: "Az Aranybicikli 7x helyett 15x szorzót ad!", baseCost: 15, repeatable: false, req: 202, x: 90, y: 80 }, // ÚJ Skill
-    { id: 402, name: "Reflex Ital", desc: "Az Aim Lab célpontok lassabban (0.85mp) tűnnek el.", baseCost: 20, repeatable: false, req: 206, x: 85, y: 75 }, // ÚJ Skill
-    { id: 404, name: "Sötét Anyag Küllő", desc: "+10% Globális BPS minden szinten. (VÉGTELENSZER)", baseCost: 30, repeatable: true, maxLevel: 9999, req: 304, x: 50, y: 100 } // ÚJ Skill
+    { id: 302, name: "Gyémánt Láncolaj", desc: "Újabb 2x BPS és Katt. szorzó! (Max 3x vehető)", baseCost: 10, repeatable: true, maxLevel: 3, req: 301, x: 50, y: 25 },
+    { id: 303, name: "Mágikus Hányózsák", desc: "A hányás takarítása dupla annyi biciklit fizet.", baseCost: 8, repeatable: false, req: 302, x: 50, y: 40 },
+    { id: 304, name: "Küllő-Mágnes", desc: "A megmaradt Küllőid 1% helyett 2% bónuszt adnak!", baseCost: 15, repeatable: false, req: 303, x: 50, y: 55 },
+    { id: 404, name: "Sötét Anyag Küllő", desc: "+10% Globális BPS minden szinten. (VÉGTELENSZER)", baseCost: 30, repeatable: true, maxLevel: 9999, req: 304, x: 50, y: 75 },
+
+    // --- BAL ÁG (Gazdaság, Passzív) ---
+    { id: 203, name: "Eszter Titka", desc: "Eszter támogatása 20%-kal olcsóbb lesz.", baseCost: 5, repeatable: false, req: 301, x: 25, y: 25 },
+    { id: 207, name: "Kuponkód", desc: "Minden alap épület 10%-kal olcsóbb!", baseCost: 10, repeatable: false, req: 203, x: 15, y: 40 },
+    { id: 209, name: "Tőzsdecápa", desc: "Szerencsekerék telitalálat 80x helyett 100x nyeremény.", baseCost: 20, repeatable: false, req: 207, x: 10, y: 55 },
+    { id: 208, name: "Éjszakai Bagoly", desc: "Az Éjszakai Műszak felhői 20x helyett 30x szorzót adnak.", baseCost: 15, repeatable: false, req: 203, x: 35, y: 40 },
+    { id: 210, name: "Globális Ellátólánc", desc: "Minden BIRTOKOLT épülettípus után +5% BPS!", baseCost: 30, repeatable: false, req: 208, x: 30, y: 55 },
+
+    // --- JOBB ÁG (Események, Szerencse) ---
+    { id: 202, name: "Szerencsés Kéz", desc: "Az Arany/Rozsdás biciklik 2x sűrűbben jönnek.", baseCost: 3, repeatable: false, req: 301, x: 75, y: 25 },
+    { id: 201, name: "Felhővadász", desc: "A varázsfelhők 2x gyakrabban jelennek meg.", baseCost: 2, repeatable: false, req: 202, x: 65, y: 40 },
+    { id: 204, name: "Varázsüveg", desc: "A bónusz biciklik 5 másodperccel tovább maradnak kint.", baseCost: 5, repeatable: false, req: 201, x: 70, y: 55 },
+    { id: 401, name: "Aranyásó", desc: "Az Aranybicikli 7x helyett 15x szorzót ad!", baseCost: 15, repeatable: false, req: 204, x: 65, y: 70 },
+    { id: 406, name: "Rozsdás Immunitás", desc: "Nincs több defekt (0 BPS), csakis a 10x bónusz!", baseCost: 20, repeatable: false, req: 401, x: 70, y: 85 },
+
+    // --- SZÉLSŐ JOBB ÁG (Kattintás és E-Sport) ---
+    { id: 205, name: "Villámkezű", desc: "A kattintásod megkapja a teljes (BPS) 1%-át!", baseCost: 15, repeatable: false, req: 202, x: 85, y: 40 },
+    { id: 206, name: "Mesterlövész", desc: "Az Aim Lab győzelem 5x helyett 10x-es nyereményt ad!", baseCost: 25, repeatable: false, req: 205, x: 90, y: 55 },
+    { id: 402, name: "Reflex Ital", desc: "Az Aim Lab célpontok lassabban (0.85mp) tűnnek el.", baseCost: 20, repeatable: false, req: 206, x: 95, y: 70 },
+    { id: 405, name: "Koffein Remegés", desc: "Auto-Clicker! A gép másodpercenként 2-t kattint.", baseCost: 25, repeatable: false, req: 205, x: 80, y: 55 }
 ];
 
 export const rpgItems = {
