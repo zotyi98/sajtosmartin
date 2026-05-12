@@ -1,0 +1,89 @@
+import { GameState, showToast, saveUserProgress } from '../state.js';
+
+window.catchGoldenBike = function() {
+    if (window.isKitchenMeetingActive) return; 
+    document.getElementById('golden-bike').style.display = 'none';
+    let dur = GameState.prestigeSkills.includes(204) ? 35000 : 30000;
+    let multValue = GameState.prestigeSkills.includes(401) ? 15 : 7;
+    window.activeBuffs.push({ mult: multValue, target: 'both', endTime: Date.now() + dur, text: `✨ ${multValue}x SZORZÓ AKTÍV! ✨`, color: "var(--gold)" });
+    window.recalcMultiplier(); window.spawnConfetti(); window.dropRPGItem();
+};
+
+window.catchRustyBike = function() {
+    if (window.isKitchenMeetingActive) return; 
+    document.getElementById('rusty-bike').style.display = 'none';
+    let dur = GameState.prestigeSkills.includes(204) ? 20000 : 15000;
+    if(GameState.prestigeSkills.includes(406) || Math.random() > 0.5) {
+        window.activeBuffs.push({ mult: 10, target: 'bps', endTime: Date.now() + dur, text: "🔥 10x ROZSDÁS SZORZÓ! 🔥", color: "var(--rust)" });
+    } else {
+        window.activeBuffs.push({ mult: 0, target: 'bps', endTime: Date.now() + dur, text: "💥 DEFEKT! 0 BPS 💥", color: "red" });
+        document.getElementById('game-world').classList.add('world-shake');
+        setTimeout(() => { document.getElementById('game-world').classList.remove('world-shake'); }, 500);
+        showToast("Beleszaladtál egy rozsdás szögbe... megállt a termelés!");
+    }
+    window.recalcMultiplier(); window.dropRPGItem();
+};
+
+window.catchHarry = function() {
+    if (window.isKitchenMeetingActive) return; 
+    document.getElementById('harry-potter-event').style.display = 'none';
+    window.activeBuffs.push({ mult: 150, target: 'click', endTime: Date.now() + 10000, text: "⚡ 150x KATTINTÁS (HARRY)! ⚡", color: "#9c27b0" });
+    window.recalcMultiplier(); window.spawnConfetti(); showToast("🧙‍♂️ Elkaptad Harry Pottert! 150x Kattintás szorzó 10 mp-ig!");
+};
+
+window.spawnMagicCloud = function() {
+    if (!GameState.currentUser || document.getElementById('game-container').style.display === 'none') return;
+    const cloud = document.createElement('div'); cloud.className = 'magic-cloud'; cloud.innerText = '☁️';
+    cloud.style.fontSize = (Math.random() * 30 + 40) + 'px'; cloud.style.top = (Math.random() * 30 + 5) + '%'; 
+    const duration = Math.random() * 10 + 15; 
+    cloud.style.animation = `cloudFloat ${duration}s linear forwards`;
+    
+    cloud.onclick = function(e) {
+        if (window.isKitchenMeetingActive) { showToast("☕ Martin a konyhában van!"); return; }
+        let cloudMult = 10;
+        if(window.isNightMode) { cloudMult = GameState.prestigeSkills.includes(208) ? 30 : 20; }
+        window.activeBuffs.push({ mult: cloudMult, target: 'bps', endTime: Date.now() + 20000, text: `☁️ ${cloudMult}x FELHŐ SZORZÓ! ☁️`, color: "#81d4fa" });
+        window.recalcMultiplier(); window.createParticle(e.clientX, e.clientY);
+        showToast(`☁️ Elkaptál egy felhőt! ${cloudMult}x BPS szorzó!`);
+        window.dropRPGItem(); cloud.remove();
+    };
+    document.getElementById('game-world').appendChild(cloud);
+    setTimeout(() => { if(cloud.parentElement) cloud.remove(); }, duration * 1000);
+};
+
+window.spawnPukeEvent = function() {
+    if (window.isPukeEventActive) return;
+    window.isPukeEventActive = true; 
+    const container = document.getElementById('puke-event-container'); const guy = document.getElementById('puke-guy'); const splat = document.getElementById('puke-splat'); const hitbox = document.getElementById('puke-hitbox');
+    container.style.display = 'block'; splat.style.display = 'none'; hitbox.style.display = 'none'; guy.style.display = 'block'; guy.innerText = '🚶🏽‍♂️'; guy.style.right = '-150px';
+    setTimeout(() => { guy.style.right = '40px'; }, 50);
+    setTimeout(() => { guy.innerText = '🤮'; splat.style.display = 'block'; }, 1050);
+    setTimeout(() => { guy.innerText = '🚶🏽‍♂️'; guy.style.right = '-150px'; hitbox.style.display = 'block'; }, 2500);
+    setTimeout(() => { guy.style.display = 'none'; }, 3500);
+};
+
+window.cleanPuke = function(e) {
+    if(!window.isPukeEventActive || window.isKitchenMeetingActive) return; 
+    let pukeBase = GameState.prestigeSkills.includes(303) ? 30 : 15; let reward = Math.max(200, Math.floor(GameState.bps * pukeBase)); 
+    GameState.bikes += reward; GameState.lifetimeBikes += reward; window.isPukeEventActive = false; document.getElementById('puke-event-container').style.display = 'none';
+    window.createFloatingNumber(e.clientX, e.clientY, reward); window.updateUI(); saveUserProgress();
+    showToast("🧹 Sikeresen feltakarítottad a kanapét! +" + reward.toLocaleString() + " 🚲");
+};
+
+let kitchenMeetingInterval;
+window.triggerKitchenMeeting = function() {
+    if (window.isKitchenMeetingActive) return;
+    window.isKitchenMeetingActive = true; 
+    const overlay = document.getElementById('kitchen-overlay'); const timerEl = document.getElementById('kitchen-timer'); overlay.style.display = 'flex';
+    let timeLeft = 15; timerEl.innerText = timeLeft;
+    kitchenMeetingInterval = setInterval(() => {
+        timeLeft--; timerEl.innerText = timeLeft;
+        if(timeLeft <= 0) { clearInterval(kitchenMeetingInterval); window.isKitchenMeetingActive = false; overlay.style.display = 'none'; showToast("☕ Vége a konyhagyűlésnek! A munka folytatódik."); }
+    }, 1000);
+};
+
+window.catchAimlabEvent = function() { 
+    if (window.isKitchenMeetingActive) return; 
+    document.getElementById('aimlab-event-obj').style.display = 'none'; 
+    window.openAimlab(); 
+};
