@@ -2,7 +2,7 @@ import {
     GameState, db, showToast, saveUserProgress, setUpdateUI 
 } from './state.js';
 import { 
-    defaultUpgrades, extraUpgradesData, prestigeSkillsData, rpgItems, achievements 
+    defaultUpgrades, extraUpgradesData, prestigeSkillsData, rpgItems, achievements, newsItems 
 } from './data.js';
 import { openAimlab, startAimlab } from './modules/aimlab.js';
 import { initWheel, spinWheel } from './modules/wheel.js';
