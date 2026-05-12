@@ -223,3 +223,18 @@ input[type="text"], input[type="number"] { width: 100%; padding: 12px; margin-bo
     #admin-panel { bottom: auto; top: 100px; right: 5px; }
     #btn-mute { left: 5px; bottom: 30px; }
 }
+.magic-cloud {
+    position: absolute;
+    cursor: pointer;
+    z-index: 105;
+    left: -100px;
+    filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
+    transition: transform 0.1s;
+}
+.magic-cloud:active { 
+    transform: scale(0.9); 
+}
+@keyframes cloudFloat {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(120vw); }
+}
