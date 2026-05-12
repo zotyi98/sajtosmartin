@@ -24,7 +24,8 @@ export const GameState = {
     upgrades: [],
     realUpgrades: [],
     prestigeSkills: [],
-    inventory: []
+    inventory: [],
+    lastSaved: 0 // <--- ÚJ: Hogy tudja a rendszer, mikori a mentés!
 };
 
 export function showToast(text) {
@@ -38,6 +39,7 @@ export function showToast(text) {
 
 export function saveUserProgress() {
     if (!GameState.currentUser) return;
+    GameState.lastSaved = Date.now(); // <--- ÚJ: Mentéskor lebélyegezzük a pontos időt!
     localStorage.setItem(`martinGame_user_${GameState.currentUser}`, JSON.stringify(GameState));
     set(ref(db, 'users/' + GameState.currentUser), GameState);
 }

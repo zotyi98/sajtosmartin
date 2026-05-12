@@ -548,13 +548,18 @@ async function loadUserProgressFromDB() {
         parsed = firebaseData || localData;
     }
     
-    if (parsed && parsed.lastSaved && parsed.lastSaved < resetTime) {
-        console.log("Elavult mentés észlelve a reset óta! Adatok törlése...");
-        parsed = null; 
+    // --- ÚJ SZIGORÚ ELLENŐRZÉS: HA VOLT RESET ---
+    if (parsed && resetTime > 0) {
+        // Ha a mentésben NINCS időbélyeg (régi mentés), VAGY régebbi az időbélyeg mint a reset ideje
+        if (!parsed.lastSaved || parsed.lastSaved < resetTime) {
+            console.log("Elavult mentés észlelve a reset óta! Adatok azonnali törlése...");
+            parsed = null; // Kegyetlenül lenullázzuk
+        }
     }
 
     if (parsed) {
         GameState.password = parsed.password || GameState.password;
+        GameState.lastSaved = parsed.lastSaved || 0; // Biztosítjuk a betöltését
         GameState.bikes = parsed.bikes || 0; 
         GameState.lifetimeBikes = parsed.lifetimeBikes || parsed.bikes || 0; 
         GameState.goldenSpokes = parsed.goldenSpokes || 0;
@@ -571,9 +576,6 @@ async function loadUserProgressFromDB() {
                 const savedU = loadedUpgrades.find(s => s.id === u.id);
                 if (savedU) { 
                     u.owned = savedU.owned || 0; 
-                    
-                    // JAVÍTÁS: Elfelejtjük a régi hibás árakat, és újraszámoljuk 
-                    // az aktuális (balanszolt) alapárak alapján!
                     const defaultBase = defaultUpgrades.find(d => d.id === u.id);
                     if (defaultBase && defaultBase.type !== "special") {
                         u.cost = Math.floor(defaultBase.cost * Math.pow(1.15, u.owned));
