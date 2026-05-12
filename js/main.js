@@ -230,27 +230,27 @@ function updateBuildingsVisuals() {
 }
 
 function updateUI() {
-        document.getElementById('bike-count').innerText = Math.floor(GameState.bikes).toLocaleString();
-        document.getElementById('bps-count').innerText = "Biciklik másodpercenként: " + Math.floor(GameState.bps * multiplier).toLocaleString();
+        document.getElementById('bike-count').innerText = Math.floor(state.bikes).toLocaleString();
+        document.getElementById('bps-count').innerText = "Biciklik másodpercenként: " + Math.floor(state.bps * multiplier).toLocaleString();
 
         const presCountUI = document.getElementById('prestige-count');
         const ascInfoUI = document.getElementById('ascension-info');
         
-        if(GameState.goldenSpokes > 0 || GameState.prestigeSkills.length > 0) {
+        if(state.goldenSpokes > 0 || state.prestigeSkills.length > 0) {
             presCountUI.style.display = 'block';
-            presCountUI.innerText = `✨ Arany Küllők: ${GameState.goldenSpokes} (+${GameState.goldenSpokes}%)`;
+            presCountUI.innerText = `✨ Arany Küllők: ${state.goldenSpokes} (+${state.goldenSpokes}%)`;
             
-            let doubleCount301 = GameState.prestigeSkills.filter(id => id === 301).length;
-            let doubleCount302 = GameState.prestigeSkills.filter(id => id === 302).length;
+            let doubleCount301 = state.prestigeSkills.filter(id => id === 301).length;
+            let doubleCount302 = state.prestigeSkills.filter(id => id === 302).length;
             let ascMult = Math.pow(2, doubleCount301) * Math.pow(2, doubleCount302);
             if(ascMult > 1) { ascInfoUI.style.display = 'block'; ascInfoUI.innerText = `🌌 Felemelkedés Szorzó: ${ascMult}x`; }
         }
 
-        let hasEszterDiscount = GameState.prestigeSkills.includes(203);
-        let hasKupon = GameState.prestigeSkills.includes(207);
+        let hasEszterDiscount = state.prestigeSkills.includes(203);
+        let hasKupon = state.prestigeSkills.includes(207);
         let currentBuildingSum = 0;
 
-        GameState.upgrades.forEach(upg => {
+        state.upgrades.forEach(upg => {
             currentBuildingSum += upg.owned;
             const item = document.getElementById(`upg-item-${upg.id}`);
             if (item) {
@@ -258,7 +258,7 @@ function updateUI() {
                 if(upg.id === 7 && hasEszterDiscount) actualCost *= 0.8;
                 else if (upg.id !== 7 && hasKupon) actualCost *= 0.9; 
                 
-                let canAfford = GameState.bikes >= actualCost;
+                let canAfford = state.bikes >= actualCost;
                 item.className = 'upgrade-item ' + (canAfford ? 'affordable' : 'disabled');
                 let descTxt = upg.type !== "special" ? `+${Math.ceil(upg.power).toLocaleString()} pont ${upg.type === 'click' ? 'katt.' : '/ mp'}` : upg.desc;
                 document.getElementById(`upg-desc-${upg.id}`).innerText = descTxt;
@@ -277,8 +277,8 @@ function updateUI() {
         const extraList = document.getElementById('extra-upgrades-list');
         extraUpgradesData.forEach(ext => {
             let el = document.getElementById(`extra-upg-${ext.id}`);
-            let isOwned = GameState.realUpgrades.some(ru => ru.id === ext.id);
-            let reqBuildingCount = GameState.upgrades.find(u => u.id === ext.reqBuilding)?.owned || 0;
+            let isOwned = state.realUpgrades.some(ru => ru.id === ext.id);
+            let reqBuildingCount = state.upgrades.find(u => u.id === ext.reqBuilding)?.owned || 0;
             let shouldShow = !isOwned && (reqBuildingCount >= ext.reqCount);
 
             if (shouldShow) {
@@ -287,42 +287,19 @@ function updateUI() {
                     el.innerHTML = `<b>${ext.name}</b><br><span style="color:#78909c;">${ext.desc}</span><br><b style="color:#d32f2f; font-family:'Bangers'; font-size:16px;">${ext.cost.toLocaleString()} 🚲</b>`;
                     extraList.appendChild(el);
                 }
-                let canAfford = GameState.bikes >= ext.cost; el.className = 'extra-upgrade-item ' + (canAfford ? 'affordable' : 'disabled');
+                let canAfford = state.bikes >= ext.cost; el.className = 'extra-upgrade-item ' + (canAfford ? 'affordable' : 'disabled');
             } else { if (el) el.remove(); }
         });
 
-        const prestigePoints = Math.floor(GameState.lifetimeBikes / 1000000000);
+        const prestigePoints = Math.floor(state.lifetimeBikes / 1000000000);
         if (prestigePoints > 0) { document.getElementById('btn-prestige').style.display = 'block'; document.getElementById('btn-prestige').innerText = `✨ ÚJRASZÜLETÉS (+${prestigePoints} Küllő)`; }
 
         // --- ÚJ RÉSZ: AIMLAB VALÓS IDEJŰ ÁRFRISSÍTÉS ---
         if (!window.aimlabActive) {
             const costEl = document.getElementById('aimlab-cost');
-            if (costEl) costEl.innerText = Math.floor(GameState.bikes * 0.9).toLocaleString();
+            if (costEl) costEl.innerText = Math.floor(state.bikes * 0.9).toLocaleString();
         }
     }
-
-    if (currentBuildingSum !== lastBuildingSum) { updateBuildingsVisuals(); lastBuildingSum = currentBuildingSum; }
-
-    const extraList = document.getElementById('extra-upgrades-list');
-    extraUpgradesData.forEach(ext => {
-        let el = document.getElementById(`extra-upg-${ext.id}`);
-        let isOwned = GameState.realUpgrades.some(ru => ru.id === ext.id);
-        let reqBuildingCount = GameState.upgrades.find(u => u.id === ext.reqBuilding)?.owned || 0;
-        let shouldShow = !isOwned && (reqBuildingCount >= ext.reqCount);
-
-        if (shouldShow) {
-            if (!el) {
-                el = document.createElement('div'); el.id = `extra-upg-${ext.id}`; el.onclick = () => window.buyExtraUpgrade(ext.id);
-                el.innerHTML = `<b>${ext.name}</b><br><span style="color:#78909c;">${ext.desc}</span><br><b style="color:#d32f2f; font-family:'Bangers'; font-size:16px;">${ext.cost.toLocaleString()} 🚲</b>`;
-                extraList.appendChild(el);
-            }
-            let canAfford = GameState.bikes >= ext.cost; el.className = 'extra-upgrade-item ' + (canAfford ? 'affordable' : 'disabled');
-        } else { if (el) el.remove(); }
-    });
-
-    const prestigePoints = Math.floor(GameState.lifetimeBikes / 1000000000);
-    if (prestigePoints > 0) { document.getElementById('btn-prestige').style.display = 'block'; document.getElementById('btn-prestige').innerText = `✨ ÚJRASZÜLETÉS (+${prestigePoints} Küllő)`; }
-}
 setUpdateUI(updateUI); 
 
 // --- BOLT ÉS VÁSÁRLÁS ---
