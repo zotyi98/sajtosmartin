@@ -6,7 +6,7 @@ import {
 } from './data.js';
 import { openAimlab, startAimlab } from './modules/aimlab.js';
 import { initWheel, spinWheel } from './modules/wheel.js';
-import { ref, onValue, get, child, set, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { ref, onValue, get, child, set, push, } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 // --- GLOBÁLIS VÁLTOZÓK ---
 const appInitTime = Date.now();
@@ -126,7 +126,10 @@ function recalculateStats() {
     let distinctBuildings = GameState.upgrades.filter(u => u.owned > 0 && u.type !== 'special').length;
     let supplyMult = GameState.prestigeSkills.includes(210) ? (1 + (distinctBuildings * 0.05)) : 1;
     
-    let prestigeMult = (1 + (GameState.goldenSpokes * 0.01)) * treeMult * supplyMult;
+    let basePrestigeMult = GameState.prestigeSkills.includes(304) ? (1 + (GameState.goldenSpokes * 0.02)) : (1 + (GameState.goldenSpokes * 0.01));
+    let darkMatterCount = GameState.prestigeSkills.filter(id => id === 404).length;
+    let infiniteMult = 1 + (darkMatterCount * 0.10);
+    let prestigeMult = basePrestigeMult * treeMult * supplyMult * infiniteMult;
     let eszterMult = GameState.upgrades.find(u => u.id === 7)?.owned > 0 ? 2 : 1;
     
     GameState.bps = b * prestigeMult * eszterMult * seasonBpsMult;
@@ -402,65 +405,16 @@ window.prestige = function() {
     }
 };
 
-// --- MULTIPLAYER ESEMÉNYEK ---
-window.openInteractModal = function(targetPlayer) {
-    if(targetPlayer === GameState.currentUser) { showToast("Magaddal nem tudsz interakcióba lépni!"); return; }
-    window.mpTarget = targetPlayer; document.getElementById('interact-target-name').innerText = targetPlayer;
-    let cost = Math.max(1000, Math.floor(GameState.bps * 3600)); 
-    document.getElementById('mp-thief-cost').innerText = cost.toLocaleString(); document.getElementById('mp-buff-cost').innerText = cost.toLocaleString();
-    document.getElementById('interact-modal').style.display = 'flex';
-};
-
-window.sendThief = function() {
-    let cost = Math.max(1000, Math.floor(GameState.bps * 3600));
-    if (GameState.bikes < cost) { alert("Nincs elég biciklid ehhez!"); return; }
-    GameState.bikes -= cost; updateUI(); saveUserProgress();
-    push(ref(db, 'users/' + window.mpTarget + '/events'), { type: 'thief_attack', from: GameState.currentUser });
-    showToast("🦹‍♂️ Tolvaj elküldve " + window.mpTarget + " játékosnak!"); document.getElementById('interact-modal').style.display = 'none';
-};
-
-window.sendBuff = function() {
-    let cost = Math.max(1000, Math.floor(GameState.bps * 3600));
-    if (GameState.bikes < cost) { alert("Nincs elég biciklid ehhez!"); return; }
-    GameState.bikes -= cost; updateUI(); saveUserProgress();
-    push(ref(db, 'users/' + window.mpTarget + '/events'), { type: 'buff', from: GameState.currentUser });
-    showToast("❤️ Eszter Csókja elküldve " + window.mpTarget + " játékosnak!"); document.getElementById('interact-modal').style.display = 'none';
-};
-
-function spawnMPThief(senderName) {
-    const thief = document.getElementById('mp-thief');
-    thief.style.display = 'block'; thief.style.animation = 'none'; thief.offsetHeight; thief.style.animation = 'mpWalkAcross 10s linear forwards';
-    let caught = false;
-    
-    const catchHandler = function(e) {
-        caught = true; thief.style.display = 'none'; thief.removeEventListener('mousedown', catchHandler);
-        showToast("👮 Elkaptad a tolvajt, akit " + senderName + " küldött rád!");
-        push(ref(db, 'users/' + senderName + '/events'), { type: 'thief_failed', from: GameState.currentUser });
-    };
-    thief.addEventListener('mousedown', catchHandler);
-    
-    setTimeout(() => {
-        if (!caught) {
-            thief.style.display = 'none'; thief.removeEventListener('mousedown', catchHandler);
-            let stealPct = GameState.prestigeSkills.includes(304) ? 0.10 : 0.20;
-            let lost = Math.floor(GameState.bikes * stealPct);
-            if (lost > 0) {
-                GameState.bikes -= lost; updateUI(); saveUserProgress();
-                document.getElementById('game-world').classList.add('world-shake');
-                setTimeout(() => { document.getElementById('game-world').classList.remove('world-shake'); }, 500);
-                showToast("😭 Jajj! " + senderName + " tolvaja meglopott!\nElvesztettél " + lost.toLocaleString() + " 🚲-t!");
-                push(ref(db, 'users/' + senderName + '/events'), { type: 'thief_success', from: GameState.currentUser, amount: lost });
-            } else { push(ref(db, 'users/' + senderName + '/events'), { type: 'thief_failed', from: GameState.currentUser }); }
-        }
-    }, 10000);
-}
-
 // --- EGYÉB ESEMÉNYEK ---
 window.catchGoldenBike = function() {
     if (isKitchenMeetingActive) return; 
     document.getElementById('golden-bike').style.display = 'none';
     let dur = GameState.prestigeSkills.includes(204) ? 35000 : 30000;
-    activeBuffs.push({ mult: 7, target: 'both', endTime: Date.now() + dur, text: "✨ 7x SZORZÓ AKTÍV! ✨", color: "var(--gold)" });
+    
+    // Aranyásó (401) képesség ellenőrzése
+    let multValue = GameState.prestigeSkills.includes(401) ? 15 : 7;
+    activeBuffs.push({ mult: multValue, target: 'both', endTime: Date.now() + dur, text: `✨ ${multValue}x SZORZÓ AKTÍV! ✨`, color: "var(--gold)" });
+    
     recalcMultiplier(); spawnConfetti(); dropRPGItem();
 };
 
@@ -691,21 +645,6 @@ window.login = async function() {
     });
     
     const eventsRef = ref(db, 'users/' + GameState.currentUser + '/events');
-    onChildAdded(eventsRef, (snapshot) => {
-        const ev = snapshot.val(); const evId = snapshot.key;
-        set(ref(db, 'users/' + GameState.currentUser + '/events/' + evId), null);
-        
-        if (ev.type === 'thief_attack') { spawnMPThief(ev.from); } 
-        else if (ev.type === 'thief_failed') { showToast("🤬 A tolvajodat elkapta " + ev.from + "! Nem szereztél semmit."); } 
-        else if (ev.type === 'thief_success') {
-            GameState.bikes += ev.amount; GameState.lifetimeBikes += ev.amount; updateUI(); saveUserProgress();
-            showToast("🤑 A tolvajod sikeresen meglopta " + ev.from + " játékost!\nZsákmány: +" + ev.amount.toLocaleString() + " 🚲");
-        } 
-        else if (ev.type === 'buff') {
-            activeBuffs.push({ mult: 2, target: 'bps', endTime: Date.now() + 300000, text: "❤️ 2x BPS (AJÁNDÉK " + ev.from.toUpperCase() + "-TÓL) ❤️", color: "var(--love)" });
-            recalcMultiplier(); showToast("🎁 Kaptál egy bónuszt " + ev.from + " játékostól!\n2x BPS 5 percig!");
-        }
-    });
 
     checkSeasons(); initShopUI(); await loadUserProgressFromDB();
     document.getElementById('current-user-display').innerText = GameState.currentUser;
