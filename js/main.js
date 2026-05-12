@@ -600,6 +600,7 @@ async function loadUserProgressFromDB() {
     }
 
     if (parsed) {
+        GameState.password = parsed.password || GameState.password;
         GameState.bikes = parsed.bikes || 0; 
         GameState.lifetimeBikes = parsed.lifetimeBikes || parsed.bikes || 0; 
         GameState.goldenSpokes = parsed.goldenSpokes || 0;
@@ -640,10 +641,38 @@ async function loadUserProgressFromDB() {
 }
 
 window.login = async function() {
-    const input = document.getElementById('username-input').value.trim();
-    if (input.length < 2) return;
-    const btn = document.getElementById('btn-login'); btn.innerText = "Betöltés..."; btn.disabled = true;
-    GameState.currentUser = input;
+    const username = document.getElementById('username-input').value.trim();
+    const password = document.getElementById('password-input').value.trim(); // ÚJ: Jelszó beolvasása
+
+    if (username.length < 2) { showToast("A név túl rövid!"); return; }
+    if (password.length < 3) { showToast("A jelszó túl rövid (min. 3 karakter)!"); return; }
+
+    const btn = document.getElementById('btn-login'); 
+    btn.innerText = "Ellenőrzés..."; 
+    btn.disabled = true;
+
+    // --- BIZTONSÁGI ELLENŐRZÉS: JELSZÓ VIZSGÁLATA A FIREBASE-BEN ---
+    const dbRef = ref(db);
+    try {
+        const snapshot = await get(child(dbRef, `users/${username}/password`));
+        if (snapshot.exists()) {
+            const savedPassword = snapshot.val();
+            if (savedPassword !== password) {
+                // Ha rossz a jelszó, megállítjuk a belépést!
+                alert("❌ HIBÁS JELSZÓ!\nEz a név már foglalt, és nem a hozzá tartozó jelszót adtad meg.");
+                btn.innerText = "BELÉPÉS"; 
+                btn.disabled = false;
+                return; 
+            }
+        }
+    } catch (e) {
+        console.error("Adatbázis hiba:", e);
+    }
+
+    // Ha idáig eljutottunk, akkor vagy jó a jelszó, vagy most regisztrál először!
+    GameState.currentUser = username;
+    GameState.password = password; // Eltesszük a memóriába, hogy mentésnél felkerüljön
+    btn.innerText = "Betöltés...";
     
     onValue(ref(db, 'admin/reset'), (snapshot) => {
         const resetTime = snapshot.val();
@@ -761,6 +790,7 @@ window.addEventListener('keydown', (e) => {
 });
 
 document.getElementById('username-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') window.login(); });
+document.getElementById('password-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') window.login(); });
 
 window.adminAddBikes = function() {
     const val = parseInt(document.getElementById('admin-bike-amount').value);

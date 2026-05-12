@@ -14,6 +14,7 @@ export const db = getDatabase(app);
 // A játék teljes aktuális állapota (State)
 export const GameState = {
     currentUser: "",
+    password: "",
     bikes: 0,
     lifetimeBikes: 0,
     goldenSpokes: 0,
