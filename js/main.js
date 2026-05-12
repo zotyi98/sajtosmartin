@@ -291,13 +291,12 @@ function updateUI() {
             } else { if (el) el.remove(); }
         });
 
-        const prestigePoints = Math.floor(state.lifetimeBikes / 1000000000);
+        const prestigePoints = Math.floor(GameState.lifetimeBikes / 1000000000);
         if (prestigePoints > 0) { document.getElementById('btn-prestige').style.display = 'block'; document.getElementById('btn-prestige').innerText = `✨ ÚJRASZÜLETÉS (+${prestigePoints} Küllő)`; }
 
-        // --- ÚJ RÉSZ: AIMLAB VALÓS IDEJŰ ÁRFRISSÍTÉS ---
         if (!window.aimlabActive) {
             const costEl = document.getElementById('aimlab-cost');
-            if (costEl) costEl.innerText = Math.floor(state.bikes * 0.9).toLocaleString();
+            if (costEl) costEl.innerText = Math.floor(GameState.bikes * 0.9).toLocaleString();
         }
     }
 setUpdateUI(updateUI); 
