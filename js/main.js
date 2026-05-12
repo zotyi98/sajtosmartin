@@ -3,6 +3,7 @@ import { defaultUpgrades, extraUpgradesData, prestigeSkillsData, rpgItems, achie
 import { openAimlab, startAimlab } from './modules/aimlab.js';
 import { initWheel, spinWheel } from './modules/wheel.js';
 import { checkClickCheat, checkTimeCheat, checkEconomyCheat } from './modules/anticheat.js';
+import { initMartinEasterEgg } from './modules/martinbg.js'; // <--- ÚJ MODUL BEHÍVÁSA
 import { ref, onValue, get, child, set, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 // --- GLOBÁLIS VÁLTOZÓK ---
@@ -92,7 +93,6 @@ function dropRPGItem() {
     }
 }
 
-// --- HARDCORE BALANSZ PATCH 1: ADDITÍV PRESZTÍZS ---
 function recalculateStats() {
     let b = 0; let c = 1;
     if(GameState.inventory.includes('chain')) c += 50;
@@ -114,20 +114,17 @@ function recalculateStats() {
         if(u.type === "click") c += p;
     });
 
-    // Nerf: A presztízs szorzók mostantól ÖSSZEADÓDNAK, nem összeszorzódnak!
     let doubleCount301 = GameState.prestigeSkills.filter(id => id === 301).length;
     let doubleCount302 = GameState.prestigeSkills.filter(id => id === 302).length;
     let darkMatterCount = GameState.prestigeSkills.filter(id => id === 404).length;
     let distinctBuildings = GameState.upgrades.filter(u => u.owned > 0 && u.type !== 'special').length;
 
     let spokeBonus = GameState.prestigeSkills.includes(304) ? (GameState.goldenSpokes * 0.02) : (GameState.goldenSpokes * 0.01);
-    let treeBonus = (doubleCount301 * 1.0) + (doubleCount302 * 1.0); // Minden szint +100% (Additív)
+    let treeBonus = (doubleCount301 * 1.0) + (doubleCount302 * 1.0); 
     let supplyBonus = GameState.prestigeSkills.includes(210) ? (distinctBuildings * 0.05) : 0;
     let infiniteBonus = darkMatterCount * 0.10;
     
-    // Alap 100% (1) + a bónuszok
     let prestigeMult = 1 + spokeBonus + treeBonus + supplyBonus + infiniteBonus;
-    
     let eszterMult = GameState.upgrades.find(u => u.id === 7)?.owned > 0 ? 2 : 1;
     
     GameState.bps = b * prestigeMult * eszterMult * seasonBpsMult;
@@ -136,7 +133,6 @@ function recalculateStats() {
     GameState.clickPower = clickBase;
 }
 
-// --- HARDCORE BALANSZ PATCH 2: ADDITÍV ESEMÉNY SZORZÓK ---
 function recalcMultiplier() {
     let eb = 1; let ec = 1; let bz = false; let cz = false;
     let texts = []; let color = "white";
@@ -146,7 +142,7 @@ function recalcMultiplier() {
     activeBuffs.forEach(b => {
         if (b.target === 'both') { 
             if (b.mult === 0) { bz = true; cz = true; } 
-            else { eb += (b.mult - 1); ec += (b.mult - 1); } // ÖSSZEADÁS SZORZÁS HELYETT!
+            else { eb += (b.mult - 1); ec += (b.mult - 1); } 
         }
         else if (b.target === 'click') { 
             if (b.mult === 0) cz = true; 
@@ -198,7 +194,6 @@ function initLeaderboard() {
             
             div.className = `leader-item ${user.name === GameState.currentUser ? 'current-user' : ''} ${rankClass}`;
             
-            // ADMIN SPECTATE: CSAK zotyi TUDJA HASZNÁLNI!
             if (GameState.currentUser === "zotyi") {
                 div.style.cursor = 'pointer';
                 div.title = "Kattints a megfigyeléshez (Admin)";
@@ -226,7 +221,6 @@ function initLeaderboard() {
     });
 }
 
-// SPECTATE ABLAK TÖLTÉSE (RÉSZLETES)
 window.spectateUser = async function(targetUser) {
     if (GameState.currentUser !== "zotyi") {
         showToast("❌ Nincs jogosultságod mások megfigyelésére!");
@@ -416,10 +410,7 @@ window.buyUpgrade = function(id) {
     
     if (GameState.bikes >= actualCost) {
         GameState.bikes -= actualCost; upg.owned++;
-        
-        // --- HARDCORE BALANSZ PATCH 3: 18%-OS INFLÁCIÓ ÉPÜLETENKÉNT ---
         if (upg.type !== "special") upg.cost *= 1.18; 
-        
         recalculateStats(); updateUI(); saveUserProgress();
     }
 };
@@ -541,7 +532,6 @@ window.catchHarry = function() {
     if (isKitchenMeetingActive) return; 
     document.getElementById('harry-potter-event').style.display = 'none';
     
-    // --- HARRY POTTER NERF: 777x helyett 150x szorzó! ---
     activeBuffs.push({ mult: 150, target: 'click', endTime: Date.now() + 10000, text: "⚡ 150x KATTINTÁS (HARRY)! ⚡", color: "#9c27b0" });
     
     recalcMultiplier(); spawnConfetti(); showToast("🧙‍♂️ Elkaptad Harry Pottert! 150x Kattintás szorzó 10 mp-ig!");
@@ -692,7 +682,6 @@ async function loadUserProgressFromDB() {
                     u.owned = savedU.owned || 0; 
                     const defaultBase = defaultUpgrades.find(d => d.id === u.id);
                     if (defaultBase && defaultBase.type !== "special") {
-                        // INFLÁCIÓ SZINKRONIZÁLÁSA A MENTÉSBEN IS (1.18-RA)!
                         u.cost = Math.floor(defaultBase.cost * Math.pow(1.18, u.owned));
                     } else {
                         u.cost = savedU.cost || u.cost; 
@@ -774,6 +763,9 @@ window.login = async function() {
     document.getElementById('game-container').style.display = 'flex';
 
     initLeaderboard();
+    
+    // --- EASTER EGG INDÍTÁSA BEJELENTKEZÉS UTÁN ---
+    initMartinEasterEgg();
     
     setInterval(() => {
         recalcMultiplier();
