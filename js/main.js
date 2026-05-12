@@ -1,13 +1,9 @@
-import { 
-    GameState, db, showToast, saveUserProgress, setUpdateUI 
-} from './state.js';
-import { 
-    defaultUpgrades, extraUpgradesData, prestigeSkillsData, rpgItems, achievements, newsItems 
-} from './data.js';
+import { GameState, db, showToast, saveUserProgress, setUpdateUI } from './state.js';
+import { defaultUpgrades, extraUpgradesData, prestigeSkillsData, rpgItems, achievements, newsItems } from './data.js';
 import { openAimlab, startAimlab } from './modules/aimlab.js';
 import { initWheel, spinWheel } from './modules/wheel.js';
-import { ref, onValue, get, child, set, push, } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { checkClickCheat, checkTimeCheat, checkEconomyCheat } from './modules/anticheat.js';
+import { ref, onValue, get, child, set, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 // --- GLOBÁLIS VÁLTOZÓK ---
 const appInitTime = Date.now();
@@ -37,9 +33,7 @@ window.openAimlab = openAimlab;
 window.startAimlab = startAimlab;
 window.spinWheel = spinWheel;
 
-window.toggleMute = function() {
-    // Üres funkció, hogy ne adjon hibát a HTML gomb
-};
+window.toggleMute = function() {};
 
 // --- SEGÉDFUNKCIÓK (UI ÉS GRAFIKA) ---
 function createFloatingNumber(x, y, amount) {
@@ -130,6 +124,7 @@ function recalculateStats() {
     let basePrestigeMult = GameState.prestigeSkills.includes(304) ? (1 + (GameState.goldenSpokes * 0.02)) : (1 + (GameState.goldenSpokes * 0.01));
     let darkMatterCount = GameState.prestigeSkills.filter(id => id === 404).length;
     let infiniteMult = 1 + (darkMatterCount * 0.10);
+
     let prestigeMult = basePrestigeMult * treeMult * supplyMult * infiniteMult;
     let eszterMult = GameState.upgrades.find(u => u.id === 7)?.owned > 0 ? 2 : 1;
     
@@ -190,7 +185,6 @@ function initLeaderboard() {
             let rankEmoji = getRankEmoji(user.bps);
             
             div.className = `leader-item ${user.name === GameState.currentUser ? 'current-user' : ''} ${rankClass}`;
-            div.onclick = function() { window.openInteractModal(user.name); };
             
             let prestigeHtml = `
                 <div style="margin-top: 4px; font-size:12px; color:#555; font-family:'Fredoka', sans-serif; font-weight: 600; line-height: 1.2;">
@@ -301,6 +295,10 @@ setUpdateUI(updateUI);
 // --- BOLT ÉS VÁSÁRLÁS ---
 window.clickMartin = function(e) {
     if (isKitchenMeetingActive) { showToast("☕ Martin a konyhában van, most nem tudsz kattintani!"); return; }
+    
+    // Anti-Cheat (Kattintás)
+    if (checkClickCheat()) return;
+
     let gained = (GameState.clickPower * window.clickMultiplier); 
     GameState.bikes += gained; GameState.lifetimeBikes += gained; 
     createFloatingNumber(e.clientX, e.clientY, gained); createParticle(e.clientX, e.clientY); updateUI();
@@ -412,7 +410,6 @@ window.catchGoldenBike = function() {
     document.getElementById('golden-bike').style.display = 'none';
     let dur = GameState.prestigeSkills.includes(204) ? 35000 : 30000;
     
-    // Aranyásó (401) képesség ellenőrzése
     let multValue = GameState.prestigeSkills.includes(401) ? 15 : 7;
     activeBuffs.push({ mult: multValue, target: 'both', endTime: Date.now() + dur, text: `✨ ${multValue}x SZORZÓ AKTÍV! ✨`, color: "var(--gold)" });
     
@@ -423,7 +420,7 @@ window.catchRustyBike = function() {
     if (isKitchenMeetingActive) return; 
     document.getElementById('rusty-bike').style.display = 'none';
     let dur = GameState.prestigeSkills.includes(204) ? 20000 : 15000;
-    if(Math.random() > 0.5) {
+    if(GameState.prestigeSkills.includes(406) || Math.random() > 0.5) {
         activeBuffs.push({ mult: 10, target: 'bps', endTime: Date.now() + dur, text: "🔥 10x ROZSDÁS SZORZÓ! 🔥", color: "var(--rust)" });
     } else {
         activeBuffs.push({ mult: 0, target: 'bps', endTime: Date.now() + dur, text: "💥 DEFEKT! 0 BPS 💥", color: "red" });
@@ -534,7 +531,7 @@ async function loadUserProgressFromDB() {
     try {
         const snapshot = await get(child(dbRef, `users/${GameState.currentUser}`));
         if (snapshot.exists()) { firebaseData = snapshot.val(); }
-    } catch (e) { console.warn("Firebase betöltési hiba, offline mód aktiválva:", e); }
+    } catch (e) {}
 
     let localData = null;
     try {
@@ -549,18 +546,19 @@ async function loadUserProgressFromDB() {
         parsed = firebaseData || localData;
     }
     
-    // --- ÚJ SZIGORÚ ELLENŐRZÉS: HA VOLT RESET ---
-    if (parsed && resetTime > 0) {
-        // Ha a mentésben NINCS időbélyeg (régi mentés), VAGY régebbi az időbélyeg mint a reset ideje
-        if (!parsed.lastSaved || parsed.lastSaved < resetTime) {
-            console.log("Elavult mentés észlelve a reset óta! Adatok azonnali törlése...");
-            parsed = null; // Kegyetlenül lenullázzuk
+    // Ghost Save Gyilkos
+    if (resetTime > 0) {
+        if (firebaseData === null && localData !== null) {
+            console.log("Admin reset észlelve! A helyi mentés megsemmisítve.");
+            parsed = null;
+        } else if (parsed && (!parsed.lastSaved || parsed.lastSaved < resetTime)) {
+            parsed = null;
         }
     }
 
     if (parsed) {
         GameState.password = parsed.password || GameState.password;
-        GameState.lastSaved = parsed.lastSaved || 0; // Biztosítjuk a betöltését
+        GameState.lastSaved = parsed.lastSaved || 0;
         GameState.bikes = parsed.bikes || 0; 
         GameState.lifetimeBikes = parsed.lifetimeBikes || parsed.bikes || 0; 
         GameState.goldenSpokes = parsed.goldenSpokes || 0;
@@ -570,6 +568,14 @@ async function loadUserProgressFromDB() {
         GameState.prestigeSkills = Array.isArray(parsed.prestigeSkills) ? parsed.prestigeSkills : Object.values(parsed.prestigeSkills || {});
         GameState.inventory = Array.isArray(parsed.inventory) ? parsed.inventory : Object.values(parsed.inventory || {});
         
+        // FELHŐS ACHIEVEMENTS BETÖLTÉSE
+        GameState.achievements = Array.isArray(parsed.achievements) ? parsed.achievements : [];
+        if (GameState.achievements.length > 0) {
+            achievements.forEach((ach, i) => { ach.done = GameState.achievements[i] || false; });
+        } else {
+            achievements.forEach(ach => ach.done = false); 
+        }
+
         let loadedUpgrades = Array.isArray(parsed.upgrades) ? parsed.upgrades : Object.values(parsed.upgrades || {});
         
         if (loadedUpgrades.length > 0) {
@@ -588,7 +594,9 @@ async function loadUserProgressFromDB() {
         }
 
         if (parsed.lastSaved) {
-            let secondsOffline = (Date.now() - parsed.lastSaved) / 1000;
+            // Anti-Cheat (Offline Idő)
+            let secondsOffline = checkTimeCheat(parsed.lastSaved); 
+
             if (secondsOffline > 60) { 
                 recalculateStats(); 
                 let offlineGains = GameState.bps * secondsOffline;
@@ -600,9 +608,9 @@ async function loadUserProgressFromDB() {
         }
     } else {
         GameState.bikes = 0; GameState.lifetimeBikes = 0; GameState.goldenSpokes = 0; GameState.prestigeCount = 0; GameState.bps = 0; GameState.clickPower = 1;
-        GameState.realUpgrades = []; GameState.prestigeSkills = []; GameState.inventory = [];
+        GameState.realUpgrades = []; GameState.prestigeSkills = []; GameState.inventory = []; GameState.achievements = [];
+        achievements.forEach(ach => ach.done = false);
         localStorage.removeItem(`martinGame_user_${GameState.currentUser}`);
-        localStorage.removeItem(`martinGame_achs_${GameState.currentUser}`);
     }
     
     updateInventoryUI(); recalculateStats(); updateUI();
@@ -610,7 +618,7 @@ async function loadUserProgressFromDB() {
 
 window.login = async function() {
     const username = document.getElementById('username-input').value.trim();
-    const password = document.getElementById('password-input').value.trim(); // ÚJ: Jelszó beolvasása
+    const password = document.getElementById('password-input').value.trim(); 
 
     if (username.length < 2) { showToast("A név túl rövid!"); return; }
     if (password.length < 3) { showToast("A jelszó túl rövid (min. 3 karakter)!"); return; }
@@ -619,14 +627,13 @@ window.login = async function() {
     btn.innerText = "Ellenőrzés..."; 
     btn.disabled = true;
 
-    // --- BIZTONSÁGI ELLENŐRZÉS: JELSZÓ VIZSGÁLATA A FIREBASE-BEN ---
+    // Firebase Jelszó Ellenőrzés
     const dbRef = ref(db);
     try {
         const snapshot = await get(child(dbRef, `users/${username}/password`));
         if (snapshot.exists()) {
             const savedPassword = snapshot.val();
             if (savedPassword !== password) {
-                // Ha rossz a jelszó, megállítjuk a belépést!
                 alert("❌ HIBÁS JELSZÓ!\nEz a név már foglalt, és nem a hozzá tartozó jelszót adtad meg.");
                 btn.innerText = "BELÉPÉS"; 
                 btn.disabled = false;
@@ -637,9 +644,8 @@ window.login = async function() {
         console.error("Adatbázis hiba:", e);
     }
 
-    // Ha idáig eljutottunk, akkor vagy jó a jelszó, vagy most regisztrál először!
     GameState.currentUser = username;
-    GameState.password = password; // Eltesszük a memóriába, hogy mentésnél felkerüljön
+    GameState.password = password; 
     btn.innerText = "Betöltés...";
     
     onValue(ref(db, 'admin/reset'), (snapshot) => {
@@ -657,12 +663,9 @@ window.login = async function() {
             document.body.appendChild(banner);
         }
     });
-    
-    const eventsRef = ref(db, 'users/' + GameState.currentUser + '/events');
 
     checkSeasons(); initShopUI(); await loadUserProgressFromDB();
-    // --- ACHIEVEMENTS BETÖLTÉSE (GLITCH JAVÍTÁS) ---
-    loadAchievements(); 
+    
     document.getElementById('current-user-display').innerText = GameState.currentUser;
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('game-container').style.display = 'flex';
@@ -677,13 +680,24 @@ window.login = async function() {
             GameState.bikes += gained; GameState.lifetimeBikes += gained; updateUI();
         }
     }, 100);
-    // Anti-Cheat: Mielőtt elmentjük az állapotot, átvizsgáljuk az elmúlt 5 másodperc gazdaságát!
+
+    // Anti-Cheat Economy Scan + Mentés
     setInterval(() => {
         const isHacking = checkEconomyCheat();
         if (!isHacking) {
             saveUserProgress();
         }
     }, 5000);
+
+    // Auto-Clicker Képesség
+    setInterval(() => {
+        if (GameState.prestigeSkills.includes(405) && !isKitchenMeetingActive && document.getElementById('game-container').style.display !== 'none') {
+            let gained = (GameState.clickPower * window.clickMultiplier); 
+            GameState.bikes += gained; GameState.lifetimeBikes += gained; updateUI();
+            const m = document.getElementById('martin-character');
+            if(m) { m.style.transform = 'scale(0.95)'; setTimeout(() => m.style.transform = 'scale(1)', 100); }
+        }
+    }, 500);
 
     // Esemény loopok
     setInterval(() => {
@@ -734,17 +748,23 @@ setInterval(() => {
             showToast(`🏆 SIKER ELÉRVE: ${ach.name}!\n🎁 Jutalom: +${ach.reward.toLocaleString()} 🚲`);
         }
     });
-    if(changed) localStorage.setItem(`martinGame_achs_${GameState.currentUser}`, JSON.stringify(achievements.map(a => a.done)));
+    // A felhőbe (GameState) mentjük, nem a helyi memóriába!
+    if(changed) {
+        GameState.achievements = achievements.map(a => a.done);
+        saveUserProgress(); 
+    }
 }, 1000);
-
-function loadAchievements() {
-    const savedAchs = localStorage.getItem(`martinGame_achs_${GameState.currentUser}`);
-    if(savedAchs) { const parsed = JSON.parse(savedAchs); achievements.forEach((ach, i) => { if (parsed[i]) ach.done = true; }); }
-}
 
 // --- ADMIN ÉS GYORSGOMBOK ---
 window.addEventListener('keydown', (e) => {
     if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'l') {
+        
+        // ÍRD ÁT A "Martin" SZÓT A TE PONTOS ADMIN NEVEDRE HA MÁS!
+        if (GameState.currentUser !== "Martin") {
+            showToast("❌ Nincs jogosultságod az Admin Panelhez!");
+            return;
+        }
+
         const panel = document.getElementById('admin-panel'); 
         panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
     }
@@ -767,7 +787,6 @@ window.resetLeaderboard = async function() {
         await set(ref(db, 'admin/reset'), Date.now()); 
         
         localStorage.removeItem(`martinGame_user_${GameState.currentUser}`); 
-        localStorage.removeItem(`martinGame_achs_${GameState.currentUser}`); 
         location.reload();
     }
 };
@@ -784,3 +803,6 @@ window.forceCloud = function() { window.spawnMagicCloud(); };
 window.forcePuke = function() { window.spawnPukeEvent(); };
 window.forceAimlabEvent = function() { const o = document.getElementById('aimlab-event-obj'); o.style.top = Math.random()*50+25+"%"; o.style.display='block'; o.style.animation='none'; o.offsetHeight; o.style.animation='goldenFloat 10s linear forwards'; setTimeout(()=>o.style.display='none', 10000); };
 window.forceHarry = function() { const hp = document.getElementById('harry-potter-event'); hp.style.display='block'; hp.style.animation='none'; hp.offsetHeight; hp.style.animation='hpErraticFly 10s linear forwards'; setTimeout(()=>hp.style.display='none', 10000); };
+
+// DOM Indulás (Kerék inicializálása)
+initWheel();

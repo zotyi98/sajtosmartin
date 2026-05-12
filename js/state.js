@@ -25,7 +25,8 @@ export const GameState = {
     realUpgrades: [],
     prestigeSkills: [],
     inventory: [],
-    lastSaved: 0 // <--- ÚJ: Hogy tudja a rendszer, mikori a mentés!
+    achievements: [], // Itt tároljuk már a felhőben!
+    lastSaved: 0      // A Ghost-Save védelemhez
 };
 
 export function showToast(text) {
@@ -39,7 +40,7 @@ export function showToast(text) {
 
 export function saveUserProgress() {
     if (!GameState.currentUser) return;
-    GameState.lastSaved = Date.now(); // <--- ÚJ: Mentéskor lebélyegezzük a pontos időt!
+    GameState.lastSaved = Date.now(); // Mentéskor lebélyegezzük az időt
     localStorage.setItem(`martinGame_user_${GameState.currentUser}`, JSON.stringify(GameState));
     set(ref(db, 'users/' + GameState.currentUser), GameState);
 }
