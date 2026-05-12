@@ -100,7 +100,7 @@ function endAimlab() {
         let mult = GameState.prestigeSkills.includes(206) ? 10 : 5; 
         let winTotal = aimlabOriginalBikes * mult; 
         
-        // JAVÍTÁS: A pontos nyeremény számolása
+        // PONTOS NYEREMÉNY SZÁMOLÁSA
         let reward = winTotal - (aimlabOriginalBikes * 0.1); 
         
         GameState.bikes += reward; 
@@ -113,6 +113,6 @@ function endAimlab() {
         showToast(`❌ Aim Lab Vége.\n${acc}% pontosság (${aimlabHits} találat). Elbuktad a biciklijeid 90%-át!`); 
     }
 
-    // JAVÍTÁS: Ablak automatikus bezárása a játék végén!
+    // ABLAK AUTOMATIKUS BEZÁRÁSA
     document.getElementById('aimlab-modal').style.display = 'none';
 }
