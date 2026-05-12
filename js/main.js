@@ -371,7 +371,7 @@ window.openPrestigeShop = function() {
     });
     
     svgHTML += '</svg>';
-    container.innerHTML = '<div style="position:relative; width:1200px; height:800px; margin:auto;">' + svgHTML + nodesHTML + '</div>';
+    container.innerHTML = '<div style="position:relative; width:1200px; height:1000px; margin:auto;">' + svgHTML + nodesHTML + '</div>';
     
     document.getElementById('prestige-modal').style.display = 'flex';
     setTimeout(() => { container.scrollTop = 0; container.scrollLeft = (1200 - container.clientWidth) / 2; }, 10);
@@ -569,7 +569,18 @@ async function loadUserProgressFromDB() {
         if (loadedUpgrades.length > 0) {
             GameState.upgrades.forEach(u => {
                 const savedU = loadedUpgrades.find(s => s.id === u.id);
-                if (savedU) { u.owned = savedU.owned || 0; u.cost = savedU.cost || u.cost; }
+                if (savedU) { 
+                    u.owned = savedU.owned || 0; 
+                    
+                    // JAVÍTÁS: Elfelejtjük a régi hibás árakat, és újraszámoljuk 
+                    // az aktuális (balanszolt) alapárak alapján!
+                    const defaultBase = defaultUpgrades.find(d => d.id === u.id);
+                    if (defaultBase && defaultBase.type !== "special") {
+                        u.cost = Math.floor(defaultBase.cost * Math.pow(1.15, u.owned));
+                    } else {
+                        u.cost = savedU.cost || u.cost; 
+                    }
+                }
             });
         }
 
