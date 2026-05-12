@@ -22,6 +22,18 @@ let kitchenMeetingInterval;
 let isPukeEventActive = false;
 window.mpTarget = "";
 
+// --- HÍRSZALAG (TICKER) ---
+const tickerEl = document.getElementById('news-ticker-text');
+if (tickerEl) {
+    // Első betöltéskor egyből kap egy szöveget (a "Hírek:" szó nélkül)
+    tickerEl.innerText = newsItems[Math.floor(Math.random() * newsItems.length)];
+    
+    // Amikor az animáció újraindul, új szöveget sorsol
+    tickerEl.addEventListener('animationiteration', () => {
+        tickerEl.innerText = newsItems[Math.floor(Math.random() * newsItems.length)];
+    });
+}
+
 // --- GOMBOK ÖSSZEKÖTÉSE A HTML-EL ---
 window.openAimlab = openAimlab;
 window.startAimlab = startAimlab;
