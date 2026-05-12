@@ -475,7 +475,8 @@ window.spawnMagicCloud = function() {
     if (!GameState.currentUser || document.getElementById('game-container').style.display === 'none') return;
     const cloud = document.createElement('div'); cloud.className = 'magic-cloud'; cloud.innerText = '☁️';
     cloud.style.fontSize = (Math.random() * 30 + 40) + 'px'; cloud.style.top = (Math.random() * 30 + 5) + '%'; 
-    const duration = Math.random() * 10 + 15; cloud.style.animationDuration = duration + 's';
+    const duration = Math.random() * 10 + 15; 
+    cloud.style.animation = `cloudFloat ${duration}s linear forwards`; // <--- EZ HIÁNYZOTT!
     
     cloud.onclick = function(e) {
         let cloudMult = 10;
@@ -669,7 +670,7 @@ window.login = async function() {
     }, Math.random() * 240000 + 240000);
 
     setInterval(() => { window.spawnPukeEvent(); }, Math.random() * 300000 + 300000);
-    setInterval(() => { if (!isKitchenMeetingActive) window.triggerKitchenMeeting(); }, Math.random() * 300000 + 240000);
+    setInterval(() => { if (!isKitchenMeetingActive) window.triggerKitchenMeeting(); }, Math.random() * 600000 + 600000);
     setInterval(() => { window.spawnMagicCloud(); }, Math.random() * 300000 + (GameState.prestigeSkills.includes(201) ? 90000 : 180000));
 };
 
