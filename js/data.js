@@ -35,8 +35,8 @@ export const extraUpgradesData = [
 ];
 
 export const prestigeSkillsData = [
-    { id: 301, name: "Isteni Láncolaj", desc: "Minden BPS és Kattintás 2x! (Végtelenszer vehető)", baseCost: 2, repeatable: true, req: null, x: 50, y: 10 },
-    { id: 202, name: "Szerencsés Kéz", desc: "Az Arany/Rozsdás biciklik 2x sűrűbben jönnek.", baseCost: 3, repeatable: false, req: 301, x: 65, y: 25 },
+    { id: 301, name: "Isteni Láncolaj", desc: "Minden BPS és Kattintás 2x! (Max 3x vehető)", baseCost: 2, repeatable: true, maxLevel: 3, req: null, x: 50, y: 10 },
+    { id: 302, name: "Gyémánt Láncolaj", desc: "Újabb 2x BPS és Katt. szorzó! (Max 3x vehető)", baseCost: 10, repeatable: true, maxLevel: 3, req: 301, x: 50, y: 35 },
     { id: 201, name: "Felhővadász", desc: "A varázsfelhők 2x gyakrabban jelennek meg.", baseCost: 2, repeatable: false, req: 202, x: 80, y: 40 },
     { id: 204, name: "Varázsüveg", desc: "A bónusz biciklik 5 másodperccel tovább maradnak kint.", baseCost: 5, repeatable: false, req: 201, x: 90, y: 60 },
     { id: 205, name: "Villámkezű", desc: "A kattintásod megkapja a teljes (BPS) 1%-át!", baseCost: 15, repeatable: false, req: 202, x: 65, y: 50 },

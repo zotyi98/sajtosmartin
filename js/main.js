@@ -326,7 +326,9 @@ window.openPrestigeShop = function() {
 
     prestigeSkillsData.forEach(sk => {
         let ownedCount = GameState.prestigeSkills.filter(sid => sid === sk.id).length;
-        let isOwned = sk.repeatable ? ownedCount > 0 : ownedCount > 0;
+        
+        // ÚJ: Kiszámoljuk, hogy elérte-e a maximumot
+        let isMaxed = sk.repeatable ? (sk.maxLevel && ownedCount >= sk.maxLevel) : ownedCount > 0;
         let cost = sk.repeatable ? sk.baseCost * Math.pow(2, ownedCount) : sk.baseCost;
         
         let reqMet = true;
@@ -341,19 +343,22 @@ window.openPrestigeShop = function() {
         
         let aff = GameState.goldenSpokes >= cost;
         let statusClass = "locked";
+        
+        // ÚJ: CSS státuszok beállítása a maximum szint szerint
         if (reqMet) statusClass = aff ? "affordable" : "unaffordable";
-        if (isOwned && !sk.repeatable) statusClass = "owned";
-        if (isOwned && sk.repeatable) statusClass = aff ? "owned affordable" : "owned"; 
+        if (isMaxed) statusClass = "owned";
+        else if (ownedCount > 0 && sk.repeatable) statusClass = aff ? "owned affordable" : "owned"; 
 
-        let btnTxt = (isOwned && !sk.repeatable) ? "Megvan" : `${cost} Küllő`;
-        let levelTxt = sk.repeatable ? `<div style="color:#00e5ff; font-weight:bold; margin-top:2px;">Szint: ${ownedCount}</div>` : "";
+        // ÚJ: Gomb szöveg és szint kijelzés módosítása
+        let btnTxt = isMaxed ? "MAX" : `${cost} Küllő`;
+        let levelTxt = sk.repeatable ? `<div style="color:#00e5ff; font-weight:bold; margin-top:2px;">Szint: ${ownedCount}${sk.maxLevel ? '/' + sk.maxLevel : ''}</div>` : "";
 
         nodesHTML += `
             <div class="tree-node ${statusClass}" style="left:${sk.x}%; top:${sk.y}%;" onclick="window.buySkill(${sk.id})">
                 <strong style="font-family:'Bangers'; font-size:18px; letter-spacing:1px; color:#fff;">${sk.name}</strong>
                 ${levelTxt}
                 <div style="font-size:11px; margin:5px 0; color:#ddd; line-height:1.2;">${sk.desc}</div>
-                <button class="btn-primary" style="font-size:14px; padding:6px; margin-top:5px; box-shadow:0 2px 0 #1b5e20;" ${(aff && reqMet && (!isOwned || sk.repeatable)) ? '' : 'disabled'}>${btnTxt}</button>
+                <button class="btn-primary" style="font-size:14px; padding:6px; margin-top:5px; box-shadow:0 2px 0 #1b5e20;" ${(aff && reqMet && !isMaxed) ? '' : 'disabled'}>${btnTxt}</button>
             </div>
         `;
     });
@@ -368,15 +373,22 @@ window.openPrestigeShop = function() {
 window.buySkill = function(id) {
     let sk = prestigeSkillsData.find(s => s.id === id);
     let ownedCount = GameState.prestigeSkills.filter(sid => sid === id).length;
+    
+    // ÚJ: Megnézzük a maximumot vásárlás előtt is
+    let isMaxed = sk.repeatable ? (sk.maxLevel && ownedCount >= sk.maxLevel) : ownedCount > 0;
     let cost = sk.repeatable ? sk.baseCost * Math.pow(2, ownedCount) : sk.baseCost;
     
     if (sk.req && !GameState.prestigeSkills.includes(sk.req)) { showToast("Előbb vedd meg az előfeltételt!"); return; }
+    if (isMaxed) { showToast("Elérted a maximum szintet!"); return; }
 
-    if(GameState.goldenSpokes >= cost && (sk.repeatable || ownedCount === 0)) {
-        GameState.goldenSpokes -= cost; GameState.prestigeSkills.push(id);
-        saveUserProgress(); window.openPrestigeShop(); updateUI();
+    if(GameState.goldenSpokes >= cost) {
+        GameState.goldenSpokes -= cost; 
+        GameState.prestigeSkills.push(id);
+        saveUserProgress(); 
+        window.openPrestigeShop(); 
+        updateUI();
     }
-}
+};
 
 window.prestige = function() {
     const gain = Math.floor(GameState.lifetimeBikes / 1000000000); 
