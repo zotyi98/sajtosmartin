@@ -14,6 +14,9 @@
 
     <div id="version-number">v5.kitudjamennyi (gl in tesco) </div>
     <button id="btn-mute" onclick="window.toggleMute()">🔊</button>
+    <button id="btn-help" onclick="document.getElementById('help-modal').style.display='flex'" style="position: absolute; top: 15px; left: 15px; z-index: 1000; font-family: 'Bangers', cursive; font-size: 18px; background: #2196f3; color: white; border: 2px solid #0d47a1; border-radius: 8px; padding: 5px 15px; cursor: pointer; box-shadow: 0 3px 0 #0d47a1; transition: transform 0.1s;">
+        📖 SÚGÓ / HOGYAN JÁTSSZ?
+    </button>
 
     <div id="top-bar-container">
         <div id="news-ticker-container">
@@ -199,6 +202,42 @@
                 </div>
             <div style="text-align: center;">
                 <button class="btn-primary" onclick="document.getElementById('spectate-modal').style.display='none'">BEZÁRÁS</button>
+            </div>
+        </div>
+    </div>
+
+<div id="help-modal" class="modal-overlay" style="display: none; z-index: 30000;">
+        <div class="modal-box" style="width: 90%; max-width: 600px; text-align: left; max-height: 85vh; overflow-y: auto;">
+            <h1 style="text-align: center; color: #2e7d32; font-family: 'Bangers', cursive; letter-spacing: 1px; font-size: 35px; margin-top: 0;">📖 Üdv a Bicikli Birodalomban!</h1>
+            
+            <div style="font-size: 16px; line-height: 1.6; color: #333; font-family: 'Fredoka', sans-serif;">
+                <p>Ha most játszol először, itt egy gyors talpaló, hogy te lehess a leggazdagabb biciklimágnás a szerveren:</p>
+                
+                <ul style="padding-left: 20px;">
+                    <li style="margin-bottom: 10px;">
+                        <b style="color: #1565c0;">1. A Kezdetek (Kattintás):</b> Kattints Martinra a képernyő közepén, hogy bicikliket (pontokat) szerezz! Az elején minden a gyors ujjakon múlik.
+                    </li>
+                    <li style="margin-bottom: 10px;">
+                        <b style="color: #2e7d32;">2. A Bolt (Passzív BPS):</b> A jobb oldali menüben dolgozókat, épületeket és fejlesztéseket vehetsz. Ezek automatikusan termelik a bicikliket másodpercenként (ezt hívják <b>BPS</b>-nek). Minél drágább valami, annál többet hoz!
+                    </li>
+                    <li style="margin-bottom: 10px;">
+                        <b style="color: #fbc02d;">3. Váratlan Események:</b> Tartsd nyitva a szemed! A képernyőn időnként átrepül egy <b>Aranybicikli</b>, egy <b>Varázsfelhő</b>, vagy akár <b>Harry Potter</b>. Kattints rájuk gyorsan, és hatalmas termelési szorzókat kapsz! <i>(De vigyázz a Rozsdás biciklivel, mert defektet okozhat!)</i>
+                    </li>
+                    <li style="margin-bottom: 10px;">
+                        <b style="color: #d32f2f;">4. Felemelkedés (Újraszületés):</b> Ha összegyűjtöttél összesen <b>1 Milliárd</b> biciklit, a bolt alján megjelenik az Újraszületés gomb. Ilyenkor minden épületed és biciklid lenullázódik, de cserébe <b>Arany Küllőket</b> kapsz. A Küllőkből a <i>"Felemelkedés"</i> fülön végleges, brutálisan erős képességeket vásárolhatsz.
+                    </li>
+                    <li style="margin-bottom: 10px;">
+                        <b style="color: #8e24aa;">5. Minijátékok:</b> Ha unatkoznál, pörgesd meg a Szerencsekereket a bal alsó sarokban, vagy vadássz az Aim Lab gömbökre az extra nyereményekért!
+                    </li>
+                </ul>
+                
+                <p style="text-align: center; font-weight: bold; color: #d32f2f; font-size: 18px; margin-top: 20px;">
+                    Sok szerencsét, és pörögjenek azok a kerekek! 🚲💨
+                </p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <button class="btn-primary" onclick="document.getElementById('help-modal').style.display='none'" style="font-size: 20px; padding: 10px 30px;">ÉRTETTEM, MEHET A JÁTÉK!</button>
             </div>
         </div>
     </div>
