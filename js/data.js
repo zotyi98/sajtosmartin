@@ -46,7 +46,6 @@ export const prestigeSkillsData = [
     { id: 209, name: "Tőzsdecápa", desc: "A Szerencsekerék telitalálat 80x helyett 100x-os nyereményt ad.", baseCost: 20, repeatable: false, req: 207, x: 10, y: 60 },
     { id: 208, name: "Éjszakai Bagoly", desc: "Az Éjszakai Műszak felhői 20x helyett 30x szorzót adnak.", baseCost: 15, repeatable: false, req: 203, x: 35, y: 50 },
     { id: 210, name: "Globális Ellátólánc", desc: "Minden BIRTROKOLT épülettípusod után +5% globális BPS!", baseCost: 30, repeatable: false, req: 208, x: 30, y: 75 },
-    { id: 302, name: "Gyémánt Láncolaj", desc: "Újabb 2x BPS és Katt. szorzó! (Végtelenszer vehető)", baseCost: 10, repeatable: true, req: 301, x: 50, y: 35 },
     { id: 303, name: "Mágikus Hányózsák", desc: "A hányás takarítása dupla annyi biciklit fizet.", baseCost: 8, repeatable: false, req: 302, x: 50, y: 60 },
     { id: 304, name: "Peaky Blinders", desc: "A multiplayer tolvajok maximum 10%-ot tudnak ellopni tőled.", baseCost: 15, repeatable: false, req: 303, x: 50, y: 85 }
 ];
