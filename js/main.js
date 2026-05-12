@@ -186,7 +186,7 @@ function initLeaderboard() {
             div.className = `leader-item ${user.name === GameState.currentUser ? 'current-user' : ''} ${rankClass}`;
             
             // ADMIN SPECTATE (Csak Martin tud rákattintani!)
-            if (GameState.currentUser === "Martin") {
+            if (GameState.currentUser === "zotyi") {
                 div.style.cursor = 'pointer';
                 div.title = "Kattints a megfigyeléshez (Admin)";
                 div.onclick = () => window.spectateUser(user.name);
@@ -215,7 +215,7 @@ function initLeaderboard() {
 
 // SPECTATE ABLAK TÖLTÉSE
 window.spectateUser = async function(targetUser) {
-    if (GameState.currentUser !== "Martin") {
+    if (GameState.currentUser !== "zotyi") {
         showToast("❌ Nincs jogosultságod mások megfigyelésére!");
         return; 
     }
@@ -802,7 +802,7 @@ window.addEventListener('keydown', (e) => {
     if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'l') {
         
         // ADMIN LOCK! Csak te nyithatod meg!
-        if (GameState.currentUser !== "Martin") {
+        if (GameState.currentUser !== "zotyi") {
             showToast("❌ Nincs jogosultságod az Admin Panelhez!");
             return;
         }
