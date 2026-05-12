@@ -661,6 +661,8 @@ window.login = async function() {
     const eventsRef = ref(db, 'users/' + GameState.currentUser + '/events');
 
     checkSeasons(); initShopUI(); await loadUserProgressFromDB();
+    // --- ACHIEVEMENTS BETÖLTÉSE (GLITCH JAVÍTÁS) ---
+    loadAchievements(); 
     document.getElementById('current-user-display').innerText = GameState.currentUser;
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('game-container').style.display = 'flex';
