@@ -96,7 +96,7 @@ function endAimlab() {
     let acc = aimlabClicks === 0 ? 0 : Math.floor((aimlabHits / aimlabClicks) * 100);
     
     if (aimlabHits >= 10 && acc >= 90) {
-        playSound('win'); 
+        // KIVETTÜK A playSound('win')-t!
         let mult = GameState.prestigeSkills.includes(206) ? 10 : 5; 
         let winTotal = aimlabOriginalBikes * mult; 
         
@@ -109,10 +109,10 @@ function endAimlab() {
         saveUserProgress(); 
         showToast(`🎮 AIM LAB GYŐZELEM!\n${acc}% pontosság! Nyeremény: ${mult}x szorzó (Összesen: ${winTotal.toLocaleString()} 🚲)!`);
     } else { 
-        playSound('bad'); 
+        // KIVETTÜK A playSound('bad')-et!
         showToast(`❌ Aim Lab Vége.\n${acc}% pontosság (${aimlabHits} találat). Elbuktad a biciklijeid 90%-át!`); 
     }
 
-    // ABLAK AUTOMATIKUS BEZÁRÁSA
+    // ABLAK AUTOMATIKUS BEZÁRÁSA (Most már eljut idáig a kód!)
     document.getElementById('aimlab-modal').style.display = 'none';
 }
