@@ -702,10 +702,26 @@ window.adminAddBikes = function() {
     if(!isNaN(val)) { GameState.bikes += val; GameState.lifetimeBikes += val; updateUI(); saveUserProgress(); }
 };
 
-window.resetLeaderboard = function() {
+window.resetLeaderboard = async function() {
     if (confirm("BIZTOSAN törlöd a teljes rangsort MINDENKINÉL? (A bent lévő játékosok mentése is nullázódik)")) {
-        set(ref(db, 'users/'), null); set(ref(db, 'admin/reset'), Date.now()); 
-        localStorage.removeItem(`martinGame_user_${GameState.currentUser}`); localStorage.removeItem(`martinGame_achs_${GameState.currentUser}`); location.reload();
+        
+        // 1. Azonnal lenullázzuk a memóriát, hogy az automata mentés ne mentsen vissza semmit!
+        GameState.bikes = 0; 
+        GameState.lifetimeBikes = 0;
+        GameState.goldenSpokes = 0;
+        GameState.prestigeCount = 0;
+        GameState.bps = 0;
+        
+        // 2. Megvárjuk (await), amíg a Firebase TÉNYLEG mindent töröl az interneten
+        await set(ref(db, 'users/'), null); 
+        await set(ref(db, 'admin/reset'), Date.now()); 
+        
+        // 3. Töröljük a böngésző saját, helyi memóriáját
+        localStorage.removeItem(`martinGame_user_${GameState.currentUser}`); 
+        localStorage.removeItem(`martinGame_achs_${GameState.currentUser}`); 
+        
+        // 4. Most már biztonságosan frissíthetünk
+        location.reload();
     }
 };
 
