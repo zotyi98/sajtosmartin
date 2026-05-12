@@ -7,6 +7,7 @@ import {
 import { openAimlab, startAimlab } from './modules/aimlab.js';
 import { initWheel, spinWheel } from './modules/wheel.js';
 import { ref, onValue, get, child, set, push, } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { checkClickCheat, checkTimeCheat, checkEconomyCheat } from './modules/anticheat.js';
 
 // --- GLOBÁLIS VÁLTOZÓK ---
 const appInitTime = Date.now();
@@ -674,7 +675,13 @@ window.login = async function() {
             GameState.bikes += gained; GameState.lifetimeBikes += gained; updateUI();
         }
     }, 100);
-    setInterval(saveUserProgress, 5000);
+    // Anti-Cheat: Mielőtt elmentjük az állapotot, átvizsgáljuk az elmúlt 5 másodperc gazdaságát!
+    setInterval(() => {
+        const isHacking = checkEconomyCheat();
+        if (!isHacking) {
+            saveUserProgress();
+        }
+    }, 5000);
 
     // Esemény loopok
     setInterval(() => {
