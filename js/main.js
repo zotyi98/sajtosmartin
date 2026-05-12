@@ -32,7 +32,6 @@ if (tickerEl) {
 window.openAimlab = openAimlab;
 window.startAimlab = startAimlab;
 window.spinWheel = spinWheel;
-
 window.toggleMute = function() {};
 
 // --- SEGÉDFUNKCIÓK (UI ÉS GRAFIKA) ---
@@ -159,7 +158,7 @@ function recalcMultiplier() {
     }
 }
 
-// --- RANGLISTA ---
+// --- RANGLISTA ÉS ADMIN SPECTATE ---
 function getRankEmoji(bps) {
     if(bps > 100000000) return "👑"; if(bps > 1000000) return "💎"; if(bps > 10000) return "🔥"; if(bps > 100) return "⭐"; return "🚲";
 }
@@ -186,6 +185,13 @@ function initLeaderboard() {
             
             div.className = `leader-item ${user.name === GameState.currentUser ? 'current-user' : ''} ${rankClass}`;
             
+            // ADMIN SPECTATE (Csak Martin tud rákattintani!)
+            if (GameState.currentUser === "Martin") {
+                div.style.cursor = 'pointer';
+                div.title = "Kattints a megfigyeléshez (Admin)";
+                div.onclick = () => window.spectateUser(user.name);
+            }
+
             let prestigeHtml = `
                 <div style="margin-top: 4px; font-size:12px; color:#555; font-family:'Fredoka', sans-serif; font-weight: 600; line-height: 1.2;">
                     🔄 <span style="color:#d32f2f;">${user.prestigeCount}x</span> Újrakezdve | ✨ <span style="color:#fbc02d;">${user.goldenSpokes}</span> Küllő
@@ -206,6 +212,44 @@ function initLeaderboard() {
         });
     });
 }
+
+// SPECTATE ABLAK TÖLTÉSE
+window.spectateUser = async function(targetUser) {
+    if (GameState.currentUser !== "Martin") {
+        showToast("❌ Nincs jogosultságod mások megfigyelésére!");
+        return; 
+    }
+    
+    const dbRef = ref(db);
+    try {
+        const snapshot = await get(child(dbRef, `users/${targetUser}`));
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            document.getElementById('spectate-name').innerText = `👁️ ${targetUser} adatai`;
+            
+            let lastOnline = data.lastSaved ? new Date(data.lastSaved).toLocaleString('hu-HU') : 'Ismeretlen';
+            let inventoryHtml = data.inventory && data.inventory.length > 0 ? data.inventory.map(id => rpgItems[id]?.icon || '').join(' ') : 'Üres';
+            
+            let html = `
+                <b>🚲 Aktuális Bicikli:</b> ${Math.floor(data.bikes || 0).toLocaleString()}<br>
+                <b>📈 Összes termelt:</b> ${Math.floor(data.lifetimeBikes || 0).toLocaleString()}<br>
+                <b>⚡ BPS:</b> ${Math.floor(data.bps || 0).toLocaleString()} / mp<br>
+                <b>🖱️ Kattintás:</b> ${Math.floor(data.clickPower || 1).toLocaleString()}<br>
+                <hr style="margin: 10px 0; border: 1px solid #ccc;">
+                <b>✨ Arany Küllők:</b> ${data.goldenSpokes || 0}<br>
+                <b>🔄 Újraszületések:</b> ${data.prestigeCount || 0}x<br>
+                <b>🎒 Felszerelés:</b> ${inventoryHtml}<br>
+                <hr style="margin: 10px 0; border: 1px solid #ccc;">
+                <b>🕒 Utolsó mentés:</b> ${lastOnline}
+            `;
+            
+            document.getElementById('spectate-content').innerHTML = html;
+            document.getElementById('spectate-modal').style.display = 'flex';
+        } else {
+            showToast("❌ Nem található adat erről a játékosról!");
+        }
+    } catch (e) { console.error(e); }
+};
 
 // --- UI FRISSÍTÉS ÉS GRAFIKA ---
 function updateBuildingsVisuals() {
@@ -640,9 +684,7 @@ window.login = async function() {
                 return; 
             }
         }
-    } catch (e) {
-        console.error("Adatbázis hiba:", e);
-    }
+    } catch (e) { console.error("Adatbázis hiba:", e); }
 
     GameState.currentUser = username;
     GameState.password = password; 
@@ -755,11 +797,11 @@ setInterval(() => {
     }
 }, 1000);
 
-// --- ADMIN ÉS GYORSGOMBOK ---
+// --- ADMIN ÉS GYORSGOMBOK VÉDELME ---
 window.addEventListener('keydown', (e) => {
     if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'l') {
         
-        // ÍRD ÁT A "Martin" SZÓT A TE PONTOS ADMIN NEVEDRE HA MÁS!
+        // ADMIN LOCK! Csak te nyithatod meg!
         if (GameState.currentUser !== "Martin") {
             showToast("❌ Nincs jogosultságod az Admin Panelhez!");
             return;
@@ -773,6 +815,7 @@ window.addEventListener('keydown', (e) => {
 document.getElementById('username-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') window.login(); });
 document.getElementById('password-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') window.login(); });
 
+// Gombok (Csak akkor működnek, ha nyitva a panel, ami csak neked lehet nyitva)
 window.adminAddBikes = function() {
     const val = parseInt(document.getElementById('admin-bike-amount').value);
     if(!isNaN(val)) { GameState.bikes += val; GameState.lifetimeBikes += val; updateUI(); saveUserProgress(); }
@@ -780,12 +823,9 @@ window.adminAddBikes = function() {
 
 window.resetLeaderboard = async function() {
     if (confirm("BIZTOSAN törlöd a teljes rangsort MINDENKINÉL? (A bent lévő játékosok mentése is nullázódik)")) {
-        
         GameState.bikes = 0; GameState.lifetimeBikes = 0; GameState.goldenSpokes = 0; GameState.prestigeCount = 0; GameState.bps = 0;
-        
         await set(ref(db, 'users/'), null); 
         await set(ref(db, 'admin/reset'), Date.now()); 
-        
         localStorage.removeItem(`martinGame_user_${GameState.currentUser}`); 
         location.reload();
     }
