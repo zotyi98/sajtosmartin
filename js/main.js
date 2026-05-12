@@ -565,50 +565,89 @@ window.catchAimlabEvent = function() { document.getElementById('aimlab-event-obj
 // --- JÁTÉK INDÍTÁSA, MENTÉS BETÖLTÉSE ---
 
 async function loadUserProgressFromDB() {
-    GameState.upgrades = JSON.parse(JSON.stringify(defaultUpgrades));
-    const dbRef = ref(db); 
-    
-    let firebaseData = null;
-    try {
-        const snapshot = await get(child(dbRef, `users/${GameState.currentUser}`));
-        if (snapshot.exists()) { firebaseData = snapshot.val(); }
-    } catch (e) { console.warn("Firebase betöltési hiba, offline mód aktiválva:", e); }
-
-    let localData = null;
-    try {
-        const localRaw = localStorage.getItem(`martinGame_user_${GameState.currentUser}`);
-        if (localRaw) localData = JSON.parse(localRaw);
-    } catch (e) {}
-
-    let parsed = null;
-    if (firebaseData && localData) { parsed = (firebaseData.lastSaved > localData.lastSaved) ? firebaseData : localData; } 
-    else { parsed = firebaseData || localData; }
-    
-    if (parsed) {
-        GameState.bikes = parsed.bikes || 0; 
-        GameState.lifetimeBikes = parsed.lifetimeBikes || parsed.bikes || 0; 
-        GameState.goldenSpokes = parsed.goldenSpokes || 0;
-        GameState.prestigeCount = parsed.prestigeCount || 0; 
+        state.upgrades = JSON.parse(JSON.stringify(defaultUpgrades));
+        const dbRef = ref(db); 
         
-        GameState.realUpgrades = Array.isArray(parsed.realUpgrades) ? parsed.realUpgrades : Object.values(parsed.realUpgrades || {});
-        GameState.prestigeSkills = Array.isArray(parsed.prestigeSkills) ? parsed.prestigeSkills : Object.values(parsed.prestigeSkills || {});
-        GameState.inventory = Array.isArray(parsed.inventory) ? parsed.inventory : Object.values(parsed.inventory || {});
-        
-        let loadedUpgrades = Array.isArray(parsed.upgrades) ? parsed.upgrades : Object.values(parsed.upgrades || {});
-        if (loadedUpgrades.length > 0) {
-            GameState.upgrades.forEach(u => {
-                const savedU = loadedUpgrades.find(s => s.id === u.id);
-                if (savedU) { u.owned = savedU.owned || 0; u.cost = savedU.cost || u.cost; }
-            });
+        // --- 1. ÚJ: Lekérjük az utolsó szerver reset idejét ---
+        let resetTime = 0;
+        try {
+            const resetSnap = await get(child(dbRef, 'admin/reset'));
+            if (resetSnap.exists()) resetTime = resetSnap.val();
+        } catch(e) {}
+
+        let firebaseData = null;
+        try {
+            const snapshot = await get(child(dbRef, `users/${window.currentUser}`));
+            if (snapshot.exists()) {
+                firebaseData = snapshot.val();
+            }
+        } catch (e) {
+            console.warn("Firebase betöltési hiba, offline mód aktiválva:", e);
         }
-    } else {
-        GameState.bikes = 0; GameState.lifetimeBikes = 0; GameState.goldenSpokes = 0; GameState.prestigeCount = 0; GameState.bps = 0; GameState.clickPower = 1;
-        GameState.realUpgrades = []; GameState.prestigeSkills = []; GameState.inventory = [];
-        localStorage.removeItem(`martinGame_achs_${GameState.currentUser}`);
+
+        let localData = null;
+        try {
+            const localRaw = localStorage.getItem(`martinGame_user_${window.currentUser}`);
+            if (localRaw) localData = JSON.parse(localRaw);
+        } catch (e) {}
+
+        let parsed = null;
+        if (firebaseData && localData) {
+            parsed = (firebaseData.lastSaved > localData.lastSaved) ? firebaseData : localData;
+        } else {
+            parsed = firebaseData || localData;
+        }
+        
+        // --- 2. ÚJ: Ha a betöltött mentés RÉGEBBI, mint a reset időpontja, akkor KUKA ---
+        if (parsed && parsed.lastSaved && parsed.lastSaved < resetTime) {
+            console.log("Elavult mentés észlelve a reset óta! Adatok törlése...");
+            parsed = null; 
+        }
+
+        if (parsed) {
+            state.bikes = parsed.bikes || 0; 
+            state.lifetimeBikes = parsed.lifetimeBikes || parsed.bikes || 0; 
+            state.goldenSpokes = parsed.goldenSpokes || 0;
+            state.prestigeCount = parsed.prestigeCount || 0; 
+            
+            state.realUpgrades = Array.isArray(parsed.realUpgrades) ? parsed.realUpgrades : Object.values(parsed.realUpgrades || {});
+            state.prestigeSkills = Array.isArray(parsed.prestigeSkills) ? parsed.prestigeSkills : Object.values(parsed.prestigeSkills || {});
+            state.inventory = Array.isArray(parsed.inventory) ? parsed.inventory : Object.values(parsed.inventory || {});
+            
+            let loadedUpgrades = Array.isArray(parsed.upgrades) ? parsed.upgrades : Object.values(parsed.upgrades || {});
+            
+            if (loadedUpgrades.length > 0) {
+                state.upgrades.forEach(u => {
+                    const savedU = loadedUpgrades.find(s => s.id === u.id);
+                    if (savedU) { 
+                        u.owned = savedU.owned || 0; 
+                        u.cost = savedU.cost || u.cost; 
+                    }
+                });
+            }
+
+            if (parsed.lastSaved) {
+                let secondsOffline = (Date.now() - parsed.lastSaved) / 1000;
+                if (secondsOffline > 60) { 
+                    recalculateStats(); 
+                    let offlineGains = state.bps * secondsOffline;
+                    if (offlineGains > 0) {
+                        state.bikes += offlineGains; 
+                        state.lifetimeBikes += offlineGains;
+                        showToast(`😴 Üdv újra!\nTávolléted alatt termeltél:\n+${Math.floor(offlineGains).toLocaleString()} 🚲`);
+                    }
+                }
+            }
+        } else {
+            // Nullázás és helyi "szemetelés" eltakarítása
+            state.bikes = 0; state.lifetimeBikes = 0; state.goldenSpokes = 0; state.prestigeCount = 0; state.bps = 0; state.clickPower = 1;
+            state.realUpgrades = []; state.prestigeSkills = []; state.inventory = [];
+            localStorage.removeItem(`martinGame_user_${window.currentUser}`);
+            localStorage.removeItem(`martinGame_achs_${window.currentUser}`);
+        }
+        
+        updateInventoryUI(); recalculateStats(); updateUI();
     }
-    
-    updateInventoryUI(); recalculateStats(); updateUI();
-}
 
 window.login = async function() {
     const input = document.getElementById('username-input').value.trim();
