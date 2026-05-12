@@ -92,6 +92,7 @@ function dropRPGItem() {
     }
 }
 
+// --- HARDCORE BALANSZ PATCH 1: ADDITÍV PRESZTÍZS ---
 function recalculateStats() {
     let b = 0; let c = 1;
     if(GameState.inventory.includes('chain')) c += 50;
@@ -113,18 +114,20 @@ function recalculateStats() {
         if(u.type === "click") c += p;
     });
 
+    // Nerf: A presztízs szorzók mostantól ÖSSZEADÓDNAK, nem összeszorzódnak!
     let doubleCount301 = GameState.prestigeSkills.filter(id => id === 301).length;
     let doubleCount302 = GameState.prestigeSkills.filter(id => id === 302).length;
-    let treeMult = Math.pow(2, doubleCount301) * Math.pow(2, doubleCount302);
-    
-    let distinctBuildings = GameState.upgrades.filter(u => u.owned > 0 && u.type !== 'special').length;
-    let supplyMult = GameState.prestigeSkills.includes(210) ? (1 + (distinctBuildings * 0.05)) : 1;
-    
-    let basePrestigeMult = GameState.prestigeSkills.includes(304) ? (1 + (GameState.goldenSpokes * 0.02)) : (1 + (GameState.goldenSpokes * 0.01));
     let darkMatterCount = GameState.prestigeSkills.filter(id => id === 404).length;
-    let infiniteMult = 1 + (darkMatterCount * 0.10);
+    let distinctBuildings = GameState.upgrades.filter(u => u.owned > 0 && u.type !== 'special').length;
 
-    let prestigeMult = basePrestigeMult * treeMult * supplyMult * infiniteMult;
+    let spokeBonus = GameState.prestigeSkills.includes(304) ? (GameState.goldenSpokes * 0.02) : (GameState.goldenSpokes * 0.01);
+    let treeBonus = (doubleCount301 * 1.0) + (doubleCount302 * 1.0); // Minden szint +100% (Additív)
+    let supplyBonus = GameState.prestigeSkills.includes(210) ? (distinctBuildings * 0.05) : 0;
+    let infiniteBonus = darkMatterCount * 0.10;
+    
+    // Alap 100% (1) + a bónuszok
+    let prestigeMult = 1 + spokeBonus + treeBonus + supplyBonus + infiniteBonus;
+    
     let eszterMult = GameState.upgrades.find(u => u.id === 7)?.owned > 0 ? 2 : 1;
     
     GameState.bps = b * prestigeMult * eszterMult * seasonBpsMult;
@@ -133,6 +136,7 @@ function recalculateStats() {
     GameState.clickPower = clickBase;
 }
 
+// --- HARDCORE BALANSZ PATCH 2: ADDITÍV ESEMÉNY SZORZÓK ---
 function recalcMultiplier() {
     let eb = 1; let ec = 1; let bz = false; let cz = false;
     let texts = []; let color = "white";
@@ -140,19 +144,28 @@ function recalcMultiplier() {
     activeBuffs = activeBuffs.filter(b => b.endTime > now);
 
     activeBuffs.forEach(b => {
-        if (b.target === 'both') { if (b.mult === 0) { bz = true; cz = true; } else { eb *= b.mult; ec *= b.mult; } }
-        else if (b.target === 'click') { if (b.mult === 0) cz = true; else ec *= b.mult; }
-        else { if (b.mult === 0) bz = true; else eb *= b.mult; }
+        if (b.target === 'both') { 
+            if (b.mult === 0) { bz = true; cz = true; } 
+            else { eb += (b.mult - 1); ec += (b.mult - 1); } // ÖSSZEADÁS SZORZÁS HELYETT!
+        }
+        else if (b.target === 'click') { 
+            if (b.mult === 0) cz = true; 
+            else ec += (b.mult - 1); 
+        }
+        else { 
+            if (b.mult === 0) bz = true; 
+            else eb += (b.mult - 1); 
+        }
         texts.push(b.text); color = b.color;
     });
 
-    multiplier = bz ? 0 : eb;
-    window.clickMultiplier = cz ? 0 : ec;
+    multiplier = bz ? 0 : Math.max(1, eb);
+    window.clickMultiplier = cz ? 0 : Math.max(1, ec);
 
     const infoDiv = document.getElementById('multiplier-info');
     if (activeBuffs.length > 0) {
         infoDiv.innerHTML = texts.join('<br>'); infoDiv.style.color = color; infoDiv.style.display = 'block';
-        if (eb > 1 || ec > 1) document.getElementById('game-world').classList.add('world-golden');
+        if (multiplier > 1 || window.clickMultiplier > 1) document.getElementById('game-world').classList.add('world-golden');
     } else {
         infoDiv.style.display = 'none'; document.getElementById('game-world').classList.remove('world-golden');
     }
@@ -185,7 +198,7 @@ function initLeaderboard() {
             
             div.className = `leader-item ${user.name === GameState.currentUser ? 'current-user' : ''} ${rankClass}`;
             
-            // ADMIN SPECTATE (Csak Martin tud rákattintani!)
+            // ADMIN SPECTATE: CSAK zotyi TUDJA HASZNÁLNI!
             if (GameState.currentUser === "zotyi") {
                 div.style.cursor = 'pointer';
                 div.title = "Kattints a megfigyeléshez (Admin)";
@@ -213,7 +226,7 @@ function initLeaderboard() {
     });
 }
 
-// SPECTATE ABLAK TÖLTÉSE
+// SPECTATE ABLAK TÖLTÉSE (RÉSZLETES)
 window.spectateUser = async function(targetUser) {
     if (GameState.currentUser !== "zotyi") {
         showToast("❌ Nincs jogosultságod mások megfigyelésére!");
@@ -230,17 +243,69 @@ window.spectateUser = async function(targetUser) {
             let lastOnline = data.lastSaved ? new Date(data.lastSaved).toLocaleString('hu-HU') : 'Ismeretlen';
             let inventoryHtml = data.inventory && data.inventory.length > 0 ? data.inventory.map(id => rpgItems[id]?.icon || '').join(' ') : 'Üres';
             
+            let buildingsHtml = "";
+            if (data.upgrades) {
+                let upgArray = Array.isArray(data.upgrades) ? data.upgrades : Object.values(data.upgrades);
+                upgArray.forEach(u => {
+                    if (u.owned > 0) {
+                        let def = defaultUpgrades.find(d => d.id === u.id);
+                        if (def) buildingsHtml += `<div style="display:inline-block; width: 48%; margin-bottom: 2px;">${def.icon} ${def.name}: <b>${u.owned} db</b></div>`;
+                    }
+                });
+            }
+            if (buildingsHtml === "") buildingsHtml = "Nincs még épülete.";
+
+            let extrasHtml = "";
+            if (data.realUpgrades) {
+                let extraArray = Array.isArray(data.realUpgrades) ? data.realUpgrades : Object.values(data.realUpgrades);
+                extraArray.forEach(ru => {
+                    let searchId = typeof ru === 'object' ? ru.id : ru;
+                    let def = extraUpgradesData.find(e => e.id === searchId);
+                    if (def) extrasHtml += `<span style="color:#1565c0;">${def.name}</span>, `;
+                });
+            }
+            if (extrasHtml !== "") extrasHtml = extrasHtml.slice(0, -2);
+            else extrasHtml = "Nincs extra fejlesztés.";
+
+            let skillsHtml = "";
+            if (data.prestigeSkills) {
+                let skillsArray = Array.isArray(data.prestigeSkills) ? data.prestigeSkills : Object.values(data.prestigeSkills);
+                let skillCounts = {};
+                skillsArray.forEach(sid => { skillCounts[sid] = (skillCounts[sid] || 0) + 1; });
+                
+                for (let sid in skillCounts) {
+                    let def = prestigeSkillsData.find(s => s.id == sid);
+                    if (def) skillsHtml += `<span style="color:#d32f2f;">${def.name}</span> <b>(Lvl ${skillCounts[sid]})</b>, `;
+                }
+            }
+            if (skillsHtml !== "") skillsHtml = skillsHtml.slice(0, -2);
+            else skillsHtml = "Nincs feloldott skill.";
+
             let html = `
-                <b>🚲 Aktuális Bicikli:</b> ${Math.floor(data.bikes || 0).toLocaleString()}<br>
-                <b>📈 Összes termelt:</b> ${Math.floor(data.lifetimeBikes || 0).toLocaleString()}<br>
-                <b>⚡ BPS:</b> ${Math.floor(data.bps || 0).toLocaleString()} / mp<br>
-                <b>🖱️ Kattintás:</b> ${Math.floor(data.clickPower || 1).toLocaleString()}<br>
-                <hr style="margin: 10px 0; border: 1px solid #ccc;">
-                <b>✨ Arany Küllők:</b> ${data.goldenSpokes || 0}<br>
-                <b>🔄 Újraszületések:</b> ${data.prestigeCount || 0}x<br>
-                <b>🎒 Felszerelés:</b> ${inventoryHtml}<br>
-                <hr style="margin: 10px 0; border: 1px solid #ccc;">
-                <b>🕒 Utolsó mentés:</b> ${lastOnline}
+                <div style="font-size: 15px;">
+                    <b>🚲 Bicikli:</b> ${Math.floor(data.bikes || 0).toLocaleString()}<br>
+                    <b>📈 Összes:</b> ${Math.floor(data.lifetimeBikes || 0).toLocaleString()}<br>
+                    <b>⚡ BPS:</b> ${Math.floor(data.bps || 0).toLocaleString()} / mp<br>
+                    <b>🖱️ Katt.:</b> ${Math.floor(data.clickPower || 1).toLocaleString()}<br>
+                    <b>✨ Küllők:</b> ${data.goldenSpokes || 0} | <b>🔄 Reset:</b> ${data.prestigeCount || 0}x<br>
+                    <b>🎒 Cuccok:</b> ${inventoryHtml}<br>
+                </div>
+                <hr style="margin: 8px 0; border: 1px solid #ccc;">
+                
+                <div style="max-height: 100px; overflow-y: auto; background:#fff; padding:5px; border: 1px solid #ddd; border-radius:5px; font-size:13px;">
+                    <b style="color:#2e7d32;">🏢 BIRTOKOLT ÉPÜLETEK:</b><br>${buildingsHtml}
+                </div>
+                
+                <div style="margin-top:5px; max-height: 70px; overflow-y: auto; background:#fff; padding:5px; border: 1px solid #ddd; border-radius:5px; font-size:13px;">
+                    <b style="color:#1565c0;">🛠️ EXTRA FEJLESZTÉSEK:</b><br>${extrasHtml}
+                </div>
+                
+                <div style="margin-top:5px; max-height: 70px; overflow-y: auto; background:#fff; padding:5px; border: 1px solid #ddd; border-radius:5px; font-size:13px;">
+                    <b style="color:#d32f2f;">🌌 FELEMELKEDÉS SKILLEK:</b><br>${skillsHtml}
+                </div>
+                
+                <hr style="margin: 8px 0; border: 1px solid #ccc;">
+                <b style="font-size: 14px;">🕒 Utolsó mentés:</b> <span style="font-size: 14px; color:#555;">${lastOnline}</span>
             `;
             
             document.getElementById('spectate-content').innerHTML = html;
@@ -274,11 +339,6 @@ function updateUI() {
     if(GameState.goldenSpokes > 0 || GameState.prestigeSkills.length > 0) {
         presCountUI.style.display = 'block';
         presCountUI.innerText = `✨ Arany Küllők: ${GameState.goldenSpokes} (+${GameState.goldenSpokes}%)`;
-        
-        let doubleCount301 = GameState.prestigeSkills.filter(id => id === 301).length;
-        let doubleCount302 = GameState.prestigeSkills.filter(id => id === 302).length;
-        let ascMult = Math.pow(2, doubleCount301) * Math.pow(2, doubleCount302);
-        if(ascMult > 1) { ascInfoUI.style.display = 'block'; ascInfoUI.innerText = `🌌 Felemelkedés Szorzó: ${ascMult}x`; }
     }
 
     let hasEszterDiscount = GameState.prestigeSkills.includes(203);
@@ -340,7 +400,6 @@ setUpdateUI(updateUI);
 window.clickMartin = function(e) {
     if (isKitchenMeetingActive) { showToast("☕ Martin a konyhában van, most nem tudsz kattintani!"); return; }
     
-    // Anti-Cheat (Kattintás)
     if (checkClickCheat()) return;
 
     let gained = (GameState.clickPower * window.clickMultiplier); 
@@ -357,7 +416,10 @@ window.buyUpgrade = function(id) {
     
     if (GameState.bikes >= actualCost) {
         GameState.bikes -= actualCost; upg.owned++;
-        if (upg.type !== "special") upg.cost *= 1.15;
+        
+        // --- HARDCORE BALANSZ PATCH 3: 18%-OS INFLÁCIÓ ÉPÜLETENKÉNT ---
+        if (upg.type !== "special") upg.cost *= 1.18; 
+        
         recalculateStats(); updateUI(); saveUserProgress();
     }
 };
@@ -478,8 +540,11 @@ window.catchRustyBike = function() {
 window.catchHarry = function() {
     if (isKitchenMeetingActive) return; 
     document.getElementById('harry-potter-event').style.display = 'none';
-    activeBuffs.push({ mult: 777, target: 'click', endTime: Date.now() + 10000, text: "⚡ 777x KATTINTÁS (HARRY)! ⚡", color: "#9c27b0" });
-    recalcMultiplier(); spawnConfetti(); showToast("🧙‍♂️ Elkaptad Harry Pottert! 777x Kattintás szorzó 10 mp-ig!");
+    
+    // --- HARRY POTTER NERF: 777x helyett 150x szorzó! ---
+    activeBuffs.push({ mult: 150, target: 'click', endTime: Date.now() + 10000, text: "⚡ 150x KATTINTÁS (HARRY)! ⚡", color: "#9c27b0" });
+    
+    recalcMultiplier(); spawnConfetti(); showToast("🧙‍♂️ Elkaptad Harry Pottert! 150x Kattintás szorzó 10 mp-ig!");
 };
 
 window.spawnMagicCloud = function() {
@@ -590,7 +655,6 @@ async function loadUserProgressFromDB() {
         parsed = firebaseData || localData;
     }
     
-    // Ghost Save Gyilkos
     if (resetTime > 0) {
         if (firebaseData === null && localData !== null) {
             console.log("Admin reset észlelve! A helyi mentés megsemmisítve.");
@@ -612,7 +676,6 @@ async function loadUserProgressFromDB() {
         GameState.prestigeSkills = Array.isArray(parsed.prestigeSkills) ? parsed.prestigeSkills : Object.values(parsed.prestigeSkills || {});
         GameState.inventory = Array.isArray(parsed.inventory) ? parsed.inventory : Object.values(parsed.inventory || {});
         
-        // FELHŐS ACHIEVEMENTS BETÖLTÉSE
         GameState.achievements = Array.isArray(parsed.achievements) ? parsed.achievements : [];
         if (GameState.achievements.length > 0) {
             achievements.forEach((ach, i) => { ach.done = GameState.achievements[i] || false; });
@@ -629,7 +692,8 @@ async function loadUserProgressFromDB() {
                     u.owned = savedU.owned || 0; 
                     const defaultBase = defaultUpgrades.find(d => d.id === u.id);
                     if (defaultBase && defaultBase.type !== "special") {
-                        u.cost = Math.floor(defaultBase.cost * Math.pow(1.15, u.owned));
+                        // INFLÁCIÓ SZINKRONIZÁLÁSA A MENTÉSBEN IS (1.18-RA)!
+                        u.cost = Math.floor(defaultBase.cost * Math.pow(1.18, u.owned));
                     } else {
                         u.cost = savedU.cost || u.cost; 
                     }
@@ -638,9 +702,7 @@ async function loadUserProgressFromDB() {
         }
 
         if (parsed.lastSaved) {
-            // Anti-Cheat (Offline Idő)
             let secondsOffline = checkTimeCheat(parsed.lastSaved); 
-
             if (secondsOffline > 60) { 
                 recalculateStats(); 
                 let offlineGains = GameState.bps * secondsOffline;
@@ -671,7 +733,6 @@ window.login = async function() {
     btn.innerText = "Ellenőrzés..."; 
     btn.disabled = true;
 
-    // Firebase Jelszó Ellenőrzés
     const dbRef = ref(db);
     try {
         const snapshot = await get(child(dbRef, `users/${username}/password`));
@@ -714,7 +775,6 @@ window.login = async function() {
 
     initLeaderboard();
     
-    // Main Loop
     setInterval(() => {
         recalcMultiplier();
         if (!isKitchenMeetingActive) {
@@ -723,7 +783,6 @@ window.login = async function() {
         }
     }, 100);
 
-    // Anti-Cheat Economy Scan + Mentés
     setInterval(() => {
         const isHacking = checkEconomyCheat();
         if (!isHacking) {
@@ -731,7 +790,6 @@ window.login = async function() {
         }
     }, 5000);
 
-    // Auto-Clicker Képesség
     setInterval(() => {
         if (GameState.prestigeSkills.includes(405) && !isKitchenMeetingActive && document.getElementById('game-container').style.display !== 'none') {
             let gained = (GameState.clickPower * window.clickMultiplier); 
@@ -741,7 +799,6 @@ window.login = async function() {
         }
     }, 500);
 
-    // Esemény loopok
     setInterval(() => {
         let showTime = GameState.prestigeSkills.includes(204) ? 20000 : 15000;
         const isRusty = Math.random() < 0.3; 
@@ -790,7 +847,6 @@ setInterval(() => {
             showToast(`🏆 SIKER ELÉRVE: ${ach.name}!\n🎁 Jutalom: +${ach.reward.toLocaleString()} 🚲`);
         }
     });
-    // A felhőbe (GameState) mentjük, nem a helyi memóriába!
     if(changed) {
         GameState.achievements = achievements.map(a => a.done);
         saveUserProgress(); 
@@ -801,7 +857,7 @@ setInterval(() => {
 window.addEventListener('keydown', (e) => {
     if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'l') {
         
-        // ADMIN LOCK! Csak te nyithatod meg!
+        // ADMIN LOCK! CSAK zotyi NYITHATJA MEG!
         if (GameState.currentUser !== "zotyi") {
             showToast("❌ Nincs jogosultságod az Admin Panelhez!");
             return;
@@ -815,7 +871,7 @@ window.addEventListener('keydown', (e) => {
 document.getElementById('username-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') window.login(); });
 document.getElementById('password-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') window.login(); });
 
-// Gombok (Csak akkor működnek, ha nyitva a panel, ami csak neked lehet nyitva)
+// Gombok (Csak akkor működnek, ha nyitva a panel, ami csak zotyinak lehet nyitva)
 window.adminAddBikes = function() {
     const val = parseInt(document.getElementById('admin-bike-amount').value);
     if(!isNaN(val)) { GameState.bikes += val; GameState.lifetimeBikes += val; updateUI(); saveUserProgress(); }
@@ -844,5 +900,5 @@ window.forcePuke = function() { window.spawnPukeEvent(); };
 window.forceAimlabEvent = function() { const o = document.getElementById('aimlab-event-obj'); o.style.top = Math.random()*50+25+"%"; o.style.display='block'; o.style.animation='none'; o.offsetHeight; o.style.animation='goldenFloat 10s linear forwards'; setTimeout(()=>o.style.display='none', 10000); };
 window.forceHarry = function() { const hp = document.getElementById('harry-potter-event'); hp.style.display='block'; hp.style.animation='none'; hp.offsetHeight; hp.style.animation='hpErraticFly 10s linear forwards'; setTimeout(()=>hp.style.display='none', 10000); };
 
-// DOM Indulás (Kerék inicializálása)
+// DOM Indulás
 initWheel();
