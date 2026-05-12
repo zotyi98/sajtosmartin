@@ -456,7 +456,10 @@ function spawnMPThief(senderName) {
 
 // --- EGYÉB ESEMÉNYEK ---
 
+// --- EGYÉB ESEMÉNYEK ---
+
 window.catchGoldenBike = function() {
+    if (isKitchenMeetingActive) return; // Konyhagyűlés védelem
     document.getElementById('golden-bike').style.display = 'none';
     let dur = GameState.prestigeSkills.includes(204) ? 35000 : 30000;
     activeBuffs.push({ mult: 7, target: 'both', endTime: Date.now() + dur, text: "✨ 7x SZORZÓ AKTÍV! ✨", color: "var(--gold)" });
@@ -464,6 +467,7 @@ window.catchGoldenBike = function() {
 };
 
 window.catchRustyBike = function() {
+    if (isKitchenMeetingActive) return; // Konyhagyűlés védelem
     document.getElementById('rusty-bike').style.display = 'none';
     let dur = GameState.prestigeSkills.includes(204) ? 20000 : 15000;
     if(Math.random() > 0.5) {
@@ -478,6 +482,7 @@ window.catchRustyBike = function() {
 };
 
 window.catchHarry = function() {
+    if (isKitchenMeetingActive) return; // Konyhagyűlés védelem
     document.getElementById('harry-potter-event').style.display = 'none';
     activeBuffs.push({ mult: 777, target: 'click', endTime: Date.now() + 10000, text: "⚡ 777x KATTINTÁS (HARRY)! ⚡", color: "#9c27b0" });
     recalcMultiplier(); spawnConfetti(); showToast("🧙‍♂️ Elkaptad Harry Pottert! 777x Kattintás szorzó 10 mp-ig!");
@@ -488,9 +493,14 @@ window.spawnMagicCloud = function() {
     const cloud = document.createElement('div'); cloud.className = 'magic-cloud'; cloud.innerText = '☁️';
     cloud.style.fontSize = (Math.random() * 30 + 40) + 'px'; cloud.style.top = (Math.random() * 30 + 5) + '%'; 
     const duration = Math.random() * 10 + 15; 
-    cloud.style.animation = `cloudFloat ${duration}s linear forwards`; // <--- EZ HIÁNYZOTT!
+    cloud.style.animation = `cloudFloat ${duration}s linear forwards`;
     
     cloud.onclick = function(e) {
+        // Konyhagyűlés védelem a felhőnél is!
+        if (isKitchenMeetingActive) {
+            showToast("☕ Martin a konyhában van, most nem tudsz felhőt fogni!");
+            return;
+        }
         let cloudMult = 10;
         if(isNightMode) { cloudMult = GameState.prestigeSkills.includes(208) ? 30 : 20; }
         activeBuffs.push({ mult: cloudMult, target: 'bps', endTime: Date.now() + 20000, text: `☁️ ${cloudMult}x FELHŐ SZORZÓ! ☁️`, color: "#81d4fa" });
@@ -514,7 +524,7 @@ window.spawnPukeEvent = function() {
 };
 
 window.cleanPuke = function(e) {
-    if(!isPukeEventActive) return;
+    if(!isPukeEventActive || isKitchenMeetingActive) return; // Konyhagyűlés védelem!
     let pukeBase = GameState.prestigeSkills.includes(303) ? 30 : 15; let reward = Math.max(200, Math.floor(GameState.bps * pukeBase)); 
     GameState.bikes += reward; GameState.lifetimeBikes += reward; isPukeEventActive = false; document.getElementById('puke-event-container').style.display = 'none';
     createFloatingNumber(e.clientX, e.clientY, reward); updateUI(); saveUserProgress();
@@ -525,11 +535,17 @@ window.triggerKitchenMeeting = function() {
     if (isKitchenMeetingActive) return;
     isKitchenMeetingActive = true; 
     const overlay = document.getElementById('kitchen-overlay'); const timerEl = document.getElementById('kitchen-timer'); overlay.style.display = 'flex';
-    let timeLeft = 30; timerEl.innerText = timeLeft;
+    let timeLeft = 15; timerEl.innerText = timeLeft;
     kitchenMeetingInterval = setInterval(() => {
         timeLeft--; timerEl.innerText = timeLeft;
         if(timeLeft <= 0) { clearInterval(kitchenMeetingInterval); isKitchenMeetingActive = false; overlay.style.display = 'none'; showToast("☕ Vége a konyhagyűlésnek! A munka folytatódik."); }
     }, 1000);
+};
+
+window.catchAimlabEvent = function() { 
+    if (isKitchenMeetingActive) return; // Konyhagyűlés védelem!
+    document.getElementById('aimlab-event-obj').style.display = 'none'; 
+    openAimlab(); 
 };
 
 window.catchAimlabEvent = function() { document.getElementById('aimlab-event-obj').style.display = 'none'; openAimlab(); };
