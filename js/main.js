@@ -6,7 +6,6 @@ import { checkClickCheat, checkTimeCheat, checkEconomyCheat } from './modules/an
 import { initMartinEasterEgg } from './modules/martinbg.js';
 import { ref, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-// Új modulok betöltése
 import './modules/admin.js';
 import './modules/events.js';
 import './modules/prestige.js';
@@ -22,6 +21,12 @@ window.isNightMode = false;
 window.isKitchenMeetingActive = false;
 window.isPukeEventActive = false;
 let lastBuildingSum = -1;
+
+// --- KÜLLŐ MATEK (MILLIÓS CÉLOKRA SKÁLÁZVA) ---
+window.calculateKullok = function() {
+    // 1 Küllő = 1 Millió, 2 Küllő = 4 Millió, 3 Küllő = 9 Millió...
+    return Math.floor(Math.pow(GameState.lifetimeBikes / 1000000, 0.5));
+};
 
 // --- GOMBOK ÖSSZEKÖTÉSE A HTML-EL ---
 window.openAimlab = openAimlab;
@@ -85,13 +90,10 @@ window.recalculateStats = function() {
 
     GameState.upgrades.forEach(u => {
         let basePower = defaultUpgrades.find(def => def.id === u.id).power; let upgMult = 1;
-        
-        // 1-3 NAPOS HARDCORE NERF: Az extra fejlesztések összeadódnak!
         GameState.realUpgrades.forEach(ru => { 
             let ext = extraUpgradesData.find(e => e.id === ru.id); 
             if(ext && ext.targetId === u.id) upgMult += (ext.mult - 1); 
         }); 
-        
         if(u.id === 2 && hasSajtSynergy) { basePower += (100 * sajtCount); }
         let p = (basePower * upgMult) * u.owned;
         if(u.type === "bps") b += p; if(u.type === "click") c += p;
@@ -182,8 +184,7 @@ window.updateUI = function() {
         } else if (el) el.remove();
     });
 
-    // 1-3 NAPOS HARDCORE NERF: Négyzetgyökös Küllő matek
-    const prestigePoints = Math.floor(Math.pow(GameState.lifetimeBikes / 1000000000, 0.5));
+    const prestigePoints = window.calculateKullok();
     if (prestigePoints > 0) { document.getElementById('btn-prestige').style.display = 'block'; document.getElementById('btn-prestige').innerText = `✨ ÚJRASZÜLETÉS (+${prestigePoints} Küllő)`; }
     if (!window.aimlabActive) { const costEl = document.getElementById('aimlab-cost'); if (costEl) costEl.innerText = Math.floor(GameState.bikes * 0.9).toLocaleString(); }
 };
@@ -203,7 +204,10 @@ window.buyUpgrade = function(id) {
     if(id === 7 && GameState.prestigeSkills.includes(203)) actualCost *= 0.8; else if(id !== 7 && GameState.prestigeSkills.includes(207)) actualCost *= 0.9;
     if (GameState.bikes >= actualCost) {
         GameState.bikes -= actualCost; upg.owned++;
-        if (upg.type !== "special") upg.cost *= 1.18; // HARDCORE INFLÁCIÓ
+        
+        // --- HARDCORE INFLÁCIÓ: 22%-OS ÁREMELKEDÉS! ---
+        if (upg.type !== "special") upg.cost = Math.floor(upg.cost * 1.22); 
+        
         window.recalculateStats(); window.updateUI(); saveUserProgress();
     }
 };
@@ -265,7 +269,8 @@ async function loadUserProgressFromDB() {
                 const savedU = loadedUpgrades.find(s => s.id === u.id);
                 if (savedU) { 
                     u.owned = savedU.owned || 0; const def = defaultUpgrades.find(d => d.id === u.id);
-                    u.cost = (def && def.type !== "special") ? Math.floor(def.cost * Math.pow(1.18, u.owned)) : (savedU.cost || u.cost);
+                    // MENTÉSNÉL IS AZ ÚJ 22%-OS INFLÁCIÓT SZÁMOLJUK
+                    u.cost = (def && def.type !== "special") ? Math.floor(def.cost * Math.pow(1.22, u.owned)) : (savedU.cost || u.cost);
                 }
             });
         }
