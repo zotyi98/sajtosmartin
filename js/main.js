@@ -6,11 +6,10 @@ import { checkClickCheat, checkTimeCheat, checkEconomyCheat } from './modules/an
 import { initMartinEasterEgg } from './modules/martinbg.js';
 import { ref, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-// Új modulok betöltése (Cache frissítéssel)
 import './modules/admin.js?v=2';
 import './modules/events.js?v=2';
 import './modules/prestige.js?v=2';
-import './modules/spectate.js?v=2'; // ÉLŐ MEGFIGYELÉS MODUL!
+import './modules/spectate.js?v=2';
 
 // --- GLOBÁLIS VÁLTOZÓK ---
 window.appInitTime = Date.now();
@@ -24,9 +23,39 @@ window.isKitchenMeetingActive = false;
 window.isPukeEventActive = false;
 let lastBuildingSum = -1;
 
-// --- KÜLLŐ MATEK (MILLIÓS CÉLOKRA SKÁLÁZVA) ---
+// --- KÜLLŐ MATEK ÉS EXPLOIT VÉDELEM (Cookie Clicker Logika) ---
 window.calculateKullok = function() {
-    return Math.floor(Math.pow(GameState.lifetimeBikes / 1000000, 0.5));
+    // 1. Visszamenőleges javítás: ha még nincs rögzítve, mennyi küllőt vett ki eddig
+    if (GameState.claimedSpokes === undefined) {
+        let spent = 0;
+        let counts = {};
+        GameState.prestigeSkills.forEach(id => { counts[id] = (counts[id] || 0) + 1; });
+        for (let id in counts) {
+            let sk = prestigeSkillsData.find(s => s.id == id);
+            if (sk) {
+                if (sk.repeatable) {
+                    for(let i=0; i<counts[id]; i++) spent += sk.baseCost * Math.pow(2, i);
+                } else {
+                    spent += sk.baseCost;
+                }
+            }
+        }
+        // Összeszedjük, mennyi küllője van készleten + amit elköltött
+        GameState.claimedSpokes = GameState.goldenSpokes + spent;
+        
+        // Hogy ne kaphasson ingyen küllőt azonnal, a lifetimeBikes-t beállítjuk a valós szintre
+        let requiredBikes = Math.pow(GameState.claimedSpokes, 2) * 1000000;
+        if (GameState.lifetimeBikes < requiredBikes) {
+            GameState.lifetimeBikes = requiredBikes;
+        }
+    }
+
+    // 2. Kiszámoljuk, mennyi Küllő járna a valaha megtermelt ÖSSZES bicikli után
+    let expectedTotal = Math.floor(Math.pow(GameState.lifetimeBikes / 1000000, 0.5));
+    
+    // 3. A jutalom az, amennyivel több jár, mint amennyit már eddig kivett a játék során
+    let gain = expectedTotal - GameState.claimedSpokes;
+    return gain > 0 ? gain : 0;
 };
 
 // --- GOMBOK ÖSSZEKÖTÉSE A HTML-EL ---
@@ -91,7 +120,6 @@ window.recalculateStats = function() {
 
     GameState.upgrades.forEach(u => {
         let basePower = defaultUpgrades.find(def => def.id === u.id).power; let upgMult = 1;
-        // NERF: ADDITÍV SZORZÓK (Nem tudnak felrobbanni a számok)
         GameState.realUpgrades.forEach(ru => { 
             let ext = extraUpgradesData.find(e => e.id === ru.id); 
             if(ext && ext.targetId === u.id) upgMult += (ext.mult - 1); 
@@ -206,10 +234,7 @@ window.buyUpgrade = function(id) {
     if(id === 7 && GameState.prestigeSkills.includes(203)) actualCost *= 0.8; else if(id !== 7 && GameState.prestigeSkills.includes(207)) actualCost *= 0.9;
     if (GameState.bikes >= actualCost) {
         GameState.bikes -= actualCost; upg.owned++;
-        
-        // --- HARDCORE INFLÁCIÓ: 22%-OS ÁREMELKEDÉS! ---
         if (upg.type !== "special") upg.cost = Math.floor(upg.cost * 1.22); 
-        
         window.recalculateStats(); window.updateUI(); saveUserProgress();
     }
 };
@@ -242,7 +267,6 @@ function initShopUI() {
     });
 }
 
-// --- RANGLISTA ÉS SPECTATE ÖSSZEKÖTÉS ---
 window.initLeaderboard = function() {
     onValue(ref(db, 'users'), (snapshot) => {
         const list = document.getElementById('leaderboard-list');
@@ -250,13 +274,11 @@ window.initLeaderboard = function() {
         let players = [];
         snapshot.forEach(child => { players.push({name: child.key, bikes: child.val().bikes}); });
         
-        // Csökkenő sorrend, top 15 játékos
         players.sort((a, b) => b.bikes - a.bikes).slice(0, 15).forEach(p => {
             let li = document.createElement('div');
             li.className = "leaderboard-row";
             li.innerHTML = `<span>${p.name}</span> <b>${Math.floor(p.bikes).toLocaleString()}</b>`;
             
-            // SPECTATE ESEMÉNY: Bárki megfigyelhet bárkit!
             li.onclick = () => {
                 if (p.name !== GameState.currentUser) {
                     if (window.visualSpectate) window.visualSpectate(p.name);
@@ -284,6 +306,7 @@ async function loadUserProgressFromDB() {
             password: parsed.password || GameState.password, lastSaved: parsed.lastSaved || 0,
             bikes: parsed.bikes || 0, lifetimeBikes: parsed.lifetimeBikes || parsed.bikes || 0,
             goldenSpokes: parsed.goldenSpokes || 0, prestigeCount: parsed.prestigeCount || 0,
+            claimedSpokes: parsed.claimedSpokes !== undefined ? parsed.claimedSpokes : undefined,
             realUpgrades: Array.isArray(parsed.realUpgrades) ? parsed.realUpgrades : Object.values(parsed.realUpgrades || {}),
             prestigeSkills: Array.isArray(parsed.prestigeSkills) ? parsed.prestigeSkills : Object.values(parsed.prestigeSkills || {}),
             inventory: Array.isArray(parsed.inventory) ? parsed.inventory : Object.values(parsed.inventory || {}),
@@ -298,7 +321,6 @@ async function loadUserProgressFromDB() {
                 const savedU = loadedUpgrades.find(s => s.id === u.id);
                 if (savedU) { 
                     u.owned = savedU.owned || 0; const def = defaultUpgrades.find(d => d.id === u.id);
-                    // MENTÉSNÉL IS AZ ÚJ 22%-OS INFLÁCIÓT SZÁMOLJUK
                     u.cost = (def && def.type !== "special") ? Math.floor(def.cost * Math.pow(1.22, u.owned)) : (savedU.cost || u.cost);
                 }
             });
@@ -311,7 +333,7 @@ async function loadUserProgressFromDB() {
             }
         }
     } else {
-        Object.assign(GameState, { bikes: 0, lifetimeBikes: 0, goldenSpokes: 0, prestigeCount: 0, bps: 0, clickPower: 1, realUpgrades: [], prestigeSkills: [], inventory: [], achievements: [] });
+        Object.assign(GameState, { bikes: 0, lifetimeBikes: 0, goldenSpokes: 0, prestigeCount: 0, bps: 0, clickPower: 1, claimedSpokes: 0, realUpgrades: [], prestigeSkills: [], inventory: [], achievements: [] });
         achievements.forEach(a => a.done = false); localStorage.removeItem(`martinGame_user_${GameState.currentUser}`);
     }
     window.updateInventoryUI(); window.recalculateStats(); window.updateUI();

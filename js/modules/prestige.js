@@ -67,14 +67,17 @@ window.buySkill = function(id) {
 };
 
 window.prestige = function() {
-    // JAVÍTVA: Központosított matek hívás (már nem milliárdokkal oszt!)
     const gain = window.calculateKullok(); 
     
     if (gain > 0 && confirm(`Biztosan újraszületel?\nElveszítesz minden biciklit és épületet, de kapsz ${gain} Arany Küllőt!`)) {
         GameState.goldenSpokes += gain; 
+        
+        // ÚJ LOGIKA: Feljegyezzük, hogy kivette a Küllőket!
+        GameState.claimedSpokes = (GameState.claimedSpokes || 0) + gain; 
         GameState.prestigeCount = (GameState.prestigeCount || 0) + 1; 
+        
         GameState.bikes = 0; 
-        GameState.lifetimeBikes = 0;
+        // JAVÍTÁS: A lifetimeBikes-t SOHA TÖBBÉ NEM NULLÁZZUK! Ez méri a valaha volt összes teljesítményt.
         
         GameState.upgrades.forEach(u => { 
             u.owned = 0; 
