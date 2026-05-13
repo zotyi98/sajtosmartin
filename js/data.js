@@ -42,32 +42,32 @@ export const extraUpgradesData = [
 ];
 
 export const prestigeSkillsData = [
-    // --- KÖZÉPSŐ FŐÁG ---
-    { id: 301, name: "Isteni Láncolaj", desc: "Minden BPS és Kattintás 2x! (Max 3x vehető)", baseCost: 2, repeatable: true, maxLevel: 3, req: null, x: 50, y: 10 },
-    { id: 302, name: "Gyémánt Láncolaj", desc: "Újabb 2x BPS és Katt. szorzó! (Max 3x vehető)", baseCost: 10, repeatable: true, maxLevel: 3, req: 301, x: 50, y: 25 },
-    { id: 303, name: "Mágikus Hányózsák", desc: "A hányás takarítása dupla annyi biciklit fizet.", baseCost: 8, repeatable: false, req: 302, x: 50, y: 40 },
-    { id: 304, name: "Küllő-Mágnes", desc: "A megmaradt Küllőid 1% helyett 2% bónuszt adnak!", baseCost: 15, repeatable: false, req: 303, x: 50, y: 55 },
-    { id: 404, name: "Sötét Anyag Küllő", desc: "+10% Globális BPS minden szinten. (VÉGTELENSZER)", baseCost: 30, repeatable: true, maxLevel: 9999, req: 304, x: 50, y: 75 },
+    // Közép (Kicsit lentebb kezdem, hogy kiférjen)
+    { id: 301, name: "Isteni Láncolaj", desc: "Minden BPS és Kattintás +100%! (Max 3x)", baseCost: 2, repeatable: true, maxLevel: 3, req: null, x: 50, y: 15 },
+    { id: 302, name: "Gyémánt Láncolaj", desc: "Újabb +100% BPS és Katt. szorzó! (Max 3x)", baseCost: 10, repeatable: true, maxLevel: 3, req: 301, x: 50, y: 30 },
+    { id: 303, name: "Mágikus Hányózsák", desc: "A hányás takarítása dupla annyi biciklit fizet.", baseCost: 8, repeatable: false, req: 302, x: 50, y: 45 },
+    { id: 304, name: "Küllő-Mágnes", desc: "A megmaradt Küllőid 1% helyett 2% bónuszt adnak!", baseCost: 15, repeatable: false, req: 303, x: 50, y: 60 },
+    { id: 404, name: "Sötét Anyag Küllő", desc: "+10% Globális BPS minden szinten. (VÉGTELENSZER)", baseCost: 30, repeatable: true, maxLevel: 9999, req: 304, x: 50, y: 82 },
 
-    // --- BAL ÁG (Gazdaság, Passzív) ---
-    { id: 203, name: "Eszter Titka", desc: "Eszter támogatása 20%-kal olcsóbb lesz.", baseCost: 5, repeatable: false, req: 301, x: 25, y: 25 },
-    { id: 207, name: "Kuponkód", desc: "Minden alap épület 10%-kal olcsóbb!", baseCost: 10, repeatable: false, req: 203, x: 15, y: 40 },
-    { id: 209, name: "Tőzsdecápa", desc: "Szerencsekerék telitalálat 80x helyett 100x nyeremény.", baseCost: 20, repeatable: false, req: 207, x: 10, y: 55 },
-    { id: 208, name: "Éjszakai Bagoly", desc: "Az Éjszakai Műszak felhői 20x helyett 30x szorzót adnak.", baseCost: 15, repeatable: false, req: 203, x: 35, y: 40 },
-    { id: 210, name: "Globális Ellátólánc", desc: "Minden BIRTOKOLT épülettípus után +5% BPS!", baseCost: 30, repeatable: false, req: 208, x: 30, y: 55 },
+    // Bal ág (Jobban kitolva balra)
+    { id: 203, name: "Eszter Titka", desc: "Eszter támogatása 20%-kal olcsóbb lesz.", baseCost: 5, repeatable: false, req: 301, x: 25, y: 30 },
+    { id: 207, name: "Kuponkód", desc: "Minden alap épület 10%-kal olcsóbb!", baseCost: 10, repeatable: false, req: 203, x: 12, y: 45 },
+    { id: 209, name: "Tőzsdecápa", desc: "Szerencsekerék telitalálat 80x helyett 100x nyer.", baseCost: 20, repeatable: false, req: 207, x: 12, y: 65 },
+    { id: 208, name: "Éjszakai Bagoly", desc: "Éjszakai Műszak felhői +50% extra szorzó.", baseCost: 15, repeatable: false, req: 203, x: 32, y: 45 },
+    { id: 210, name: "Globális Ellátólánc", desc: "Minden BIRTOKOLT épülettípus után +5% BPS!", baseCost: 30, repeatable: false, req: 208, x: 32, y: 65 },
 
-    // --- JOBB ÁG (Események, Szerencse) ---
-    { id: 202, name: "Szerencsés Kéz", desc: "Az Arany/Rozsdás biciklik 2x sűrűbben jönnek.", baseCost: 3, repeatable: false, req: 301, x: 75, y: 25 },
-    { id: 201, name: "Felhővadász", desc: "A varázsfelhők 2x gyakrabban jelennek meg.", baseCost: 2, repeatable: false, req: 202, x: 65, y: 40 },
-    { id: 204, name: "Varázsüveg", desc: "A bónusz biciklik 5 másodperccel tovább maradnak kint.", baseCost: 5, repeatable: false, req: 201, x: 70, y: 55 },
-    { id: 401, name: "Aranyásó", desc: "Az Aranybicikli 7x helyett 15x szorzót ad!", baseCost: 15, repeatable: false, req: 204, x: 65, y: 70 },
-    { id: 406, name: "Rozsdás Immunitás", desc: "Nincs több defekt (0 BPS), csakis a 10x bónusz!", baseCost: 20, repeatable: false, req: 401, x: 70, y: 85 },
+    // Jobb ág (Jobban kitolva jobbra)
+    { id: 202, name: "Szerencsés Kéz", desc: "Az Arany/Rozsdás biciklik 2x sűrűbben jönnek.", baseCost: 3, repeatable: false, req: 301, x: 75, y: 30 },
+    { id: 201, name: "Felhővadász", desc: "A varázsfelhők 2x gyakrabban jelennek meg.", baseCost: 2, repeatable: false, req: 202, x: 68, y: 45 },
+    { id: 204, name: "Varázsüveg", desc: "A bónusz biciklik 5mp-el tovább maradnak kint.", baseCost: 5, repeatable: false, req: 201, x: 68, y: 65 },
+    { id: 401, name: "Aranyásó", desc: "Az Aranybicikli nagyobbat dob a bevételen!", baseCost: 15, repeatable: false, req: 204, x: 66, y: 80 },
+    { id: 406, name: "Rozsdás Immunitás", desc: "Nincs több defekt (0 BPS), csakis a bónusz!", baseCost: 20, repeatable: false, req: 401, x: 78, y: 80 },
 
-    // --- SZÉLSŐ JOBB ÁG (Kattintás és E-Sport) ---
-    { id: 205, name: "Villámkezű", desc: "A kattintásod megkapja a teljes (BPS) 1%-át!", baseCost: 15, repeatable: false, req: 202, x: 85, y: 40 },
-    { id: 206, name: "Mesterlövész", desc: "Az Aim Lab győzelem 5x helyett 10x-es nyereményt ad!", baseCost: 25, repeatable: false, req: 205, x: 90, y: 55 },
-    { id: 402, name: "Reflex Ital", desc: "Az Aim Lab célpontok lassabban (0.85mp) tűnnek el.", baseCost: 20, repeatable: false, req: 206, x: 95, y: 70 },
-    { id: 405, name: "Koffein Remegés", desc: "Auto-Clicker! A gép másodpercenként 2-t kattint.", baseCost: 25, repeatable: false, req: 205, x: 80, y: 55 }
+    // Szélső jobb (E-Sport)
+    { id: 205, name: "Villámkezű", desc: "A kattintásod megkapja a teljes (BPS) 1%-át!", baseCost: 15, repeatable: false, req: 202, x: 88, y: 45 },
+    { id: 206, name: "Mesterlövész", desc: "Az Aim Lab győzelem 5x helyett 10x-es nyeremény!", baseCost: 25, repeatable: false, req: 205, x: 88, y: 65 },
+    { id: 402, name: "Reflex Ital", desc: "Az Aim Lab célpontok lassabban (0.85mp) tűnnek el.", baseCost: 20, repeatable: false, req: 206, x: 88, y: 80 },
+    { id: 405, name: "Koffein Remegés", desc: "Auto-Clicker! A gép másodpercenként 2-t kattint.", baseCost: 25, repeatable: false, req: 205, x: 100, y: 60 }
 ];
 
 export const rpgItems = {
