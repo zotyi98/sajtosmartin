@@ -6,9 +6,11 @@ import { checkClickCheat, checkTimeCheat, checkEconomyCheat } from './modules/an
 import { initMartinEasterEgg } from './modules/martinbg.js';
 import { ref, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+// Új modulok betöltése (Cache frissítéssel)
 import './modules/admin.js?v=2';
 import './modules/events.js?v=2';
 import './modules/prestige.js?v=2';
+import './modules/spectate.js?v=2'; // ÉLŐ MEGFIGYELÉS MODUL!
 
 // --- GLOBÁLIS VÁLTOZÓK ---
 window.appInitTime = Date.now();
@@ -24,7 +26,6 @@ let lastBuildingSum = -1;
 
 // --- KÜLLŐ MATEK (MILLIÓS CÉLOKRA SKÁLÁZVA) ---
 window.calculateKullok = function() {
-    // 1 Küllő = 1 Millió, 2 Küllő = 4 Millió, 3 Küllő = 9 Millió...
     return Math.floor(Math.pow(GameState.lifetimeBikes / 1000000, 0.5));
 };
 
@@ -90,6 +91,7 @@ window.recalculateStats = function() {
 
     GameState.upgrades.forEach(u => {
         let basePower = defaultUpgrades.find(def => def.id === u.id).power; let upgMult = 1;
+        // NERF: ADDITÍV SZORZÓK (Nem tudnak felrobbanni a számok)
         GameState.realUpgrades.forEach(ru => { 
             let ext = extraUpgradesData.find(e => e.id === ru.id); 
             if(ext && ext.targetId === u.id) upgMult += (ext.mult - 1); 
@@ -239,6 +241,33 @@ function initShopUI() {
         list.appendChild(div);
     });
 }
+
+// --- RANGLISTA ÉS SPECTATE ÖSSZEKÖTÉS ---
+window.initLeaderboard = function() {
+    onValue(ref(db, 'users'), (snapshot) => {
+        const list = document.getElementById('leaderboard-list');
+        list.innerHTML = "";
+        let players = [];
+        snapshot.forEach(child => { players.push({name: child.key, bikes: child.val().bikes}); });
+        
+        // Csökkenő sorrend, top 15 játékos
+        players.sort((a, b) => b.bikes - a.bikes).slice(0, 15).forEach(p => {
+            let li = document.createElement('div');
+            li.className = "leaderboard-row";
+            li.innerHTML = `<span>${p.name}</span> <b>${Math.floor(p.bikes).toLocaleString()}</b>`;
+            
+            // SPECTATE ESEMÉNY: Bárki megfigyelhet bárkit!
+            li.onclick = () => {
+                if (p.name !== GameState.currentUser) {
+                    if (window.visualSpectate) window.visualSpectate(p.name);
+                } else {
+                    showToast("Ez te vagy! Magadat itt látod középen. 😂");
+                }
+            };
+            list.appendChild(li);
+        });
+    });
+};
 
 async function loadUserProgressFromDB() {
     GameState.upgrades = JSON.parse(JSON.stringify(defaultUpgrades));

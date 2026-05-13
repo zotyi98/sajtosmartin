@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Martin: Bicikli Birodalom v4.3.2</title>
+    <title>Martin: Bicikli Birodalom v5.5</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
 </head>
 <body>
 
-    <div id="version-number">cycloo ebbe a gamebe miért jo? </div>
+    <div id="version-number">v5.5 (Open Spectate) </div>
     <button id="btn-mute" onclick="window.toggleMute()">🔊</button>
     <button id="btn-help" onclick="document.getElementById('help-modal').style.display='flex'" style="position: absolute; top: 15px; left: 15px; z-index: 1000; font-family: 'Bangers', cursive; font-size: 18px; background: #2196f3; color: white; border: 2px solid #0d47a1; border-radius: 8px; padding: 5px 15px; cursor: pointer; box-shadow: 0 3px 0 #0d47a1; transition: transform 0.1s;">
         📖 SÚGÓ / HOGYAN JÁTSSZ?
@@ -33,7 +33,6 @@
             <p style="font-weight:600; color:#555;">Add meg a neved a belépéshez!</p>
             
             <input type="text" id="username-input" placeholder="Felhasználónév..." maxlength="12" style="margin-bottom: 10px;">
-            
             <input type="password" id="password-input" placeholder="Jelszó..." maxlength="20" style="margin-bottom: 15px;">
             
             <button class="btn-primary" id="btn-login" onclick="window.login()">BELÉPÉS</button>
@@ -94,7 +93,7 @@
             <h2 style="color: var(--gold); margin-bottom: 5px; font-size:40px;">🌌 Felemelkedés (Skill Tree) 🌌</h2>
             <p style="font-weight:600; color:#ddd; margin-top:0;">Elkölthető Arany Küllők: <strong id="modal-kullok" style="color:var(--gold); font-family:'Bangers', cursive; font-size:26px; text-shadow:1px 1px 0 #000;">0</strong></p>
             <div id="skill-tree-container">
-                </div>
+            </div>
         </div>
     </div>
 
@@ -193,54 +192,37 @@
         <p style="font-size:11px; margin-top:10px; text-align:center; opacity:0.6; font-weight:bold;">Bezárás: Ctrl + Shift + L</p>
     </div>
 
-    <script type="module" src="js/main.js?v=2"></script>
-
-<div id="spectate-modal" class="modal-overlay" style="display: none; z-index: 20000;">
+    <div id="spectate-modal" class="modal-overlay" style="display: none; z-index: 20000;">
         <div class="modal-box" style="width: 90%; max-width: 450px; text-align: left;">
             <h2 id="spectate-name" style="text-align: center; color: #d32f2f; margin-bottom: 10px; font-family: 'Bangers', cursive; letter-spacing: 1px;">👁️ Megfigyelés</h2>
             <div id="spectate-content" style="background: #f5f5f5; padding: 15px; border-radius: 10px; font-size: 16px; line-height: 1.8; border: 2px solid #ddd; margin-bottom: 15px;">
-                </div>
+            </div>
             <div style="text-align: center;">
-                <button class="btn-primary" onclick="document.getElementById('spectate-modal').style.display='none'">BEZÁRÁS</button>
+                <button class="btn-primary" onclick="window.closeSpectate()">BEZÁRÁS</button>
             </div>
         </div>
     </div>
 
-<div id="help-modal" class="modal-overlay" style="display: none; z-index: 30000;">
+    <div id="help-modal" class="modal-overlay" style="display: none; z-index: 30000;">
         <div class="modal-box" style="width: 90%; max-width: 600px; text-align: left; max-height: 85vh; overflow-y: auto;">
             <h1 style="text-align: center; color: #2e7d32; font-family: 'Bangers', cursive; letter-spacing: 1px; font-size: 35px; margin-top: 0;">📖 Üdv a Bicikli Birodalomban!</h1>
             
             <div style="font-size: 16px; line-height: 1.6; color: #333; font-family: 'Fredoka', sans-serif;">
                 <p>Ha most játszol először, itt egy gyors talpaló, hogy te lehess a leggazdagabb biciklimágnás a szerveren:</p>
-                
                 <ul style="padding-left: 20px;">
-                    <li style="margin-bottom: 10px;">
-                        <b style="color: #1565c0;">1. A Kezdetek (Kattintás):</b> Kattints Martinra a képernyő közepén, hogy bicikliket (pontokat) szerezz! Az elején minden a gyors ujjakon múlik.
-                    </li>
-                    <li style="margin-bottom: 10px;">
-                        <b style="color: #2e7d32;">2. A Bolt (Passzív BPS):</b> A jobb oldali menüben dolgozókat, épületeket és fejlesztéseket vehetsz. Ezek automatikusan termelik a bicikliket másodpercenként (ezt hívják <b>BPS</b>-nek). Minél drágább valami, annál többet hoz!
-                    </li>
-                    <li style="margin-bottom: 10px;">
-                        <b style="color: #fbc02d;">3. Váratlan Események:</b> Tartsd nyitva a szemed! A képernyőn időnként átrepül egy <b>Aranybicikli</b>, egy <b>Varázsfelhő</b>, vagy akár <b>Harry Potter</b>. Kattints rájuk gyorsan, és hatalmas termelési szorzókat kapsz! <i>(De vigyázz a Rozsdás biciklivel, mert defektet okozhat!)</i>
-                    </li>
-                    <li style="margin-bottom: 10px;">
-                        <b style="color: #d32f2f;">4. Felemelkedés (Újraszületés):</b> Ha összegyűjtöttél összesen <b>1 Milliárd</b> biciklit, a bolt alján megjelenik az Újraszületés gomb. Ilyenkor minden épületed és biciklid lenullázódik, de cserébe <b>Arany Küllőket</b> kapsz. A Küllőkből a <i>"Felemelkedés"</i> fülön végleges, brutálisan erős képességeket vásárolhatsz.
-                    </li>
-                    <li style="margin-bottom: 10px;">
-                        <b style="color: #8e24aa;">5. Minijátékok:</b> Ha unatkoznál, pörgesd meg a Szerencsekereket a bal alsó sarokban, vagy vadássz az Aim Lab gömbökre az extra nyereményekért!
-                    </li>
+                    <li style="margin-bottom: 10px;"><b style="color: #1565c0;">1. A Kezdetek (Kattintás):</b> Kattints Martinra a képernyő közepén, hogy bicikliket szerezz!</li>
+                    <li style="margin-bottom: 10px;"><b style="color: #2e7d32;">2. A Bolt (Passzív BPS):</b> A jobb oldali menüben dolgozókat, épületeket vehetsz. Ezek automatikusan termelik a bicikliket (BPS).</li>
+                    <li style="margin-bottom: 10px;"><b style="color: #fbc02d;">3. Váratlan Események:</b> Kattints az Aranybiciklire, Felhőre vagy Harry Potterre az óriási szorzókért! (Vigyázz a Rozsdással!)</li>
+                    <li style="margin-bottom: 10px;"><b style="color: #d32f2f;">4. Felemelkedés (Újraszületés):</b> Érd el az 1 Milliót! Lenullázódsz, de kapsz Arany Küllőket a Skill Tree-hez.</li>
+                    <li style="margin-bottom: 10px;"><b style="color: #8e24aa;">5. Közösség:</b> A ranglistán kattints mások nevére, hogy élőben megfigyeld őket (Spectate)!</li>
                 </ul>
-                
-                <p style="text-align: center; font-weight: bold; color: #d32f2f; font-size: 18px; margin-top: 20px;">
-                    Sok szerencsét, és pörögjenek azok a kerekek! 🚲💨
-                </p>
             </div>
-            
             <div style="text-align: center; margin-top: 15px;">
                 <button class="btn-primary" onclick="document.getElementById('help-modal').style.display='none'" style="font-size: 20px; padding: 10px 30px;">ÉRTETTEM, MEHET A JÁTÉK!</button>
             </div>
         </div>
     </div>
 
+    <script type="module" src="js/main.js?v=2"></script>
 </body>
 </html>
