@@ -6,9 +6,9 @@ import { checkClickCheat, checkTimeCheat, checkEconomyCheat } from './modules/an
 import { initMartinEasterEgg } from './modules/martinbg.js';
 import { ref, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-import './modules/admin.js';
-import './modules/events.js';
-import './modules/prestige.js';
+import './modules/admin.js?v=2';
+import './modules/events.js?v=2';
+import './modules/prestige.js?v=2';
 
 // --- GLOBÁLIS VÁLTOZÓK ---
 window.appInitTime = Date.now();
