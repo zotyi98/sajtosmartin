@@ -4,8 +4,11 @@ window.catchGoldenBike = function() {
     if (window.isKitchenMeetingActive) return; 
     document.getElementById('golden-bike').style.display = 'none';
     let dur = GameState.prestigeSkills.includes(204) ? 35000 : 30000;
-    let multValue = GameState.prestigeSkills.includes(401) ? 15 : 7;
+    
+    // NERF: Kisebb szorzó a "milliós" gazdasághoz (3x vagy 5x)
+    let multValue = GameState.prestigeSkills.includes(401) ? 5 : 3;
     window.activeBuffs.push({ mult: multValue, target: 'both', endTime: Date.now() + dur, text: `✨ ${multValue}x SZORZÓ AKTÍV! ✨`, color: "var(--gold)" });
+    
     window.recalcMultiplier(); window.spawnConfetti(); window.dropRPGItem();
 };
 
@@ -13,8 +16,9 @@ window.catchRustyBike = function() {
     if (window.isKitchenMeetingActive) return; 
     document.getElementById('rusty-bike').style.display = 'none';
     let dur = GameState.prestigeSkills.includes(204) ? 20000 : 15000;
+    
     if(GameState.prestigeSkills.includes(406) || Math.random() > 0.5) {
-        window.activeBuffs.push({ mult: 10, target: 'bps', endTime: Date.now() + dur, text: "🔥 10x ROZSDÁS SZORZÓ! 🔥", color: "var(--rust)" });
+        window.activeBuffs.push({ mult: 5, target: 'bps', endTime: Date.now() + dur, text: "🔥 5x ROZSDÁS SZORZÓ! 🔥", color: "var(--rust)" });
     } else {
         window.activeBuffs.push({ mult: 0, target: 'bps', endTime: Date.now() + dur, text: "💥 DEFEKT! 0 BPS 💥", color: "red" });
         document.getElementById('game-world').classList.add('world-shake');
@@ -27,8 +31,10 @@ window.catchRustyBike = function() {
 window.catchHarry = function() {
     if (window.isKitchenMeetingActive) return; 
     document.getElementById('harry-potter-event').style.display = 'none';
-    window.activeBuffs.push({ mult: 150, target: 'click', endTime: Date.now() + 10000, text: "⚡ 150x KATTINTÁS (HARRY)! ⚡", color: "#9c27b0" });
-    window.recalcMultiplier(); window.spawnConfetti(); showToast("🧙‍♂️ Elkaptad Harry Pottert! 150x Kattintás szorzó 10 mp-ig!");
+    
+    // NERF: 150x helyett most 20x (Bőven elég a milliós számokhoz!)
+    window.activeBuffs.push({ mult: 20, target: 'click', endTime: Date.now() + 10000, text: "⚡ 20x KATTINTÁS (HARRY)! ⚡", color: "#9c27b0" });
+    window.recalcMultiplier(); window.spawnConfetti(); showToast("🧙‍♂️ Elkaptad Harry Pottert! 20x Kattintás szorzó 10 mp-ig!");
 };
 
 window.spawnMagicCloud = function() {
@@ -40,8 +46,11 @@ window.spawnMagicCloud = function() {
     
     cloud.onclick = function(e) {
         if (window.isKitchenMeetingActive) { showToast("☕ Martin a konyhában van!"); return; }
-        let cloudMult = 10;
-        if(window.isNightMode) { cloudMult = GameState.prestigeSkills.includes(208) ? 30 : 20; }
+        
+        // NERF: 30x helyett 5x vagy 8x a milliós tempóhoz
+        let cloudMult = 5;
+        if(window.isNightMode) { cloudMult = GameState.prestigeSkills.includes(208) ? 8 : 6; }
+        
         window.activeBuffs.push({ mult: cloudMult, target: 'bps', endTime: Date.now() + 20000, text: `☁️ ${cloudMult}x FELHŐ SZORZÓ! ☁️`, color: "#81d4fa" });
         window.recalcMultiplier(); window.createParticle(e.clientX, e.clientY);
         showToast(`☁️ Elkaptál egy felhőt! ${cloudMult}x BPS szorzó!`);
@@ -64,7 +73,8 @@ window.spawnPukeEvent = function() {
 
 window.cleanPuke = function(e) {
     if(!window.isPukeEventActive || window.isKitchenMeetingActive) return; 
-    let pukeBase = GameState.prestigeSkills.includes(303) ? 30 : 15; let reward = Math.max(200, Math.floor(GameState.bps * pukeBase)); 
+    let pukeBase = GameState.prestigeSkills.includes(303) ? 10 : 5; // Kicsit szelídítve
+    let reward = Math.max(200, Math.floor(GameState.bps * pukeBase)); 
     GameState.bikes += reward; GameState.lifetimeBikes += reward; window.isPukeEventActive = false; document.getElementById('puke-event-container').style.display = 'none';
     window.createFloatingNumber(e.clientX, e.clientY, reward); window.updateUI(); saveUserProgress();
     showToast("🧹 Sikeresen feltakarítottad a kanapét! +" + reward.toLocaleString() + " 🚲");
