@@ -42,7 +42,7 @@ export function spinWheel() {
     setTimeout(() => {
         document.getElementById('wheel-result').innerText = winningNumber;
         if (num === winningNumber) {
-            let payout = GameState.prestigeSkills.includes(209) ? 80 : 60; 
+            let payout = GameState.prestigeSkills.includes(209) ? 100 : 80; 
             let winAmt = amt * payout; 
             GameState.bikes += winAmt; 
             GameState.lifetimeBikes += winAmt;

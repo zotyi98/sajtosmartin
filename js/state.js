@@ -41,21 +41,8 @@ export function showToast(text) {
 export function saveUserProgress() {
     if (!GameState.currentUser) return;
     GameState.lastSaved = Date.now(); // Mentéskor lebélyegezzük az időt
-
-    const payload = JSON.parse(JSON.stringify(GameState));
-    delete payload.password;
-    delete payload.currentUser;
-
-    try {
-        localStorage.setItem(`martinGame_user_${GameState.currentUser}`, JSON.stringify(payload));
-    } catch (e) {
-        console.warn('Nem sikerült helyben menteni az állapotot.', e);
-    }
-
-    set(ref(db, 'users/' + GameState.currentUser), payload);
-    if (GameState.password) {
-        set(ref(db, 'users/' + GameState.currentUser + '/password'), GameState.password);
-    }
+    localStorage.setItem(`martinGame_user_${GameState.currentUser}`, JSON.stringify(GameState));
+    set(ref(db, 'users/' + GameState.currentUser), GameState);
 }
 
 // Globális UI frissítő hívás
