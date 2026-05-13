@@ -67,11 +67,21 @@ window.buySkill = function(id) {
 };
 
 window.prestige = function() {
-    const gain = Math.floor(GameState.lifetimeBikes / 1000000000); 
-    if (gain > 0 && confirm(`Biztosan újraszületel?\\nElveszítesz minden biciklit és épületet, de kapsz ${gain} Arany Küllőt!`)) {
-        GameState.goldenSpokes += gain; GameState.prestigeCount = (GameState.prestigeCount || 0) + 1; 
-        GameState.bikes = 0; GameState.lifetimeBikes = 0;
-        GameState.upgrades.forEach(u => { u.owned = 0; u.cost = defaultUpgrades.find(d => d.id === u.id).cost; });
-        GameState.realUpgrades = []; saveUserProgress(); location.reload();
+    // 1-3 NAPOS HARDCORE NERF: Négyzetgyökös Küllő matek kiosztásnál
+    const gain = Math.floor(Math.pow(GameState.lifetimeBikes / 1000000000, 0.5)); 
+    
+    if (gain > 0 && confirm(`Biztosan újraszületel?\nElveszítesz minden biciklit és épületet, de kapsz ${gain} Arany Küllőt!`)) {
+        GameState.goldenSpokes += gain; 
+        GameState.prestigeCount = (GameState.prestigeCount || 0) + 1; 
+        GameState.bikes = 0; 
+        GameState.lifetimeBikes = 0;
+        
+        GameState.upgrades.forEach(u => { 
+            u.owned = 0; 
+            u.cost = defaultUpgrades.find(d => d.id === u.id).cost; 
+        });
+        GameState.realUpgrades = []; 
+        saveUserProgress(); 
+        location.reload();
     }
 };
