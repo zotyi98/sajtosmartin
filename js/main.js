@@ -51,7 +51,7 @@ window.calculateKullok = function() {
     }
 
     // 2. Kiszámoljuk, mennyi Küllő járna a valaha megtermelt ÖSSZES bicikli után
-    let expectedTotal = Math.floor(Math.pow(GameState.lifetimeBikes / 1000000, 0.5));
+    let expectedTotal = Math.floor(Math.pow(GameState.lifetimeBikes / 1000000, 0.333333));
     
     // 3. A jutalom az, amennyivel több jár, mint amennyit már eddig kivett a játék során
     let gain = expectedTotal - GameState.claimedSpokes;
