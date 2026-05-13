@@ -67,8 +67,8 @@ window.buySkill = function(id) {
 };
 
 window.prestige = function() {
-    // JAVÍTVA: Központosított matek hívás (már nem milliárdokkal oszt!)
-    const gain = window.calculateKullok(); 
+    // 1-3 NAPOS HARDCORE NERF: Négyzetgyökös Küllő matek kiosztásnál
+    const gain = Math.floor(Math.pow(GameState.lifetimeBikes / 1000000000, 0.5)); 
     
     if (gain > 0 && confirm(`Biztosan újraszületel?\nElveszítesz minden biciklit és épületet, de kapsz ${gain} Arany Küllőt!`)) {
         GameState.goldenSpokes += gain; 

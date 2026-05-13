@@ -3,10 +3,9 @@ import { GameState, showToast, saveUserProgress } from '../state.js';
 window.catchGoldenBike = function() {
     if (window.isKitchenMeetingActive) return; 
     document.getElementById('golden-bike').style.display = 'none';
-    let dur = GameState.prestigeSkills.includes(204) ? 35000 : 30000;
+    let dur = GameState.prestigeSkills.includes(204) ? 25000 : 20000;
     
-    // NERF: Kisebb szorzó a "milliós" gazdasághoz (3x vagy 5x)
-    let multValue = GameState.prestigeSkills.includes(401) ? 5 : 3;
+    let multValue = GameState.prestigeSkills.includes(401) ? 4 : 2;
     window.activeBuffs.push({ mult: multValue, target: 'both', endTime: Date.now() + dur, text: `✨ ${multValue}x SZORZÓ AKTÍV! ✨`, color: "var(--gold)" });
     
     window.recalcMultiplier(); window.spawnConfetti(); window.dropRPGItem();
@@ -15,10 +14,10 @@ window.catchGoldenBike = function() {
 window.catchRustyBike = function() {
     if (window.isKitchenMeetingActive) return; 
     document.getElementById('rusty-bike').style.display = 'none';
-    let dur = GameState.prestigeSkills.includes(204) ? 20000 : 15000;
+    let dur = GameState.prestigeSkills.includes(204) ? 15000 : 12000;
     
-    if(GameState.prestigeSkills.includes(406) || Math.random() > 0.5) {
-        window.activeBuffs.push({ mult: 5, target: 'bps', endTime: Date.now() + dur, text: "🔥 5x ROZSDÁS SZORZÓ! 🔥", color: "var(--rust)" });
+    if(GameState.prestigeSkills.includes(406) || Math.random() > 0.55) {
+        window.activeBuffs.push({ mult: 3, target: 'bps', endTime: Date.now() + dur, text: "🔥 3x ROZSDÁS SZORZÓ! 🔥", color: "var(--rust)" });
     } else {
         window.activeBuffs.push({ mult: 0, target: 'bps', endTime: Date.now() + dur, text: "💥 DEFEKT! 0 BPS 💥", color: "red" });
         document.getElementById('game-world').classList.add('world-shake');
@@ -32,9 +31,8 @@ window.catchHarry = function() {
     if (window.isKitchenMeetingActive) return; 
     document.getElementById('harry-potter-event').style.display = 'none';
     
-    // NERF: 150x helyett most 20x (Bőven elég a milliós számokhoz!)
-    window.activeBuffs.push({ mult: 20, target: 'click', endTime: Date.now() + 10000, text: "⚡ 20x KATTINTÁS (HARRY)! ⚡", color: "#9c27b0" });
-    window.recalcMultiplier(); window.spawnConfetti(); showToast("🧙‍♂️ Elkaptad Harry Pottert! 20x Kattintás szorzó 10 mp-ig!");
+    window.activeBuffs.push({ mult: 8, target: 'click', endTime: Date.now() + 10000, text: "⚡ 8x KATTINTÁS (HARRY)! ⚡", color: "#9c27b0" });
+    window.recalcMultiplier(); window.spawnConfetti(); showToast("🧙‍♂️ Elkaptad Harry Pottert! 8x Kattintás szorzó 10 mp-ig!");
 };
 
 window.spawnMagicCloud = function() {
@@ -47,9 +45,8 @@ window.spawnMagicCloud = function() {
     cloud.onclick = function(e) {
         if (window.isKitchenMeetingActive) { showToast("☕ Martin a konyhában van!"); return; }
         
-        // NERF: 30x helyett 5x vagy 8x a milliós tempóhoz
-        let cloudMult = 5;
-        if(window.isNightMode) { cloudMult = GameState.prestigeSkills.includes(208) ? 8 : 6; }
+        let cloudMult = 3;
+        if(window.isNightMode) { cloudMult = GameState.prestigeSkills.includes(208) ? 5 : 4; }
         
         window.activeBuffs.push({ mult: cloudMult, target: 'bps', endTime: Date.now() + 20000, text: `☁️ ${cloudMult}x FELHŐ SZORZÓ! ☁️`, color: "#81d4fa" });
         window.recalcMultiplier(); window.createParticle(e.clientX, e.clientY);
@@ -85,7 +82,7 @@ window.triggerKitchenMeeting = function() {
     if (window.isKitchenMeetingActive) return;
     window.isKitchenMeetingActive = true; 
     const overlay = document.getElementById('kitchen-overlay'); const timerEl = document.getElementById('kitchen-timer'); overlay.style.display = 'flex';
-    let timeLeft = 15; timerEl.innerText = timeLeft;
+    let timeLeft = 12; timerEl.innerText = timeLeft;
     kitchenMeetingInterval = setInterval(() => {
         timeLeft--; timerEl.innerText = timeLeft;
         if(timeLeft <= 0) { clearInterval(kitchenMeetingInterval); window.isKitchenMeetingActive = false; overlay.style.display = 'none'; showToast("☕ Vége a konyhagyűlésnek! A munka folytatódik."); }

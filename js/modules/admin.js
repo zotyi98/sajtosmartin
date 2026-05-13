@@ -46,75 +46,126 @@ window.initLeaderboard = function() {
 };
 
 window.spectateUser = async function(targetUser) {
-    if (GameState.currentUser !== "zotyi") { showToast("❌ Nincs jogosultságod mások megfigyelésére!"); return; }
-    
+    if (!isAdminUser()) { showToast('❌ Nincs jogosultságod mások megfigyelésére!'); return; }
+
     const dbRef = ref(db);
     try {
         const snapshot = await get(child(dbRef, `users/${targetUser}`));
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            document.getElementById('spectate-name').innerText = `👁️ ${targetUser} adatai`;
-            
-            let lastOnline = data.lastSaved ? new Date(data.lastSaved).toLocaleString('hu-HU') : 'Ismeretlen';
-            let inventoryHtml = data.inventory && data.inventory.length > 0 ? data.inventory.map(id => rpgItems[id]?.icon || '').join(' ') : 'Üres';
-            
-            let buildingsHtml = "";
-            if (data.upgrades) {
-                let upgArray = Array.isArray(data.upgrades) ? data.upgrades : Object.values(data.upgrades);
-                upgArray.forEach(u => { if (u.owned > 0) { let def = defaultUpgrades.find(d => d.id === u.id); if (def) buildingsHtml += `<div style="display:inline-block; width: 48%; margin-bottom: 2px;">${def.icon} ${def.name}: <b>${u.owned} db</b></div>`; } });
-            }
-            if (buildingsHtml === "") buildingsHtml = "Nincs még épülete.";
+        if (!snapshot.exists()) { showToast('❌ Nem található adat!'); return; }
 
-            let extrasHtml = "";
-            if (data.realUpgrades) {
-                let extraArray = Array.isArray(data.realUpgrades) ? data.realUpgrades : Object.values(data.realUpgrades);
-                extraArray.forEach(ru => { let searchId = typeof ru === 'object' ? ru.id : ru; let def = extraUpgradesData.find(e => e.id === searchId); if (def) extrasHtml += `<span style="color:#1565c0;">${def.name}</span>, `; });
-            }
-            extrasHtml = extrasHtml !== "" ? extrasHtml.slice(0, -2) : "Nincs extra fejlesztés.";
+        const data = snapshot.val();
+        const nameEl = document.getElementById('spectate-name');
+        const contentEl = document.getElementById('spectate-content');
+        if (!nameEl || !contentEl) return;
 
-            let skillsHtml = "";
-            if (data.prestigeSkills) {
-                let skillsArray = Array.isArray(data.prestigeSkills) ? data.prestigeSkills : Object.values(data.prestigeSkills);
-                let skillCounts = {};
-                skillsArray.forEach(sid => { skillCounts[sid] = (skillCounts[sid] || 0) + 1; });
-                for (let sid in skillCounts) { let def = prestigeSkillsData.find(s => s.id == sid); if (def) skillsHtml += `<span style="color:#d32f2f;">${def.name}</span> <b>(Lvl ${skillCounts[sid]})</b>, `; }
-            }
-            skillsHtml = skillsHtml !== "" ? skillsHtml.slice(0, -2) : "Nincs feloldott skill.";
+        nameEl.textContent = `👁️ ${targetUser} adatai`;
+        contentEl.innerHTML = '';
 
-            document.getElementById('spectate-content').innerHTML = `
-                <div style="font-size: 15px;">
-                    <b>🚲 Bicikli:</b> ${Math.floor(data.bikes || 0).toLocaleString()}<br>
-                    <b>⚡ BPS:</b> ${Math.floor(data.bps || 0).toLocaleString()} / mp<br>
-                    <b>🎒 Cuccok:</b> ${inventoryHtml}<br>
-                </div>
-                <hr style="margin: 8px 0; border: 1px solid #ccc;">
-                <div style="max-height: 80px; overflow-y: auto; background:#fff; padding:5px; font-size:13px; border: 1px solid #ddd;"><b style="color:#2e7d32;">🏢 ÉPÜLETEK:</b><br>${buildingsHtml}</div>
-                <div style="margin-top:5px; max-height: 60px; overflow-y: auto; background:#fff; padding:5px; font-size:13px; border: 1px solid #ddd;"><b style="color:#1565c0;">🛠️ EXTRÁK:</b><br>${extrasHtml}</div>
-                <div style="margin-top:5px; max-height: 60px; overflow-y: auto; background:#fff; padding:5px; font-size:13px; border: 1px solid #ddd;"><b style="color:#d32f2f;">🌌 SKILLEK:</b><br>${skillsHtml}</div>
-                <hr style="margin: 8px 0; border: 1px solid #ccc;">
-                <b style="font-size: 14px;">🕒 Utolsó mentés:</b> <span style="font-size: 14px; color:#555;">${lastOnline}</span>
-            `;
-            document.getElementById('spectate-modal').style.display = 'flex';
-        } else showToast("❌ Nem található adat!");
+        const addLine = (label, value) => {
+            const row = document.createElement('div');
+            const strong = document.createElement('b');
+            strong.textContent = label;
+            row.appendChild(strong);
+            row.appendChild(document.createTextNode(` ${value}`));
+            contentEl.appendChild(row);
+        };
+
+        const inventory = Array.isArray(data.inventory) ? data.inventory : Object.values(data.inventory || {});
+        const inventoryHtml = inventory.length > 0 ? inventory.map(id => rpgItems[id]?.icon || '').join(' ') : 'Üres';
+
+        const buildingsWrap = document.createElement('div');
+        buildingsWrap.style.cssText = 'max-height: 80px; overflow-y: auto; background:#fff; padding:5px; font-size:13px; border: 1px solid #ddd;';
+        const buildingsTitle = document.createElement('b');
+        buildingsTitle.style.color = '#2e7d32';
+        buildingsTitle.textContent = '🏢 ÉPÜLETEK:';
+        buildingsWrap.appendChild(buildingsTitle);
+        buildingsWrap.appendChild(document.createElement('br'));
+
+        const upgArray = Array.isArray(data.upgrades) ? data.upgrades : Object.values(data.upgrades || {});
+        let buildingsFound = false;
+        upgArray.forEach(u => {
+            if (u.owned > 0) {
+                const def = defaultUpgrades.find(d => d.id === u.id);
+                if (def) {
+                    buildingsFound = true;
+                    const line = document.createElement('div');
+                    line.style.display = 'inline-block';
+                    line.style.width = '48%';
+                    line.style.marginBottom = '2px';
+                    line.textContent = `${def.icon} ${def.name}: ${u.owned} db`;
+                    buildingsWrap.appendChild(line);
+                }
+            }
+        });
+        if (!buildingsFound) { buildingsWrap.appendChild(document.createTextNode('Nincs még épülete.')); }
+
+        const extrasWrap = document.createElement('div');
+        extrasWrap.style.cssText = 'margin-top:5px; max-height: 60px; overflow-y: auto; background:#fff; padding:5px; font-size:13px; border: 1px solid #ddd;';
+        const extrasTitle = document.createElement('b');
+        extrasTitle.style.color = '#1565c0';
+        extrasTitle.textContent = '🛠️ EXTRÁK:';
+        extrasWrap.appendChild(extrasTitle);
+        extrasWrap.appendChild(document.createElement('br'));
+        const extraArray = Array.isArray(data.realUpgrades) ? data.realUpgrades : Object.values(data.realUpgrades || {});
+        if (extraArray.length > 0) {
+            const names = extraArray.map(ru => { const searchId = typeof ru === 'object' ? ru.id : ru; return extraUpgradesData.find(e => e.id === searchId)?.name; }).filter(Boolean);
+            extrasWrap.appendChild(document.createTextNode(names.length ? names.join(', ') : 'Nincs extra fejlesztés.'));
+        } else { extrasWrap.appendChild(document.createTextNode('Nincs extra fejlesztés.')); }
+
+        const skillsWrap = document.createElement('div');
+        skillsWrap.style.cssText = 'margin-top:5px; max-height: 60px; overflow-y: auto; background:#fff; padding:5px; font-size:13px; border: 1px solid #ddd;';
+        const skillsTitle = document.createElement('b');
+        skillsTitle.style.color = '#d32f2f';
+        skillsTitle.textContent = '🌌 SKILLEK:';
+        skillsWrap.appendChild(skillsTitle);
+        skillsWrap.appendChild(document.createElement('br'));
+        const skillsArray = Array.isArray(data.prestigeSkills) ? data.prestigeSkills : Object.values(data.prestigeSkills || {});
+        if (skillsArray.length > 0) {
+            const skillCounts = {};
+            skillsArray.forEach(sid => { skillCounts[sid] = (skillCounts[sid] || 0) + 1; });
+            const parts = [];
+            for (let sid in skillCounts) { const def = prestigeSkillsData.find(s => s.id == sid); if (def) parts.push(`${def.name} (Lvl ${skillCounts[sid]})`); }
+            skillsWrap.appendChild(document.createTextNode(parts.length ? parts.join(', ') : 'Nincs feloldott skill.'));
+        } else { skillsWrap.appendChild(document.createTextNode('Nincs feloldott skill.')); }
+
+        addLine('🚲 Bicikli:', `${Math.floor(data.bikes || 0).toLocaleString()}`);
+        addLine('⚡ BPS:', `${Math.floor(data.bps || 0).toLocaleString()} / mp`);
+        addLine('🎒 Cuccok:', inventoryHtml);
+        contentEl.appendChild(document.createElement('hr')).style.cssText = 'margin: 8px 0; border: 1px solid #ccc;';
+        contentEl.appendChild(buildingsWrap);
+        contentEl.appendChild(extrasWrap);
+        contentEl.appendChild(skillsWrap);
+        contentEl.appendChild(document.createElement('hr')).style.cssText = 'margin: 8px 0; border: 1px solid #ccc;';
+        addLine('🕒 Utolsó mentés:', data.lastSaved ? new Date(data.lastSaved).toLocaleString('hu-HU') : 'Ismeretlen');
+
+        document.getElementById('spectate-modal').style.display = 'flex';
     } catch (e) { console.error(e); }
 };
 
 window.addEventListener('keydown', (e) => {
     if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'l') {
-        if (GameState.currentUser !== "zotyi") { showToast("❌ Nincs jogosultságod az Admin Panelhez!"); return; }
+        if (!isAdminUser()) { showToast('❌ Nincs jogosultságod az Admin Panelhez!'); return; }
         const panel = document.getElementById('admin-panel'); panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
     }
 });
 
-window.adminAddBikes = function() { const val = parseInt(document.getElementById('admin-bike-amount').value); if(!isNaN(val)) { GameState.bikes += val; GameState.lifetimeBikes += val; window.updateUI(); saveUserProgress(); } };
+window.adminAddBikes = function() {
+    if (!isAdminUser()) return;
+    const val = parseInt(document.getElementById('admin-bike-amount').value);
+    if (!isNaN(val)) { GameState.bikes += val; GameState.lifetimeBikes += val; window.updateUI(); saveUserProgress(); }
+};
 window.resetLeaderboard = async function() {
+    if (!isAdminUser()) return;
     if (confirm("BIZTOSAN törlöd a teljes rangsort MINDENKINÉL?")) {
         GameState.bikes = 0; GameState.lifetimeBikes = 0; GameState.goldenSpokes = 0; GameState.prestigeCount = 0; GameState.bps = 0;
         await set(ref(db, 'users/'), null); await set(ref(db, 'admin/reset'), Date.now()); 
         localStorage.removeItem(`martinGame_user_${GameState.currentUser}`); location.reload();
     }
 };
-window.triggerUpdateNotification = function() { if(confirm("Értesítést küldesz mindenkinek a frissítésről?")) { set(ref(db, 'admin/updateSignal'), Date.now()); alert("Jelzés kiküldve!"); } };
+window.triggerUpdateNotification = function() {
+    if (!isAdminUser()) return;
+    if(confirm('Értesítést küldesz mindenkinek a frissítésről?')) { set(ref(db, 'admin/updateSignal'), Date.now()); alert('Jelzés kiküldve!'); }
+};
 window.forceGoldenBike = function() { const b = document.getElementById('golden-bike'); b.style.top = Math.random()*50+25+"%"; b.style.display='block'; b.style.animation='none'; b.offsetHeight; b.style.animation='goldenFloat 10s linear forwards'; setTimeout(()=>b.style.display='none', 10000); };
 window.forceRustyBike = function() { const b = document.getElementById('rusty-bike'); b.style.top = Math.random()*50+25+"%"; b.style.display='block'; b.style.animation='none'; b.offsetHeight; b.style.animation='goldenFloat 10s linear forwards'; setTimeout(()=>b.style.display='none', 10000); };
 window.forceCloud = function() { window.spawnMagicCloud(); };

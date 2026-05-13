@@ -6,9 +6,9 @@ import { checkClickCheat, checkTimeCheat, checkEconomyCheat } from './modules/an
 import { initMartinEasterEgg } from './modules/martinbg.js';
 import { ref, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-import './modules/admin.js?v=2';
-import './modules/events.js?v=2';
-import './modules/prestige.js?v=2';
+import './modules/admin.js';
+import './modules/events.js';
+import './modules/prestige.js';
 
 // --- GLOBÁLIS VÁLTOZÓK ---
 window.appInitTime = Date.now();
@@ -22,20 +22,32 @@ window.isKitchenMeetingActive = false;
 window.isPukeEventActive = false;
 let lastBuildingSum = -1;
 
-// --- KÜLLŐ MATEK (MILLIÓS CÉLOKRA SKÁLÁZVA) ---
+const getEl = (id) => document.getElementById(id);
+const escapeHtml = (value) => String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+const getUpgradeCost = (upg) => {
+    let actualCost = upg.cost;
+    if (upg.id === 7 && GameState.prestigeSkills.includes(203)) actualCost *= 0.8;
+    else if (upg.id !== 7 && GameState.prestigeSkills.includes(207)) actualCost *= 0.9;
+    return actualCost;
+};
+
+// --- KÜLLŐ MATEK (MILLIÁRDOS CÉLRA SKÁLÁZVA) ---
 window.calculateKullok = function() {
-    // 1 Küllő = 1 Millió, 2 Küllő = 4 Millió, 3 Küllő = 9 Millió...
-    return Math.floor(Math.pow(GameState.lifetimeBikes / 1000000, 0.5));
+    return Math.floor(Math.pow(GameState.lifetimeBikes / 1000000000, 0.5));
 };
 
 // --- GOMBOK ÖSSZEKÖTÉSE A HTML-EL ---
 window.openAimlab = openAimlab;
 window.startAimlab = startAimlab;
 window.spinWheel = spinWheel;
-window.toggleMute = function() {};
 
 // --- HÍRSZALAG (TICKER) ---
-const tickerEl = document.getElementById('news-ticker-text');
+const tickerEl = getEl('news-ticker-text');
 if (tickerEl) {
     tickerEl.innerText = newsItems[Math.floor(Math.random() * newsItems.length)];
     tickerEl.addEventListener('animationiteration', () => { tickerEl.innerText = newsItems[Math.floor(Math.random() * newsItems.length)]; });
@@ -66,10 +78,13 @@ window.spawnConfetti = function() {
 };
 
 window.updateInventoryUI = function() {
-    const invTag = document.getElementById('inventory-list');
-    if(GameState.inventory.length === 0) invTag.innerHTML = "Üres"; else invTag.innerHTML = GameState.inventory.map(id => rpgItems[id].icon).join(' ');
-    document.getElementById('acc-helmet').style.display = GameState.inventory.includes('helmet') ? 'block' : 'none';
-    document.getElementById('acc-chain').style.display = GameState.inventory.includes('chain') ? 'block' : 'none';
+    const invTag = getEl('inventory-list');
+    if (!invTag) return;
+    invTag.textContent = GameState.inventory.length === 0 ? 'Üres' : GameState.inventory.map(id => rpgItems[id].icon).join(' ');
+    const helmet = getEl('acc-helmet');
+    const chain = getEl('acc-chain');
+    if (helmet) helmet.style.display = GameState.inventory.includes('helmet') ? 'block' : 'none';
+    if (chain) chain.style.display = GameState.inventory.includes('chain') ? 'block' : 'none';
 };
 
 window.dropRPGItem = function() {
@@ -132,11 +147,13 @@ window.recalcMultiplier = function() {
     window.multiplier = bz ? 0 : Math.max(1, eb);
     window.clickMultiplier = cz ? 0 : Math.max(1, ec);
 
-    const infoDiv = document.getElementById('multiplier-info');
+    const infoDiv = getEl('multiplier-info');
+    const gameWorld = getEl('game-world');
+    if (!infoDiv || !gameWorld) return;
     if (window.activeBuffs.length > 0) {
-        infoDiv.innerHTML = texts.join('<br>'); infoDiv.style.color = color; infoDiv.style.display = 'block';
-        if (window.multiplier > 1 || window.clickMultiplier > 1) document.getElementById('game-world').classList.add('world-golden');
-    } else { infoDiv.style.display = 'none'; document.getElementById('game-world').classList.remove('world-golden'); }
+        infoDiv.textContent = texts.join(' | '); infoDiv.style.color = color; infoDiv.style.display = 'block';
+        if (window.multiplier > 1 || window.clickMultiplier > 1) gameWorld.classList.add('world-golden');
+    } else { infoDiv.style.display = 'none'; gameWorld.classList.remove('world-golden'); }
 };
 
 window.updateBuildingsVisuals = function() {
@@ -149,44 +166,78 @@ window.updateBuildingsVisuals = function() {
 };
 
 window.updateUI = function() {
-    document.getElementById('bike-count').innerText = Math.floor(GameState.bikes).toLocaleString();
-    document.getElementById('bps-count').innerText = "Biciklik másodpercenként: " + Math.floor(GameState.bps * window.multiplier).toLocaleString();
-    const presCountUI = document.getElementById('prestige-count');
-    if(GameState.goldenSpokes > 0 || GameState.prestigeSkills.length > 0) { presCountUI.style.display = 'block'; presCountUI.innerText = `✨ Arany Küllők: ${GameState.goldenSpokes} (+${GameState.goldenSpokes}%)`; }
+    const bikeCount = getEl('bike-count');
+    const bpsCount = getEl('bps-count');
+    const presCountUI = getEl('prestige-count');
+    const prestigeBtn = getEl('btn-prestige');
+    if (bikeCount) bikeCount.textContent = `${Math.floor(GameState.bikes).toLocaleString()} 🚲`;
+    if (bpsCount) bpsCount.textContent = `Biciklik másodpercenként: ${Math.floor(GameState.bps * window.multiplier).toLocaleString()}`;
+    if (presCountUI) {
+        if (GameState.goldenSpokes > 0 || GameState.prestigeSkills.length > 0) {
+            presCountUI.style.display = 'block';
+            presCountUI.textContent = `✨ Arany Küllők: ${GameState.goldenSpokes} (+${GameState.goldenSpokes}%)`;
+        } else {
+            presCountUI.style.display = 'none';
+        }
+    }
 
-    let hasEszterDiscount = GameState.prestigeSkills.includes(203); let hasKupon = GameState.prestigeSkills.includes(207); let currentBuildingSum = 0;
+    let currentBuildingSum = 0;
 
     GameState.upgrades.forEach(upg => {
-        currentBuildingSum += upg.owned; const item = document.getElementById(`upg-item-${upg.id}`);
-        if (item) {
-            let actualCost = upg.cost; if(upg.id === 7 && hasEszterDiscount) actualCost *= 0.8; else if (upg.id !== 7 && hasKupon) actualCost *= 0.9; 
-            item.className = 'upgrade-item ' + (GameState.bikes >= actualCost ? 'affordable' : 'disabled');
-            document.getElementById(`upg-desc-${upg.id}`).innerText = upg.type !== "special" ? `+${Math.ceil(upg.power).toLocaleString()} pont ${upg.type === 'click' ? 'katt.' : '/ mp'}` : upg.desc;
-            document.getElementById(`upg-cost-${upg.id}`).innerText = Math.floor(actualCost).toLocaleString() + " 🚲";
-            document.getElementById(`upg-owned-${upg.id}`).innerText = upg.owned;
-            if (upg.id === 7 && upg.owned > 0) { document.getElementById('motivation-banner').style.display = 'block'; item.style.display = 'none'; }
-        }
+        currentBuildingSum += upg.owned;
+        const item = getEl(`upg-item-${upg.id}`);
+        if (!item) return;
+
+        const actualCost = getUpgradeCost(upg);
+        item.className = 'upgrade-item ' + (GameState.bikes >= actualCost ? 'affordable' : 'disabled');
+        const descEl = getEl(`upg-desc-${upg.id}`);
+        const costEl = getEl(`upg-cost-${upg.id}`);
+        const ownedEl = getEl(`upg-owned-${upg.id}`);
+        if (descEl) descEl.textContent = upg.type !== 'special' ? `+${Math.ceil(upg.power).toLocaleString()} pont ${upg.type === 'click' ? 'katt.' : '/ mp'}` : upg.desc;
+        if (costEl) costEl.textContent = `${Math.floor(actualCost).toLocaleString()} 🚲`;
+        if (ownedEl) ownedEl.textContent = `${upg.owned}`;
+        if (upg.id === 7 && upg.owned > 0) { const banner = getEl('motivation-banner'); if (banner) banner.style.display = 'block'; item.style.display = 'none'; }
     });
 
     if (currentBuildingSum !== lastBuildingSum) { window.updateBuildingsVisuals(); lastBuildingSum = currentBuildingSum; }
 
-    const extraList = document.getElementById('extra-upgrades-list');
-    extraUpgradesData.forEach(ext => {
-        let isOwned = GameState.realUpgrades.some(ru => ru.id === ext.id); let reqCount = GameState.upgrades.find(u => u.id === ext.reqBuilding)?.owned || 0;
-        let el = document.getElementById(`extra-upg-${ext.id}`);
-        if (!isOwned && (reqCount >= ext.reqCount)) {
-            if (!el) {
-                el = document.createElement('div'); el.id = `extra-upg-${ext.id}`; el.onclick = () => window.buyExtraUpgrade(ext.id);
-                el.innerHTML = `<b>${ext.name}</b><br><span style="color:#78909c;">${ext.desc}</span><br><b style="color:#d32f2f; font-family:'Bangers'; font-size:16px;">${ext.cost.toLocaleString()} 🚲</b>`;
-                extraList.appendChild(el);
-            }
-            el.className = 'extra-upgrade-item ' + (GameState.bikes >= ext.cost ? 'affordable' : 'disabled');
-        } else if (el) el.remove();
-    });
+    const extraList = getEl('extra-upgrades-list');
+    if (extraList) {
+        extraUpgradesData.forEach(ext => {
+            const isOwned = GameState.realUpgrades.some(ru => ru.id === ext.id);
+            const reqCount = GameState.upgrades.find(u => u.id === ext.reqBuilding)?.owned || 0;
+            let el = getEl(`extra-upg-${ext.id}`);
+            if (!isOwned && reqCount >= ext.reqCount) {
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = `extra-upg-${ext.id}`;
+                    el.addEventListener('click', () => window.buyExtraUpgrade(ext.id));
+                    const name = document.createElement('b');
+                    name.textContent = ext.name;
+                    const desc = document.createElement('span');
+                    desc.style.color = '#78909c';
+                    desc.textContent = ext.desc;
+                    const cost = document.createElement('b');
+                    cost.style.color = '#d32f2f';
+                    cost.style.fontFamily = 'Bangers';
+                    cost.style.fontSize = '16px';
+                    cost.textContent = `${ext.cost.toLocaleString()} 🚲`;
+                    el.appendChild(name); el.appendChild(document.createElement('br'));
+                    el.appendChild(desc); el.appendChild(document.createElement('br'));
+                    el.appendChild(cost);
+                    extraList.appendChild(el);
+                }
+                el.className = 'extra-upgrade-item ' + (GameState.bikes >= ext.cost ? 'affordable' : 'disabled');
+            } else if (el) el.remove();
+        });
+    }
 
     const prestigePoints = window.calculateKullok();
-    if (prestigePoints > 0) { document.getElementById('btn-prestige').style.display = 'block'; document.getElementById('btn-prestige').innerText = `✨ ÚJRASZÜLETÉS (+${prestigePoints} Küllő)`; }
-    if (!window.aimlabActive) { const costEl = document.getElementById('aimlab-cost'); if (costEl) costEl.innerText = Math.floor(GameState.bikes * 0.9).toLocaleString(); }
+    if (prestigeBtn) {
+        if (prestigePoints > 0) { prestigeBtn.style.display = 'block'; prestigeBtn.textContent = `✨ ÚJRASZÜLETÉS (+${prestigePoints} Küllő)`; }
+        else prestigeBtn.style.display = 'none';
+    }
+    if (!window.aimlabActive) { const costEl = getEl('aimlab-cost'); if (costEl) costEl.textContent = Math.floor(GameState.bikes * 0.9).toLocaleString(); }
 };
 setUpdateUI(window.updateUI); 
 
@@ -200,14 +251,11 @@ window.clickMartin = function(e) {
 };
 
 window.buyUpgrade = function(id) {
-    const upg = GameState.upgrades.find(u => u.id === id); let actualCost = upg.cost;
-    if(id === 7 && GameState.prestigeSkills.includes(203)) actualCost *= 0.8; else if(id !== 7 && GameState.prestigeSkills.includes(207)) actualCost *= 0.9;
+    const upg = GameState.upgrades.find(u => u.id === id);
+    const actualCost = getUpgradeCost(upg);
     if (GameState.bikes >= actualCost) {
         GameState.bikes -= actualCost; upg.owned++;
-        
-        // --- HARDCORE INFLÁCIÓ: 22%-OS ÁREMELKEDÉS! ---
-        if (upg.type !== "special") upg.cost = Math.floor(upg.cost * 1.22); 
-        
+        if (upg.type !== 'special') upg.cost = Math.floor(upg.cost * 1.16);
         window.recalculateStats(); window.updateUI(); saveUserProgress();
     }
 };
@@ -227,7 +275,7 @@ function checkSeasons() {
     if(day === 0) { window.seasonBpsMult = 1.1; sTxt += "☀️ Vasárnapi Pihenő (+10% BPS) "; }
     if(day === 5) { window.seasonClickMult = 1.2; sTxt += "🔥 Pénteki Őrület (+20% Kattintás) "; }
     if(hour >= 20 || hour < 6) { window.isNightMode = true; document.body.classList.add('night-mode'); sTxt += "🌙 Éjszakai Műszak (Gyakoribb felhők) "; }
-    if(sTxt !== "") { const banner = document.getElementById('season-banner'); banner.innerText = sTxt; banner.style.display = 'block'; }
+    if(sTxt !== "") { const banner = getEl('season-banner'); if (banner) { banner.textContent = sTxt; banner.style.display = 'block'; } }
 }
 
 function initShopUI() {
@@ -303,8 +351,16 @@ window.login = async function() {
     onValue(ref(db, 'admin/reset'), (snap) => { if (snap.val() && snap.val() > window.appInitTime) { alert("Szerver törölve!"); location.reload(); } });
     onValue(ref(db, 'admin/updateSignal'), (snap) => {
         if (snap.val() && snap.val() > window.appInitTime) {
-            const banner = document.createElement('div'); banner.style.cssText = 'position:fixed; top:0; left:0; width:100%; background:#d32f2f; color:white; text-align:center; padding:15px; font-family:"Bangers"; font-size:24px; z-index:99999;';
-            banner.innerHTML = `⚠️ ÚJ FRISSÍTÉS! FRISSÍTS (F5)! <button onclick="location.reload()" style="padding:5px 15px; margin-left:10px;">FRISSÍTÉS MOST</button>`;
+            const banner = document.createElement('div');
+            banner.style.cssText = 'position:fixed; top:0; left:0; width:100%; background:#d32f2f; color:white; text-align:center; padding:15px; font-family:"Bangers"; font-size:24px; z-index:99999;';
+            const label = document.createElement('span');
+            label.textContent = '⚠️ ÚJ FRISSÍTÉS! FRISSÍTS (F5)! ';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = 'FRISSÍTÉS MOST';
+            btn.style.cssText = 'padding:5px 15px; margin-left:10px;';
+            btn.addEventListener('click', () => location.reload());
+            banner.appendChild(label); banner.appendChild(btn);
             document.body.appendChild(banner);
         }
     });
@@ -352,8 +408,8 @@ window.login = async function() {
     cloudLoop();
 };
 
-document.getElementById('username-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') window.login(); });
-document.getElementById('password-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') window.login(); });
+getEl('username-input')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') window.login(); });
+getEl('password-input')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') window.login(); });
 
 setInterval(() => {
     if (!GameState.currentUser || document.getElementById('game-container').style.display === 'none') return;
