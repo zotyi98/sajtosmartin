@@ -44,10 +44,12 @@ window.openPrestigeShop = function() {
     });
     
     svgHTML += '</svg>';
-    container.innerHTML = '<div style="position:relative; width:1200px; height:1000px; margin:auto;">' + svgHTML + nodesHTML + '</div>';
+    // Megnöveltük a vászon méretét, hogy a százalékos elosztás ne nyomja össze a dobozokat!
+    container.innerHTML = '<div style="position:relative; width:1600px; height:1100px; margin:auto;">' + svgHTML + nodesHTML + '</div>';
     
     document.getElementById('prestige-modal').style.display = 'flex';
-    setTimeout(() => { container.scrollTop = 0; container.scrollLeft = (1200 - container.clientWidth) / 2; }, 10);
+    // Hogy középre scrollozzon megnyitáskor az új mérettel is:
+    setTimeout(() => { container.scrollTop = 0; container.scrollLeft = (1600 - container.clientWidth) / 2; }, 10);
 };
 
 window.buySkill = function(id) {

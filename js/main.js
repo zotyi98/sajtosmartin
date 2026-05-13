@@ -272,18 +272,51 @@ window.initLeaderboard = function() {
         const list = document.getElementById('leaderboard-list');
         list.innerHTML = "";
         let players = [];
-        snapshot.forEach(child => { players.push({name: child.key, bikes: child.val().bikes}); });
         
-        players.sort((a, b) => b.bikes - a.bikes).slice(0, 15).forEach(p => {
+        snapshot.forEach(child => { 
+            let d = child.val();
+            players.push({
+                name: child.key, 
+                bikes: d.bikes || 0,
+                bps: d.bps || 0,
+                prestigeCount: d.prestigeCount || 0,
+                goldenSpokes: d.goldenSpokes || 0 // Ezt is lekérjük
+            }); 
+        });
+        
+        // Rendezés: 1. Újrakezdések, 2. BPS
+        players.sort((a, b) => (b.prestigeCount - a.prestigeCount) || (b.bps - a.bps));
+        
+        players.slice(0, 15).forEach((p, index) => {
             let li = document.createElement('div');
-            li.className = "leaderboard-row";
-            li.innerHTML = `<span>${p.name}</span> <b>${Math.floor(p.bikes).toLocaleString()}</b>`;
+            
+            let rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `<span style="font-size: 15px; color: #795548;">${index + 1}.</span>`;
+            let bpsIcon = p.bps > 1000000 ? "💎" : p.bps > 10000 ? "🔥" : "⚡";
+
+            li.className = `leader-item ${p.name === GameState.currentUser ? 'current-user' : ''}`;
+            li.style.display = "flex";
+            li.style.justifyContent = "space-between";
+            li.style.alignItems = "center";
+            li.style.padding = "10px";
+            
+            li.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                    <div style="font-size:16px; color:#333;"><span style="display:inline-block; width:25px;">${rankIcon}</span> <b>${p.name}</b></div>
+                    <div style="font-size:11px; color:#555; padding-left:25px; line-height:1.3;">
+                        🔄 <b>${p.prestigeCount}x</b> Újrakezdve<br>
+                        ✨ <span style="color:#b8860b;"><b>${p.goldenSpokes.toLocaleString()}</b> Küllő</span>
+                    </div>
+                </div>
+                <div style="background:rgba(255,255,255,0.7); padding:6px 8px; border-radius:8px; font-family:'Bangers', cursive; font-size:16px; color:#d32f2f; min-width:80px; text-align:right;">
+                    ${bpsIcon} ${Math.floor(p.bps).toLocaleString()}
+                </div>
+            `;
             
             li.onclick = () => {
                 if (p.name !== GameState.currentUser) {
                     if (window.visualSpectate) window.visualSpectate(p.name);
                 } else {
-                    showToast("Ez te vagy! Magadat itt látod középen. 😂");
+                    showToast("Ez te vagy! 😂");
                 }
             };
             list.appendChild(li);
@@ -333,8 +366,22 @@ async function loadUserProgressFromDB() {
             }
         }
     } else {
-        Object.assign(GameState, { bikes: 0, lifetimeBikes: 0, goldenSpokes: 0, prestigeCount: 0, bps: 0, clickPower: 1, claimedSpokes: 0, realUpgrades: [], prestigeSkills: [], inventory: [], achievements: [] });
-        achievements.forEach(a => a.done = false); localStorage.removeItem(`martinGame_user_${GameState.currentUser}`);
+        Object.assign(GameState, { 
+            bikes: 0, 
+            lifetimeBikes: 0, 
+            goldenSpokes: 0, 
+            prestigeCount: 0, 
+            bps: 0, 
+            clickPower: 1, 
+            claimedSpokes: 0, 
+            realUpgrades: [], 
+            prestigeSkills: [], 
+            inventory: [], 
+            achievements: [],
+            firstJoined: Date.now() // <--- EZ AZ ÚJ SOR
+        });
+        achievements.forEach(a => a.done = false); 
+        localStorage.removeItem(`martinGame_user_${GameState.currentUser}`);
     }
     window.updateInventoryUI(); window.recalculateStats(); window.updateUI();
 }
@@ -354,8 +401,34 @@ window.login = async function() {
     onValue(ref(db, 'admin/reset'), (snap) => { if (snap.val() && snap.val() > window.appInitTime) { alert("Szerver törölve!"); location.reload(); } });
     onValue(ref(db, 'admin/updateSignal'), (snap) => {
         if (snap.val() && snap.val() > window.appInitTime) {
-            const banner = document.createElement('div'); banner.style.cssText = 'position:fixed; top:0; left:0; width:100%; background:#d32f2f; color:white; text-align:center; padding:15px; font-family:"Bangers"; font-size:24px; z-index:99999;';
-            banner.innerHTML = `⚠️ ÚJ FRISSÍTÉS! FRISSÍTS (F5)! <button onclick="location.reload()" style="padding:5px 15px; margin-left:10px;">FRISSÍTÉS MOST</button>`;
+            if(document.getElementById('fancy-update-banner')) return; // Ne spammelje tele, ha már kint van
+
+            const banner = document.createElement('div');
+            banner.id = 'fancy-update-banner';
+            banner.style.cssText = `
+                position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+                background: linear-gradient(135deg, #d32f2f, #b71c1c); color: white;
+                padding: 20px 30px; border-radius: 15px; z-index: 99999;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.6); border: 3px solid #ff5252;
+                display: flex; align-items: center; gap: 20px; font-family: 'Fredoka', sans-serif;
+                animation: slideDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            `;
+            banner.innerHTML = `
+                <div style="font-size: 40px; animation: pulseIcon 1s infinite alternate;">⚠️</div>
+                <div>
+                    <strong style="font-family:'Bangers'; font-size:24px; letter-spacing:1px;">KÖTELEZŐ FRISSÍTÉS!</strong><br>
+                    <span style="font-size: 16px;">Új verzió érhető el a szerveren. A folytatáshoz frissíts!</span>
+                </div>
+                <button onclick="location.reload()" style="background: white; color: #d32f2f; border: none; padding: 10px 20px; font-family: 'Bangers'; font-size: 18px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 0 #9e9e9e; transition: 0.1s;">🔄 FRISSÍTÉS MOST</button>
+            `;
+            
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes slideDown { from { top: -100px; opacity: 0; } to { top: 20px; opacity: 1; } }
+                @keyframes pulseIcon { from { transform: scale(1); } to { transform: scale(1.2); } }
+                #fancy-update-banner button:active { transform: translateY(4px); box-shadow: 0 0 0 #9e9e9e; }
+            `;
+            document.head.appendChild(style);
             document.body.appendChild(banner);
         }
     });

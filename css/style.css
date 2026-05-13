@@ -238,3 +238,45 @@ input[type="text"], input[type="number"] { width: 100%; padding: 12px; margin-bo
     0% { transform: translateX(0); }
     100% { transform: translateX(120vw); }
 }
+
+/* --- RANGLISTA JAVÍTÁS --- */
+.leaderboard-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.leaderboard-row:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+.leaderboard-row span {
+    font-weight: 600;
+    color: #333;
+}
+.leaderboard-row b {
+    color: var(--primary);
+    font-family: 'Bangers', cursive;
+    letter-spacing: 1px;
+}
+
+/* --- FELEMELKEDÉS (SKILL TREE) JAVÍTÁS --- */
+.tree-node {
+    position: absolute;
+    transform: translate(-50%, -50%); /* Ez húzza a dobozokat PONTOSAN a vonalak végpontjára! */
+    width: 170px; /* Fix szélesség, hogy ne nyúljanak el */
+    text-align: center;
+    background: #222;
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid #555;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+    z-index: 2;
+}
+.tree-node strong {
+    display: block;
+    line-height: 1.1;
+    margin-bottom: 5px;
+}

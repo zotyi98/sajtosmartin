@@ -7,44 +7,6 @@ function getRankEmoji(bps) {
     if(bps > 100000000) return "👑"; if(bps > 1000000) return "💎"; if(bps > 10000) return "🔥"; if(bps > 100) return "⭐"; return "🚲";
 }
 
-window.initLeaderboard = function() {
-    const leaderboardRef = ref(db, 'users/');
-    onValue(leaderboardRef, (snapshot) => {
-        const data = snapshot.val(); const listDiv = document.getElementById('leaderboard-list');
-        if (!data) { listDiv.innerHTML = "<div style='text-align:center; padding:20px; font-weight:bold; color:#795548;'>Üres a ranglista!</div>"; return; }
-        
-        const usersArray = Object.keys(data).map(key => ({ 
-            name: key, bps: data[key].bps || 0, goldenSpokes: data[key].goldenSpokes || 0, prestigeCount: data[key].prestigeCount || 0
-        })).sort((a, b) => (b.goldenSpokes - a.goldenSpokes) || (b.bps - a.bps));
-        
-        listDiv.innerHTML = "";
-        usersArray.slice(0, 15).forEach((user, index) => {
-            const div = document.createElement('div');
-            let rankClass = index < 3 ? `rank-${index}` : '';
-            let medalStr = index === 0 ? "🥇" : (index === 1 ? "🥈" : (index === 2 ? "🥉" : `<span style="font-family:'Bangers'; font-size:18px;">${index + 1}.</span>`));
-            
-            div.className = `leader-item ${user.name === GameState.currentUser ? 'current-user' : ''} ${rankClass}`;
-            
-            if (GameState.currentUser === "zotyi") {
-                div.style.cursor = 'pointer'; div.title = "Kattints a megfigyeléshez (Admin)"; div.onclick = () => window.spectateUser(user.name);
-            }
-
-            div.innerHTML = `
-                <div style="flex:1;">
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <span class="rank-badge">${medalStr} ${getRankEmoji(user.bps)}</span> <span style="font-size:17px;">${user.name}</span>
-                    </div>
-                    <div style="margin-top: 4px; font-size:12px; color:#555; font-family:'Fredoka', sans-serif; font-weight: 600;">
-                        🔄 <span style="color:#d32f2f;">${user.prestigeCount}x</span> Újrakezdve | ✨ <span style="color:#fbc02d;">${user.goldenSpokes}</span> Küllő
-                    </div>
-                </div>
-                <span style="font-family:'Bangers'; font-size:18px; color:#d32f2f;">${Math.floor(user.bps).toLocaleString()} BPS</span>
-            `;
-            listDiv.appendChild(div);
-        });
-    });
-};
-
 window.spectateUser = async function(targetUser) {
     if (GameState.currentUser !== "zotyi") { showToast("❌ Nincs jogosultságod mások megfigyelésére!"); return; }
     
