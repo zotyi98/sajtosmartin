@@ -11,7 +11,7 @@ import './modules/admin.js';
 import './modules/events.js';
 import './modules/prestige.js';
 
-// --- GLOBÁLIS VÁLTOZÓK (Window-ba kötve, hogy minden modul elérje) ---
+// --- GLOBÁLIS VÁLTOZÓK ---
 window.appInitTime = Date.now();
 window.activeBuffs = [];
 window.multiplier = 1;
@@ -71,7 +71,7 @@ window.dropRPGItem = function() {
     const items = Object.keys(rpgItems); const unowned = items.filter(id => !GameState.inventory.includes(id));
     if(unowned.length > 0 && Math.random() < 0.1) { 
         const droppedId = unowned[Math.floor(Math.random() * unowned.length)]; GameState.inventory.push(droppedId); 
-        showToast(`🎒 ÚJ FELSZERELÉS TALÁLVA!\\n${rpgItems[droppedId].icon} ${rpgItems[droppedId].name}`);
+        showToast(`🎒 ÚJ FELSZERELÉS TALÁLVA!\n${rpgItems[droppedId].icon} ${rpgItems[droppedId].name}`);
         window.updateInventoryUI(); window.recalculateStats();
     }
 };
@@ -85,7 +85,13 @@ window.recalculateStats = function() {
 
     GameState.upgrades.forEach(u => {
         let basePower = defaultUpgrades.find(def => def.id === u.id).power; let upgMult = 1;
-        GameState.realUpgrades.forEach(ru => { let ext = extraUpgradesData.find(e => e.id === ru.id); if(ext && ext.targetId === u.id) upgMult *= ext.mult; });
+        
+        // 1-3 NAPOS HARDCORE NERF: Az extra fejlesztések összeadódnak!
+        GameState.realUpgrades.forEach(ru => { 
+            let ext = extraUpgradesData.find(e => e.id === ru.id); 
+            if(ext && ext.targetId === u.id) upgMult += (ext.mult - 1); 
+        }); 
+        
         if(u.id === 2 && hasSajtSynergy) { basePower += (100 * sajtCount); }
         let p = (basePower * upgMult) * u.owned;
         if(u.type === "bps") b += p; if(u.type === "click") c += p;
@@ -176,7 +182,8 @@ window.updateUI = function() {
         } else if (el) el.remove();
     });
 
-    const prestigePoints = Math.floor(GameState.lifetimeBikes / 1000000000);
+    // 1-3 NAPOS HARDCORE NERF: Négyzetgyökös Küllő matek
+    const prestigePoints = Math.floor(Math.pow(GameState.lifetimeBikes / 1000000000, 0.5));
     if (prestigePoints > 0) { document.getElementById('btn-prestige').style.display = 'block'; document.getElementById('btn-prestige').innerText = `✨ ÚJRASZÜLETÉS (+${prestigePoints} Küllő)`; }
     if (!window.aimlabActive) { const costEl = document.getElementById('aimlab-cost'); if (costEl) costEl.innerText = Math.floor(GameState.bikes * 0.9).toLocaleString(); }
 };
@@ -266,7 +273,7 @@ async function loadUserProgressFromDB() {
             let secondsOffline = checkTimeCheat(parsed.lastSaved); 
             if (secondsOffline > 60) { 
                 window.recalculateStats(); let offlineGains = GameState.bps * secondsOffline;
-                if (offlineGains > 0) { GameState.bikes += offlineGains; GameState.lifetimeBikes += offlineGains; showToast(`😴 Távolléted alatt termeltél:\\n+${Math.floor(offlineGains).toLocaleString()} 🚲`); }
+                if (offlineGains > 0) { GameState.bikes += offlineGains; GameState.lifetimeBikes += offlineGains; showToast(`😴 Távolléted alatt termeltél:\n+${Math.floor(offlineGains).toLocaleString()} 🚲`); }
             }
         }
     } else {
@@ -349,7 +356,7 @@ setInterval(() => {
     achievements.forEach(ach => {
         if (GameState.lifetimeBikes >= ach.threshold && !ach.done) {
             ach.done = true; changed = true; GameState.bikes += ach.reward; GameState.lifetimeBikes += ach.reward;
-            showToast(`🏆 SIKER ELÉRVE: ${ach.name}!\\n🎁 Jutalom: +${ach.reward.toLocaleString()} 🚲`);
+            showToast(`🏆 SIKER ELÉRVE: ${ach.name}!\n🎁 Jutalom: +${ach.reward.toLocaleString()} 🚲`);
         }
     });
     if(changed) { GameState.achievements = achievements.map(a => a.done); saveUserProgress(); }
