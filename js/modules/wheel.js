@@ -21,7 +21,9 @@ export function spinWheel() {
     let amt = parseInt(document.getElementById('gamble-amount').value); 
     let num = parseInt(document.getElementById('gamble-number').value);
     
-    if (isNaN(amt) || amt <= 0 || amt > GameState.bikes) { alert("Nincs ennyi biciklid, vagy hibás a tét!"); return; }
+    // NERF: Max tét = 5% bicikli vagy 10M (min)
+    let maxBet = Math.max(10000000, Math.floor(GameState.bikes * 0.05));
+    if (isNaN(amt) || amt <= 0 || amt > maxBet) { alert(`Nincs ennyi biciklid, vagy a max tét ${maxBet.toLocaleString()}!`); return; }
     if (isNaN(num) || num < 1 || num > 100) { alert("Kérlek 1 és 100 közötti számot adj meg!"); return; }
 
     isWheelSpinning = true; 
@@ -42,7 +44,7 @@ export function spinWheel() {
     setTimeout(() => {
         document.getElementById('wheel-result').innerText = winningNumber;
         if (num === winningNumber) {
-            let payout = GameState.prestigeSkills.includes(209) ? 100 : 80; 
+            let payout = GameState.prestigeSkills.includes(209) ? 40 : 30; 
             let winAmt = amt * payout; 
             GameState.bikes += winAmt; 
             GameState.lifetimeBikes += winAmt;

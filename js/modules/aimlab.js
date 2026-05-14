@@ -97,7 +97,7 @@ function endAimlab() {
     
     if (aimlabHits >= 10 && acc >= 90) {
         // KIVETTÜK A playSound('win')-t!
-        let mult = GameState.prestigeSkills.includes(206) ? 10 : 5; 
+        let mult = GameState.prestigeSkills.includes(206) ? 5 : 3; 
         let winTotal = aimlabOriginalBikes * mult; 
         
         // PONTOS NYEREMÉNY SZÁMOLÁSA

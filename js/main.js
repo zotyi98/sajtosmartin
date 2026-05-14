@@ -51,7 +51,8 @@ window.calculateKullok = function() {
     }
 
     // 2. Kiszámoljuk, mennyi Küllő járna a valaha megtermelt ÖSSZES bicikli után
-    let expectedTotal = Math.floor(Math.pow(GameState.lifetimeBikes / 1000000, 0.333333));
+    // KÖNNYEBBÍTVE: 2. gyök helyett 3. gyök, 100M normalizáció
+    let expectedTotal = Math.floor(Math.pow(GameState.lifetimeBikes / 100000000, 0.5));
     
     // 3. A jutalom az, amennyivel több jár, mint amennyit már eddig kivett a játék során
     let gain = expectedTotal - GameState.claimedSpokes;
@@ -134,7 +135,7 @@ window.recalculateStats = function() {
             let ext = extraUpgradesData.find(e => e.id === ru.id); 
             if(ext && ext.targetId === u.id) upgMult += (ext.mult - 1); 
         }); 
-        if(u.id === 2 && hasSajtSynergy) { basePower += (100 * sajtCount); }
+        if(u.id === 2 && hasSajtSynergy) { basePower += (20 * sajtCount); }
         let p = (basePower * upgMult) * u.owned;
         if(u.type === "bps") b += p; if(u.type === "click") c += p;
     });
@@ -146,7 +147,7 @@ window.recalculateStats = function() {
 
     let spokeBonus = GameState.prestigeSkills.includes(304) ? (GameState.goldenSpokes * 0.02) : (GameState.goldenSpokes * 0.01);
     let treeBonus = (doubleCount301 * 1.0) + (doubleCount302 * 1.0); 
-    let supplyBonus = GameState.prestigeSkills.includes(210) ? (distinctBuildings * 0.05) : 0;
+    let supplyBonus = GameState.prestigeSkills.includes(210) ? (distinctBuildings * 0.02) : 0;
     let infiniteBonus = darkMatterCount * 0.10;
     
     let prestigeMult = 1 + spokeBonus + treeBonus + supplyBonus + infiniteBonus;
@@ -508,8 +509,8 @@ window.login = async function() {
 
     setInterval(() => {
         if (GameState.prestigeSkills.includes(405) && !window.isKitchenMeetingActive && document.getElementById('game-container').style.display !== 'none') {
-            let gained = (GameState.clickPower * window.clickMultiplier); GameState.bikes += gained; GameState.lifetimeBikes += gained; window.updateUI();
-            const m = document.getElementById('martin-character'); if(m) { m.style.transform = 'scale(0.95)'; setTimeout(() => m.style.transform = 'scale(1)', 100); }
+            // SKILL 405 ELTÁVOLÍTVA - autoclicker cheating volt!
+            // Ez a blokk már nem fog futni
         }
     }, 500);
 
@@ -518,7 +519,7 @@ window.login = async function() {
         const bike = Math.random() < 0.3 ? document.getElementById('rusty-bike') : document.getElementById('golden-bike');
         bike.style.top = Math.random() * 50 + 25 + "%"; bike.style.display = 'block'; bike.style.animation = 'none'; bike.offsetHeight; 
         bike.style.animation = `goldenFloat ${showTime / 1000}s linear forwards`; setTimeout(() => { bike.style.display = 'none'; }, showTime); 
-    }, Math.random() * 300000 + (GameState.prestigeSkills.includes(202) ? 150000 : 300000));
+    }, Math.random() * 300000 + (GameState.prestigeSkills.includes(202) ? 210000 : 300000));
 
     setInterval(() => {
         const hp = document.getElementById('harry-potter-event'); hp.style.display = 'block'; hp.style.animation = 'none'; hp.offsetHeight; 
@@ -532,7 +533,7 @@ window.login = async function() {
 
     setInterval(() => { window.spawnPukeEvent(); }, Math.random() * 300000 + 300000);
     setInterval(() => { if (!window.isKitchenMeetingActive) window.triggerKitchenMeeting(); }, Math.random() * 600000 + 600000);
-    function cloudLoop() { let baseTime = Math.random() * 300000 + 180000; if(GameState.prestigeSkills.includes(201)) baseTime *= 0.5; setTimeout(() => { window.spawnMagicCloud(); cloudLoop(); }, baseTime); }
+    function cloudLoop() { let baseTime = Math.random() * 300000 + 180000; if(GameState.prestigeSkills.includes(201)) baseTime *= 0.7; setTimeout(() => { window.spawnMagicCloud(); cloudLoop(); }, baseTime); }
     cloudLoop();
 };
 
