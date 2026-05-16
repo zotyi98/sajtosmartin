@@ -1,7 +1,9 @@
 import { GameState, showToast, saveUserProgress } from '../state.js';
+import { trackEvent } from './gameStats.js';
 
 window.catchGoldenBike = function() {
     if (window.isKitchenMeetingActive) return; 
+    trackEvent('golden');
     document.getElementById('golden-bike').style.display = 'none';
     let dur = GameState.prestigeSkills.includes(204) ? 35000 : 30000;
     
@@ -14,6 +16,7 @@ window.catchGoldenBike = function() {
 
 window.catchRustyBike = function() {
     if (window.isKitchenMeetingActive) return; 
+    trackEvent('rusty');
     document.getElementById('rusty-bike').style.display = 'none';
     let dur = GameState.prestigeSkills.includes(204) ? 20000 : 15000;
     
@@ -30,6 +33,7 @@ window.catchRustyBike = function() {
 
 window.catchHarry = function() {
     if (window.isKitchenMeetingActive) return; 
+    trackEvent('harry');
     document.getElementById('harry-potter-event').style.display = 'none';
     
     // NERF: 20x helyett 5x
@@ -53,6 +57,7 @@ window.spawnMagicCloud = function() {
         
         window.activeBuffs.push({ mult: cloudMult, target: 'bps', endTime: Date.now() + 20000, text: `☁️ ${cloudMult}x FELHŐ SZORZÓ! ☁️`, color: "#81d4fa" });
         window.recalcMultiplier(); window.createParticle(e.clientX, e.clientY);
+        trackEvent('cloud');
         showToast(`☁️ Elkaptál egy felhőt! ${cloudMult}x BPS szorzó!`);
         window.dropRPGItem(); cloud.remove();
     };
@@ -80,6 +85,7 @@ window.cleanPuke = function(e) {
     if(!window.isPukeEventActive || window.isKitchenMeetingActive) return; 
     let pukeBase = GameState.prestigeSkills.includes(303) ? 6 : 4; // NERF: 10/5 helyett 6/4
     let reward = Math.max(200, Math.floor(GameState.bps * pukeBase)); 
+    trackEvent('puke');
     GameState.bikes += reward; GameState.lifetimeBikes += reward; window.isPukeEventActive = false; document.getElementById('puke-event-container').style.display = 'none';
     window.createFloatingNumber(e.clientX, e.clientY, reward); window.updateUI(); saveUserProgress();
     showToast("🧹 Sikeresen feltakarítottad a kanapét! +" + reward.toLocaleString() + " 🚲");
@@ -145,6 +151,7 @@ function getKitchen3Overlay() {
 let kitchenMeetingInterval;
 window.triggerKitchenMeeting = function() {
     if (window.isKitchenMeetingActive) return;
+    trackEvent('kitchen');
     window.isKitchenMeetingActive = true; 
     const overlay = document.getElementById('kitchen-overlay'); const timerEl = document.getElementById('kitchen-timer'); overlay.style.display = 'flex';
     const kitchen3 = getKitchen3Overlay();

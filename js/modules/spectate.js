@@ -1,10 +1,12 @@
 import { db, GameState } from '../state.js';
+import { trackSpectate } from './gameStats.js';
 import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { defaultUpgrades, extraUpgradesData, prestigeSkillsData } from '../data.js';
 
 let spectateUnsubscribe = null;
 
 window.visualSpectate = function(targetName) {
+    trackSpectate();
     if (spectateUnsubscribe) spectateUnsubscribe();
 
     const modal = document.getElementById('spectate-modal');

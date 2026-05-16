@@ -1,4 +1,5 @@
 import { GameState, showToast, saveUserProgress, updateUI } from '../state.js';
+import { trackWheelSpin } from './gameStats.js';
 
 let isWheelSpinning = false;
 let currentWheelRotation = 0;
@@ -44,12 +45,14 @@ export function spinWheel() {
     setTimeout(() => {
         document.getElementById('wheel-result').innerText = winningNumber;
         if (num === winningNumber) {
+            trackWheelSpin(true);
             let payout = GameState.prestigeSkills.includes(209) ? 40 : 30; 
             let winAmt = amt * payout; 
             GameState.bikes += winAmt; 
             GameState.lifetimeBikes += winAmt;
             showToast(`🎰 TELITALÁLAT! A nyerőszám ${winningNumber} volt!\nNyeremény: +${winAmt.toLocaleString()} 🚲`);
         } else { 
+            trackWheelSpin(false);
             showToast(`💸 Vesztettél! A nyerőszám a(z) ${winningNumber} volt.`); 
         }
         updateUI(); 

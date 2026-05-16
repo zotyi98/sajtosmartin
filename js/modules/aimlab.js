@@ -1,4 +1,5 @@
 import { GameState, showToast, saveUserProgress, updateUI } from '../state.js';
+import { trackAimlabAttempt, trackAimlabWin } from './gameStats.js';
 
 window.aimlabActive = false; 
 let aimlabHits = 0; 
@@ -26,6 +27,7 @@ export function startAimlab() {
     saveUserProgress();
 
     document.getElementById('btn-start-aimlab').style.display = 'none'; 
+    trackAimlabAttempt();
     window.aimlabActive = true; 
     aimlabHits = 0; 
     aimlabClicks = 0; 
@@ -96,7 +98,7 @@ function endAimlab() {
     let acc = aimlabClicks === 0 ? 0 : Math.floor((aimlabHits / aimlabClicks) * 100);
     
     if (aimlabHits >= 10 && acc >= 90) {
-        // KIVETTÜK A playSound('win')-t!
+        trackAimlabWin();
         let mult = GameState.prestigeSkills.includes(206) ? 5 : 3; 
         let winTotal = aimlabOriginalBikes * mult; 
         

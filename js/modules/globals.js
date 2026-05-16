@@ -1,0 +1,9 @@
+window.appInitTime = Date.now();
+window.activeBuffs = [];
+window.multiplier = 1;
+window.clickMultiplier = 1;
+window.seasonBpsMult = 1;
+window.seasonClickMult = 1;
+window.isNightMode = false;
+window.isKitchenMeetingActive = false;
+window.isPukeEventActive = false;

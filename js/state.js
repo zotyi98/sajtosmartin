@@ -25,7 +25,8 @@ export const GameState = {
     realUpgrades: [],
     prestigeSkills: [],
     inventory: [],
-    achievements: [], // Itt tároljuk már a felhőben!
+    completedAchievements: [],
+    stats: null,
     cosmetics: [],
     lastSaved: 0      // A Ghost-Save védelemhez
 };

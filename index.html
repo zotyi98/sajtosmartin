@@ -13,7 +13,6 @@
 <body>
 
     <div id="version-number">v5.5 (Open Spectate) </div>
-    <button id="btn-mute" onclick="window.toggleMute()">🔊</button>
     <button id="btn-help" onclick="document.getElementById('help-modal').style.display='flex'" style="position: absolute; top: 15px; left: 15px; z-index: 1000; font-family: 'Bangers', cursive; font-size: 18px; background: #2196f3; color: white; border: 2px solid #0d47a1; border-radius: 8px; padding: 5px 15px; cursor: pointer; box-shadow: 0 3px 0 #0d47a1; transition: transform 0.1s;">
         📖 SÚGÓ / HOGYAN JÁTSSZ?
     </button>
@@ -42,22 +41,6 @@
             
             <button class="btn-primary" id="btn-login" onclick="window.login()">BELÉPÉS</button>
             <button class="btn-primary" id="btn-forget-password" onclick="window.forgetPassword()" style="background: #888; margin-top: 5px; font-size: 14px; padding: 8px 15px;">🗑️ Elmentett jelszó törlése</button>
-        </div>
-    </div>
-
-    <div id="interact-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-box" style="width: 350px;">
-            <span class="close-btn" onclick="document.getElementById('interact-modal').style.display='none'">&times;</span>
-            <h2 style="margin-bottom:5px;">Célpont: <span id="interact-target-name" style="color:var(--love);"></span></h2>
-            <p style="font-size: 13px; font-weight:600; color: #555; margin:5px 0 15px 0;">Mit szeretnél tenni vele? (Költség: 1 órányi BPS)</p>
-            <button class="btn-primary" onclick="window.sendThief()" style="background: #333; font-size: 18px; box-shadow: 0 4px 0 #000; margin-bottom: 10px; display:flex; flex-direction:column; align-items:center;">
-                <span>🦹‍♂️ Tolvaj Ráeresztése</span>
-                <span style="font-size: 12px; color: #aaa; font-family:'Fredoka'; font-weight:normal;">Lopj a vagyonából! (Ár: <span id="mp-thief-cost">0</span> 🚲)</span>
-            </button>
-            <button class="btn-primary" onclick="window.sendBuff()" style="background: var(--love); font-size: 18px; box-shadow: 0 4px 0 #ad1457; display:flex; flex-direction:column; align-items:center;">
-                <span>❤️ Eszter Csókja (Buff)</span>
-                <span style="font-size: 12px; color: #ffcdd2; font-family:'Fredoka'; font-weight:normal;">Adj neki 2x BPS-t 5 percig! (Ár: <span id="mp-buff-cost">0</span> 🚲)</span>
-            </button>
         </div>
     </div>
 
@@ -122,8 +105,6 @@
             <div id="rusty-bike" class="event-bike" onclick="window.catchRustyBike()">🚲</div>
             <div id="aimlab-event-obj" class="event-bike" style="filter: drop-shadow(0 0 15px #00e5ff);" onclick="window.catchAimlabEvent()">🎯</div>
             <div id="harry-potter-event" class="hp-event" onclick="window.catchHarry()">🧙‍♂️</div>
-            
-            <div id="mp-thief">🦹‍♂️</div>
             
             <div id="puke-event-container">
                 <div id="puke-sofa">🛋️</div>
@@ -237,7 +218,7 @@
         </div>
     </div>
 
-    <script type="module" src="js/main.js?v=2"></script>
+    <script type="module" src="js/main.js?v=8"></script>
 </body>
 </html>
 

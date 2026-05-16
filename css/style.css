@@ -141,10 +141,6 @@ input[type="text"], input[type="number"] { width: 100%; padding: 12px; margin-bo
     100% { left: 110vw;  top: 30%; transform: rotate(0deg) scale(0.5); }
 }
 
-#mp-thief { font-size: 80px; position: absolute; bottom: 80px; left: -150px; z-index: 110; cursor: pointer; display: none; filter: drop-shadow(0 10px 5px rgba(0,0,0,0.5)); transition: transform 0.1s; }
-#mp-thief:active { transform: scale(0.8); }
-@keyframes mpWalkAcross { 0% { left: -150px; } 100% { left: 110vw; } }
-
 #puke-event-container { position: absolute; bottom: 70px; right: 15%; width: 100px; height: 100px; z-index: 45; display: none; }
 #puke-sofa { font-size: 70px; position: absolute; bottom: 0; right: 0; z-index: 45; filter: drop-shadow(0 10px 5px rgba(0,0,0,0.5));}
 #puke-splat { font-size: 35px; position: absolute; bottom: 15px; right: 40px; filter: hue-rotate(90deg) drop-shadow(0 0 10px green); z-index: 46; display: none; }
@@ -165,11 +161,70 @@ input[type="text"], input[type="number"] { width: 100%; padding: 12px; margin-bo
 .extra-upgrade-item.affordable { border-color: var(--gold); background: #fffde7; }
 .extra-upgrade-item.disabled { opacity: 0.6; filter: grayscale(1); cursor: not-allowed; box-shadow: none;}
 
+#cosmetics-section { flex-direction: column; gap: 10px; padding: 12px; max-height: none; }
+.cosmetic-card {
+    flex: 1 1 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 14px;
+    cursor: default;
+}
+.cosmetic-card.affordable { border-color: #ffc107; background: linear-gradient(to bottom, #fffde7, #fff9c4); }
+.cosmetic-card.owned { border-color: #7cb342; background: linear-gradient(to bottom, #f1f8e9, #dcedc8); }
+.cosmetic-card-icon { font-size: 42px; line-height: 1; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.2)); }
+.cosmetic-card-title { font-family: 'Bangers', cursive; font-size: 22px; color: #37474f; letter-spacing: 1px; }
+.cosmetic-card-desc { color: #78909c; font-size: 13px; font-weight: 600; line-height: 1.35; }
+.cosmetic-card-price { color: #d32f2f; font-family: 'Bangers', cursive; font-size: 20px; letter-spacing: 1px; }
+.cosmetic-buy-btn {
+    margin-top: 8px;
+    width: 100%;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Bangers', cursive;
+    font-size: 20px;
+    letter-spacing: 1px;
+    transition: transform 0.1s, filter 0.1s;
+}
+.cosmetic-buy-btn.affordable {
+    background: linear-gradient(to bottom, #ffc107, #ff9800);
+    color: #3e2723;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #e65100;
+}
+.cosmetic-buy-btn.affordable:hover { filter: brightness(1.05); }
+.cosmetic-buy-btn.affordable:active { transform: translateY(4px); box-shadow: 0 0 0 #e65100; }
+.cosmetic-buy-btn.disabled {
+    background: linear-gradient(to bottom, #cfd8dc, #b0bec5);
+    color: #546e7a;
+    cursor: not-allowed;
+    box-shadow: 0 3px 0 #90a4ae;
+}
+.cosmetic-buy-btn.owned {
+    background: linear-gradient(to bottom, #81c784, #66bb6a);
+    color: white;
+    cursor: default;
+    box-shadow: 0 3px 0 #388e3c;
+}
+
 .upgrade-list { flex: 1; overflow-y: auto; padding: 15px; background: #e0e0e0; box-shadow: inset 0 5px 10px rgba(0,0,0,0.1);}
 .upgrade-item { background: linear-gradient(to bottom, #ffffff, #f5f5f5); padding: 12px; margin-bottom: 12px; border-radius: 10px; display: flex; align-items: center; cursor: pointer; border: 3px solid #b0bec5; transition: 0.1s; box-shadow: 3px 3px 6px rgba(0,0,0,0.15); }
 .upgrade-item:active { transform: translateY(3px); box-shadow: 0 0 3px rgba(0,0,0,0.2); }
 .upgrade-item.affordable { border-color: #7cb342; background: #f1f8e9; }
 .upgrade-item.disabled { opacity: 0.6; filter: grayscale(1); cursor: not-allowed; box-shadow: none; transform: none;}
+.upgrade-item.locked-preview {
+    opacity: 0.45;
+    filter: grayscale(1);
+    cursor: default;
+    box-shadow: none;
+    transform: none;
+    background: linear-gradient(to bottom, #e0e0e0, #bdbdbd);
+    border-color: #9e9e9e;
+}
+.upgrade-item.locked-preview .upgrade-icon { opacity: 0.7; }
+.upgrade-item.locked-preview .upgrade-info { min-height: 48px; }
 .upgrade-icon { font-size: 35px; margin-right: 15px; filter: drop-shadow(0 3px 2px rgba(0,0,0,0.2)); }
 .upgrade-info { flex: 1; }
 .upgrade-name { font-weight: bold; display: block; font-size: 16px; color: #37474f;}
@@ -192,8 +247,6 @@ input[type="text"], input[type="number"] { width: 100%; padding: 12px; margin-bo
 .achievement-toast { background: white; border-left: 8px solid var(--gold); padding: 15px 25px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, fadeOut 0.5s 4.5s forwards; font-weight: 600; font-size: 15px; color: #333; white-space: pre-line; border-top: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;}
 
 #version-number { position: absolute; bottom: 5px; left: 5px; font-size: 14px; font-family: 'Bangers', cursive; color: rgba(255,255,255,0.7); z-index: 1000; letter-spacing: 1px; text-shadow: 1px 1px 2px #000; pointer-events: none; }
-#btn-mute { position: absolute; bottom: 5px; left: 320px; background: rgba(0,0,0,0.5); color: white; border: none; padding: 5px 10px; border-radius: 10px; font-size: 16px; cursor: pointer; z-index: 1000;}
-
 .admin-action-btn { padding: 6px; cursor: pointer; border: none; border-radius: 6px; font-family: 'Bangers', cursive; font-size: 15px; letter-spacing: 1px; margin-bottom: 6px; width: 48%; display: inline-block; box-shadow: 0 3px 0 rgba(0,0,0,0.2); transition: 0.1s;}
 .admin-action-btn:active { transform: translateY(3px); box-shadow: 0 0 0 rgba(0,0,0,0.2); }
 
@@ -222,7 +275,6 @@ input[type="text"], input[type="number"] { width: 100%; padding: 12px; margin-bo
     #motivation-banner { top: 80px; left: 5px; font-size: 13px; padding: 6px 12px; }
     #achievement-container { top: 50px; right: 10px; left: 10px; align-items: flex-end; }
     #admin-panel { bottom: auto; top: 100px; right: 5px; }
-    #btn-mute { left: 5px; bottom: 30px; }
 }
 .magic-cloud {
     position: absolute;
