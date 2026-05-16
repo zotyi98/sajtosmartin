@@ -78,14 +78,14 @@ export const newsItems = [
     "Elvileg Esztert azóta is bántja az a sok csúnya üzenet Martintól",
     "Daeron még mindig várja az aranybicikli felbukkanását",
     "Egy jótanács: szombat este inkább csak egy filmet tegyél be",
-    "Martin büszkén jelenti: Készülnek az autók az új bizniszben!",
-    "Felemelkedés! Építsd a Skill Tree-t a hatalmas szorzókért!",
+    "Martin büszkén jelenti: Nyomtunk egy mid rusht",
+    "Martinnal ne kekeckedjetek mert megver!",
     // --- Új mondatok (szerkeszthető) ---
-    "Breaking: a konyhai szünet nem bug, hanem feature — Martinék pihennek.",
+    "A konyhaszünet alatt Martint valójában bevizsgálják hátulról",
     "A ranglistán kattints egy névre: élőben látod a birodalmát (Spectate).",
     "Pro tipp: az aranybicikli után néha tárgy is hullik az égből.",
     "Ha a rozsdás bicó defektet ad, takarítsd a hányást — kárpótol a rendszer.",
-    "A Sajtos kurzor a Kozmetikák fülön vár — 50 000 🚲, de megéri a mém."
+    "Martin néha visz haza is egy kis sajtot"
 ];
 
 /**
