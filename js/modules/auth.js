@@ -1,41 +1,86 @@
 import { GameState, db, showToast } from '../state.js';
-import { ref, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { ref, onValue, get, child, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import {
+    sanitizeUsername,
+    isValidUsername,
+    hashPassword,
+    generateSalt,
+    storeSessionToken,
+    loadSessionToken
+} from '../authSession.js';
+
+async function establishSession(username) {
+    const token = crypto.randomUUID();
+    GameState.sessionToken = token;
+    storeSessionToken(username, token);
+    await set(ref(db, `sessions/${username}`), token);
+}
 import { initMartinEasterEgg } from './martinbg.js';
 import { checkSeasons } from './seasons.js';
 import { initShopUI } from './shop.js';
 import { loadUserProgressFromDB } from './progress.js';
 import { startGameLoops } from './gameLoop.js';
 
-window.login = async function() {
-    const usr = document.getElementById('username-input').value.trim();
-    const pwd = document.getElementById('password-input').value.trim();
-    if (usr.length < 2 || pwd.length < 3) { showToast("Rövid név vagy jelszó!"); return; }
-
-    const btn = document.getElementById('btn-login');
-    btn.innerText = "Ellenőrzés...";
-    btn.disabled = true;
+async function verifyLegacyPassword(username, password) {
     try {
-        const snap = await get(child(ref(db), `users/${usr}/password`));
-        if (snap.exists() && snap.val() !== pwd) {
-            alert("❌ HIBÁS JELSZÓ!");
-            btn.innerText = "BELÉPÉS";
-            btn.disabled = false;
-            return;
-        }
-    } catch (e) { console.error(e); }
-
-    if (document.getElementById('remember-password-check').checked) {
-        localStorage.setItem('rememberPassword_username', usr);
-        localStorage.setItem('rememberPassword_password', pwd);
+        const legacySnap = await get(child(ref(db), `users/${username}/password`));
+        if (legacySnap.exists() && legacySnap.val() === password) return true;
+    } catch (e) {
+        console.warn('Legacy password olvasás:', e.code || e.message);
     }
 
-    GameState.currentUser = usr;
-    GameState.password = pwd;
-    btn.innerText = "Betöltés...";
+    try {
+        const flatSnap = await get(child(ref(db), `users/${username}`));
+        if (flatSnap.exists()) {
+            const val = flatSnap.val();
+            if (val && typeof val === 'object' && val.password === password && !val.game) {
+                return true;
+            }
+        }
+    } catch (e) {
+        console.warn('Legacy mentés olvasás:', e.code || e.message);
+    }
+    return false;
+}
+
+async function createAccount(username, password) {
+    const salt = generateSalt();
+    const passwordHash = await hashPassword(password, salt);
+    await set(ref(db, `accounts/${username}`), {
+        passwordHash,
+        salt,
+        createdAt: Date.now()
+    });
+}
+
+async function verifyLogin(username, password) {
+    const accSnap = await get(child(ref(db), `accounts/${username}`));
+    if (accSnap.exists()) {
+        const { passwordHash, salt } = accSnap.val();
+        const attempt = await hashPassword(password, salt);
+        return attempt === passwordHash;
+    }
+    if (await verifyLegacyPassword(username, password)) {
+        await createAccount(username, password);
+        return true;
+    }
+    return null;
+}
+
+async function startGameSession(displayName) {
+    GameState.currentUser = displayName;
+    const username = sanitizeUsername(displayName);
+
+    try {
+        await establishSession(username);
+    } catch (e) {
+        console.warn('Session mentés:', e);
+        GameState.sessionToken = loadSessionToken(username) || '';
+    }
 
     onValue(ref(db, 'admin/reset'), (snap) => {
         if (snap.val() && snap.val() > window.appInitTime) {
-            alert("Szerver törölve!");
+            alert("Szerver reset — frissítés...");
             location.reload();
         }
     });
@@ -84,26 +129,99 @@ window.login = async function() {
     window.initLeaderboard();
     initMartinEasterEgg();
     startGameLoops();
+}
+
+window.login = async function() {
+    const rawName = document.getElementById('username-input').value.trim();
+    const pwd = document.getElementById('password-input').value.trim();
+    const btn = document.getElementById('btn-login');
+
+    if (!isValidUsername(rawName)) {
+        showToast("A név 2–12 karakter legyen (betű, szám, _).");
+        return;
+    }
+    if (pwd.length < 3) {
+        showToast("A jelszó legalább 3 karakter legyen.");
+        return;
+    }
+
+    const username = sanitizeUsername(rawName);
+    const displayName = rawName.trim().slice(0, 12);
+
+    if (!window.crypto?.subtle) {
+        showToast("A jelszó-titkosítás nem fut file:// módban.\nNyisd meg Live Serverrel vagy Firebase Hostingról (https://)!");
+        return;
+    }
+
+    btn.innerText = "Ellenőrzés...";
+    btn.disabled = true;
+
+    try {
+        let accExists = false;
+        try {
+            accExists = (await get(child(ref(db), `accounts/${username}`))).exists();
+        } catch (e) {
+            console.error('accounts olvasás:', e);
+            showToast(`Firebase hiba (accounts): ${e.code || e.message}\nEllenőrizd a Rules-t (Publish)!`);
+            return;
+        }
+
+        const result = await verifyLogin(username, pwd);
+
+        if (result === null) {
+            if (!accExists) {
+                await createAccount(username, pwd);
+                showToast("Új fiók létrehozva! Üdv a birodalomban!");
+            } else {
+                alert("❌ Hibás jelszó!");
+                return;
+            }
+        } else if (result === false) {
+            alert("❌ Hibás jelszó!");
+            return;
+        }
+
+        if (document.getElementById('remember-username-check')?.checked) {
+            localStorage.setItem('rememberUsername', displayName);
+        } else {
+            localStorage.removeItem('rememberUsername');
+        }
+
+        btn.innerText = "Betöltés...";
+        await startGameSession(displayName);
+    } catch (e) {
+        console.error(e);
+        const code = e.code || '';
+        if (code.includes('permission_denied') || code.includes('PERMISSION_DENIED')) {
+            showToast("PERMISSION_DENIED — másold be újra a database.rules.json-t és Publish!");
+        } else {
+            showToast(`Bejelentkezési hiba: ${code || e.message}`);
+        }
+    } finally {
+        btn.innerText = "BELÉPÉS";
+        btn.disabled = false;
+    }
 };
 
-window.loadRememberedPassword = function() {
-    const savedUsername = localStorage.getItem('rememberPassword_username');
-    const savedPassword = localStorage.getItem('rememberPassword_password');
-    if (savedUsername && savedPassword) {
-        document.getElementById('username-input').value = savedUsername;
-        document.getElementById('password-input').value = savedPassword;
-        document.getElementById('remember-password-check').checked = true;
+window.loadRememberedUsername = function() {
+    const saved = localStorage.getItem('rememberUsername');
+    if (saved) {
+        document.getElementById('username-input').value = saved;
+        const chk = document.getElementById('remember-username-check');
+        if (chk) chk.checked = true;
     }
 };
 
 window.forgetPassword = function() {
-    if (confirm("Biztosan szeretnéd a mentett jelszót törleni?")) {
+    if (confirm("Törlöd a mentett felhasználónevet?")) {
+        localStorage.removeItem('rememberUsername');
         localStorage.removeItem('rememberPassword_username');
         localStorage.removeItem('rememberPassword_password');
         document.getElementById('username-input').value = '';
         document.getElementById('password-input').value = '';
-        document.getElementById('remember-password-check').checked = false;
-        showToast("✅ Mentett jelszó törölve!");
+        const chk = document.getElementById('remember-username-check');
+        if (chk) chk.checked = false;
+        showToast("✅ Mentett adatok törölve.");
     }
 };
 
@@ -114,5 +232,5 @@ export function initAuthUI() {
     document.getElementById('password-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') window.login();
     });
-    window.addEventListener('load', () => window.loadRememberedPassword());
+    window.addEventListener('load', () => window.loadRememberedUsername());
 }

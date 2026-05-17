@@ -102,8 +102,8 @@ function checkAchievement(ach) {
         case 'wheelJackpots':
             return s.wheelJackpots >= ach.check.value;
         case 'playMinutes': {
-            if (!GameState.firstJoined) return false;
-            return (Date.now() - GameState.firstJoined) / 60000 >= ach.check.value;
+            const playedMin = (ensureGameStats().playTimeMs || 0) / 60000;
+            return playedMin >= ach.check.value;
         }
         case 'spectate':
             return s.spectateCount >= ach.check.value;

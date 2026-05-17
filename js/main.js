@@ -15,10 +15,10 @@ import './modules/gameLoop.js';
 import './modules/achievements.js';
 import { initAuthUI } from './modules/auth.js';
 
-import './modules/admin.js?v=2';
-import './modules/events.js?v=2';
-import './modules/prestige.js?v=2';
-import './modules/spectate.js?v=2';
+import './modules/admin.js?v=3';
+import './modules/events.js?v=3';
+import './modules/prestige.js?v=3';
+import './modules/spectate.js?v=3';
 
 import { initNewsTicker } from './modules/ticker.js';
 import { initAchievementChecker } from './modules/achievements.js';

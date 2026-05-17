@@ -1,8 +1,10 @@
 import { GameState } from '../state.js';
 import { defaultUpgrades, extraUpgradesData } from '../data.js';
 import { ensureGameStats } from './gameStats.js';
+import { dedupeRealUpgrades } from '../authSession.js';
 
 window.recalculateStats = function() {
+    GameState.realUpgrades = dedupeRealUpgrades(GameState.realUpgrades);
     let b = 0;
     let c = 1;
     if (GameState.inventory.includes('chain')) c += 50;

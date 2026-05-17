@@ -1,5 +1,6 @@
 import { GameState, saveUserProgress, showToast } from '../state.js';
 import { defaultUpgrades, prestigeSkillsData } from '../data.js';
+import { sanitizeUsername } from '../authSession.js';
 
 window.openPrestigeShop = function() {
     document.getElementById('modal-kullok').innerText = GameState.goldenSpokes;
@@ -68,25 +69,38 @@ window.buySkill = function(id) {
     }
 };
 
-window.prestige = function() {
-    const gain = window.calculateKullok(); 
-    
+window.prestige = async function() {
+    const gain = window.calculateKullok();
+
     if (gain > 0 && confirm(`Biztosan újraszületel?\nElveszítesz minden biciklit és épületet, de kapsz ${gain} Arany Küllőt!`)) {
-        GameState.goldenSpokes += gain; 
-        
-        // ÚJ LOGIKA: Feljegyezzük, hogy kivette a Küllőket!
-        GameState.claimedSpokes = (GameState.claimedSpokes || 0) + gain; 
-        GameState.prestigeCount = (GameState.prestigeCount || 0) + 1; 
-        
-        GameState.bikes = 0; 
-        // JAVÍTÁS: A lifetimeBikes-t SOHA TÖBBÉ NEM NULLÁZZUK! Ez méri a valaha volt összes teljesítményt.
-        
-        GameState.upgrades.forEach(u => { 
-            u.owned = 0; 
-            u.cost = defaultUpgrades.find(d => d.id === u.id).cost; 
+        GameState.goldenSpokes += gain;
+        GameState.claimedSpokes = (GameState.claimedSpokes || 0) + gain;
+        GameState.prestigeCount = (GameState.prestigeCount || 0) + 1;
+
+        GameState.bikes = 0;
+        GameState.bps = 0;
+        GameState.clickPower = 1;
+        GameState.realUpgrades = [];
+
+        GameState.upgrades.forEach(u => {
+            u.owned = 0;
+            const def = defaultUpgrades.find(d => d.id === u.id);
+            u.cost = def ? def.cost : u.cost;
         });
-        GameState.realUpgrades = []; 
-        saveUserProgress(); 
+
+        window.activeBuffs = [];
+        window.multiplier = 1;
+        window.clickMultiplier = 1;
+
+        sessionStorage.setItem(`prestigeReload_${sanitizeUsername(GameState.currentUser)}`, '1');
+
+        try {
+            await saveUserProgress();
+        } catch (e) {
+            console.error(e);
+            showToast("Mentési hiba újraszületéskor — próbáld újra!");
+            return;
+        }
         location.reload();
     }
 };

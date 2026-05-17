@@ -74,11 +74,12 @@ window.spawnPukeEvent = function() {
     setTimeout(() => { guy.innerText = '🤮'; splat.style.display = 'block'; }, 1050);
     setTimeout(() => { guy.innerText = '🚶🏽‍♂️'; guy.style.right = '-150px'; hitbox.style.display = 'block'; }, 2500);
     setTimeout(() => {
+        if (!window.isPukeEventActive) return;
         guy.style.display = 'none';
-        window.isPukeEventActive = false;
         container.style.display = 'none';
         hitbox.style.display = 'none';
-    }, 3500);
+        window.isPukeEventActive = false;
+    }, 12000);
 };
 
 window.cleanPuke = function(e) {

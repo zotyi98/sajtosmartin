@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getLocalGameKey, sanitizeUsername } from "./authSession.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDKEMDbNKzJJTBYjhRCAKi9ct8861uvlao",
@@ -11,10 +12,9 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);
 
-// A játék teljes aktuális állapota (State)
 export const GameState = {
     currentUser: "",
-    password: "",
+    sessionToken: "",
     bikes: 0,
     lifetimeBikes: 0,
     goldenSpokes: 0,
@@ -28,25 +28,110 @@ export const GameState = {
     completedAchievements: [],
     stats: null,
     cosmetics: [],
-    lastSaved: 0      // A Ghost-Save védelemhez
+    lastSaved: 0
 };
 
-export function showToast(text) {
-    const container = document.getElementById('achievement-container'); 
-    const toast = document.createElement('div');
-    toast.className = 'achievement-toast'; 
-    toast.innerText = text; 
-    container.appendChild(toast); 
-    setTimeout(() => toast.remove(), 5000); 
+let saveChain = Promise.resolve();
+
+function stripUndefined(value) {
+    if (value === undefined) return undefined;
+    if (value === null || typeof value !== "object") return value;
+    if (Array.isArray(value)) {
+        return value.map(stripUndefined).filter((v) => v !== undefined);
+    }
+    const out = {};
+    for (const [key, val] of Object.entries(value)) {
+        if (val === undefined) continue;
+        const cleaned = stripUndefined(val);
+        if (cleaned !== undefined) out[key] = cleaned;
+    }
+    return out;
+}
+
+function buildSavePayload() {
+    if (!GameState.firstJoined) GameState.firstJoined = Date.now();
+
+    const payload = stripUndefined({
+        displayName: GameState.currentUser,
+        lastSaved: GameState.lastSaved,
+        bikes: GameState.bikes,
+        lifetimeBikes: GameState.lifetimeBikes,
+        goldenSpokes: GameState.goldenSpokes,
+        prestigeCount: GameState.prestigeCount,
+        clickPower: GameState.clickPower,
+        bps: GameState.bps,
+        upgrades: GameState.upgrades,
+        realUpgrades: GameState.realUpgrades,
+        prestigeSkills: GameState.prestigeSkills,
+        inventory: GameState.inventory,
+        completedAchievements: GameState.completedAchievements,
+        stats: GameState.stats,
+        cosmetics: GameState.cosmetics,
+        claimedSpokes: GameState.claimedSpokes,
+        firstJoined: GameState.firstJoined
+    });
+
+    if (GameState.sessionToken) {
+        payload._session = GameState.sessionToken;
+    }
+    return payload;
+}
+
+async function saveUserProgressImpl() {
+    const name = GameState.currentUser;
+    if (!name) return;
+
+    GameState.lastSaved = Date.now();
+    const payload = buildSavePayload();
+    const safeName = sanitizeUsername(name);
+
+    localStorage.setItem(getLocalGameKey(safeName), JSON.stringify(payload));
+
+    await Promise.all([
+        set(ref(db, `users/${safeName}/game`), payload),
+        set(ref(db, `leaderboard/${safeName}`), {
+            displayName: name,
+            bikes: GameState.bikes ?? 0,
+            bps: GameState.bps ?? 0,
+            prestigeCount: GameState.prestigeCount || 0,
+            goldenSpokes: GameState.goldenSpokes || 0,
+            lastSaved: GameState.lastSaved,
+            _session: GameState.sessionToken || null
+        })
+    ]);
 }
 
 export function saveUserProgress() {
-    if (!GameState.currentUser) return;
-    GameState.lastSaved = Date.now(); // Mentéskor lebélyegezzük az időt
-    localStorage.setItem(`martinGame_user_${GameState.currentUser}`, JSON.stringify(GameState));
-    set(ref(db, 'users/' + GameState.currentUser), GameState);
+    saveChain = saveChain
+        .then(() => saveUserProgressImpl())
+        .catch((e) => {
+            console.error("Mentési hiba:", e);
+            showToast(`Mentési hiba: ${e.code || e.message || "ismeretlen"}`);
+        });
+    return saveChain;
 }
 
-// Globális UI frissítő hívás
-export let updateUI = () => {}; 
-export function setUpdateUI(fn) { updateUI = fn; }
+export async function isCurrentUserAdmin() {
+    const name = sanitizeUsername(GameState.currentUser || "");
+    if (!name) return false;
+    try {
+        const snap = await get(child(ref(db), `config/admins/${name}`));
+        return snap.val() === true;
+    } catch {
+        return false;
+    }
+}
+
+export function showToast(text) {
+    const container = document.getElementById("achievement-container");
+    const toast = document.createElement("div");
+    toast.className = "achievement-toast";
+    toast.innerText = text;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 5000);
+}
+
+export let updateUI = () => {};
+export function setUpdateUI(fn) {
+    updateUI = fn;
+}

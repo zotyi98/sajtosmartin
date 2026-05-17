@@ -1,82 +1,94 @@
-import { GameState, db, showToast, saveUserProgress } from '../state.js';
-import { defaultUpgrades, extraUpgradesData, prestigeSkillsData, rpgItems } from '../data.js';
-import { ref, onValue, get, child, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { GameState, db, showToast, saveUserProgress, isCurrentUserAdmin } from '../state.js';
+import { ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getLocalGameKey, sanitizeUsername } from '../authSession.js';
 
-// --- RANGLISTA ÉS ADMIN SPECTATE ---
-function getRankEmoji(bps) {
-    if(bps > 100000000) return "👑"; if(bps > 1000000) return "💎"; if(bps > 10000) return "🔥"; if(bps > 100) return "⭐"; return "🚲";
-}
-
-window.spectateUser = async function(targetUser) {
-    if (GameState.currentUser !== "zotyi") { showToast("❌ Nincs jogosultságod mások megfigyelésére!"); return; }
-    
-    const dbRef = ref(db);
-    try {
-        const snapshot = await get(child(dbRef, `users/${targetUser}`));
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            document.getElementById('spectate-name').innerText = `👁️ ${targetUser} adatai`;
-            
-            let lastOnline = data.lastSaved ? new Date(data.lastSaved).toLocaleString('hu-HU') : 'Ismeretlen';
-            let inventoryHtml = data.inventory && data.inventory.length > 0 ? data.inventory.map(id => rpgItems[id]?.icon || '').join(' ') : 'Üres';
-            
-            let buildingsHtml = "";
-            if (data.upgrades) {
-                let upgArray = Array.isArray(data.upgrades) ? data.upgrades : Object.values(data.upgrades);
-                upgArray.forEach(u => { if (u.owned > 0) { let def = defaultUpgrades.find(d => d.id === u.id); if (def) buildingsHtml += `<div style="display:inline-block; width: 48%; margin-bottom: 2px;">${def.icon} ${def.name}: <b>${u.owned} db</b></div>`; } });
-            }
-            if (buildingsHtml === "") buildingsHtml = "Nincs még épülete.";
-
-            let extrasHtml = "";
-            if (data.realUpgrades) {
-                let extraArray = Array.isArray(data.realUpgrades) ? data.realUpgrades : Object.values(data.realUpgrades);
-                extraArray.forEach(ru => { let searchId = typeof ru === 'object' ? ru.id : ru; let def = extraUpgradesData.find(e => e.id === searchId); if (def) extrasHtml += `<span style="color:#1565c0;">${def.name}</span>, `; });
-            }
-            extrasHtml = extrasHtml !== "" ? extrasHtml.slice(0, -2) : "Nincs extra fejlesztés.";
-
-            let skillsHtml = "";
-            if (data.prestigeSkills) {
-                let skillsArray = Array.isArray(data.prestigeSkills) ? data.prestigeSkills : Object.values(data.prestigeSkills);
-                let skillCounts = {};
-                skillsArray.forEach(sid => { skillCounts[sid] = (skillCounts[sid] || 0) + 1; });
-                for (let sid in skillCounts) { let def = prestigeSkillsData.find(s => s.id == sid); if (def) skillsHtml += `<span style="color:#d32f2f;">${def.name}</span> <b>(Lvl ${skillCounts[sid]})</b>, `; }
-            }
-            skillsHtml = skillsHtml !== "" ? skillsHtml.slice(0, -2) : "Nincs feloldott skill.";
-
-            document.getElementById('spectate-content').innerHTML = `
-                <div style="font-size: 15px;">
-                    <b>🚲 Bicikli:</b> ${Math.floor(data.bikes || 0).toLocaleString()}<br>
-                    <b>⚡ BPS:</b> ${Math.floor(data.bps || 0).toLocaleString()} / mp<br>
-                    <b>🎒 Cuccok:</b> ${inventoryHtml}<br>
-                </div>
-                <hr style="margin: 8px 0; border: 1px solid #ccc;">
-                <div style="max-height: 80px; overflow-y: auto; background:#fff; padding:5px; font-size:13px; border: 1px solid #ddd;"><b style="color:#2e7d32;">🏢 ÉPÜLETEK:</b><br>${buildingsHtml}</div>
-                <div style="margin-top:5px; max-height: 60px; overflow-y: auto; background:#fff; padding:5px; font-size:13px; border: 1px solid #ddd;"><b style="color:#1565c0;">🛠️ EXTRÁK:</b><br>${extrasHtml}</div>
-                <div style="margin-top:5px; max-height: 60px; overflow-y: auto; background:#fff; padding:5px; font-size:13px; border: 1px solid #ddd;"><b style="color:#d32f2f;">🌌 SKILLEK:</b><br>${skillsHtml}</div>
-                <hr style="margin: 8px 0; border: 1px solid #ccc;">
-                <b style="font-size: 14px;">🕒 Utolsó mentés:</b> <span style="font-size: 14px; color:#555;">${lastOnline}</span>
-            `;
-            document.getElementById('spectate-modal').style.display = 'flex';
-        } else showToast("❌ Nem található adat!");
-    } catch (e) { console.error(e); }
-};
-
-window.addEventListener('keydown', (e) => {
-    if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'l') {
-        if (GameState.currentUser !== "zotyi") { showToast("❌ Nincs jogosultságod az Admin Panelhez!"); return; }
-        const panel = document.getElementById('admin-panel'); panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
+window.addEventListener('keydown', async (e) => {
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'l') {
+        if (!(await isCurrentUserAdmin())) {
+            showToast("❌ Nincs jogosultságod az Admin Panelhez!");
+            return;
+        }
+        const panel = document.getElementById('admin-panel');
+        panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
     }
 });
 
-window.adminAddBikes = function() { const val = parseInt(document.getElementById('admin-bike-amount').value); if(!isNaN(val)) { GameState.bikes += val; GameState.lifetimeBikes += val; window.updateUI(); saveUserProgress(); } };
-window.resetLeaderboard = async function() {
-    if (confirm("BIZTOSAN törlöd a teljes rangsort MINDENKINÉL?")) {
-        GameState.bikes = 0; GameState.lifetimeBikes = 0; GameState.goldenSpokes = 0; GameState.prestigeCount = 0; GameState.bps = 0;
-        await set(ref(db, 'users/'), null); await set(ref(db, 'admin/reset'), Date.now()); 
-        localStorage.removeItem(`martinGame_user_${GameState.currentUser}`); location.reload();
+window.adminAddBikes = function() {
+    const val = parseInt(document.getElementById('admin-bike-amount').value);
+    if (!isNaN(val)) {
+        GameState.bikes += val;
+        GameState.lifetimeBikes += val;
+        window.updateUI();
+        saveUserProgress();
     }
 };
-window.triggerUpdateNotification = function() { if(confirm("Értesítést küldesz mindenkinek a frissítésről?")) { set(ref(db, 'admin/updateSignal'), Date.now()); alert("Jelzés kiküldve!"); } };
+
+window.resetLeaderboard = async function() {
+    if (!(await isCurrentUserAdmin())) return;
+    if (!confirm("BIZTOSAN törlöd a rangsort és minden játékos mentését?\n(A fiókok/jelszavak megmaradnak — csak a játékállás törlődik.)")) return;
+
+    const resetAt = Date.now();
+    const name = sanitizeUsername(GameState.currentUser);
+
+    try {
+        await set(ref(db, 'admin/reset'), resetAt);
+    } catch (e) {
+        console.error(e);
+        showToast(`Reset sikertelen: ${e.code || e.message}\nAz admin/reset írása nem sikerült.`);
+        return;
+    }
+
+    if (name) {
+        localStorage.removeItem(getLocalGameKey(name));
+        localStorage.removeItem(`martinResetAck_${name}`);
+    }
+
+    const updates = {};
+    try {
+        const [lbSnap, usersSnap, sessSnap] = await Promise.all([
+            get(ref(db, 'leaderboard')),
+            get(ref(db, 'users')),
+            get(ref(db, 'sessions'))
+        ]);
+
+        if (lbSnap.exists()) {
+            lbSnap.forEach((child) => {
+                updates[`leaderboard/${child.key}`] = null;
+            });
+        }
+
+        if (usersSnap.exists()) {
+            usersSnap.forEach((child) => {
+                updates[`users/${child.key}/game`] = null;
+            });
+        }
+
+        if (sessSnap.exists()) {
+            sessSnap.forEach((child) => {
+                updates[`sessions/${child.key}`] = null;
+            });
+        }
+
+        if (Object.keys(updates).length > 0) {
+            await update(ref(db), updates);
+        }
+    } catch (e) {
+        console.warn('Szerver törlés részben sikertelen:', e);
+        showToast("⚠️ Reset jel elküldve; a szerver törlés részben elakadt.\nBelépéskor a játék így is nullázódik.");
+    }
+
+    showToast("✅ Rangsor reset kész — újratöltés...");
+    setTimeout(() => location.reload(), 800);
+};
+
+window.triggerUpdateNotification = async function() {
+    if (!(await isCurrentUserAdmin())) return;
+    if (confirm("Értesítést küldesz mindenkinek a frissítésről?")) {
+        await set(ref(db, 'admin/updateSignal'), Date.now());
+        alert("Jelzés kiküldve!");
+    }
+};
+
 window.forceGoldenBike = function() { const b = document.getElementById('golden-bike'); b.style.top = Math.random()*50+25+"%"; b.style.display='block'; b.style.animation='none'; b.offsetHeight; b.style.animation='goldenFloat 10s linear forwards'; setTimeout(()=>b.style.display='none', 10000); };
 window.forceRustyBike = function() { const b = document.getElementById('rusty-bike'); b.style.top = Math.random()*50+25+"%"; b.style.display='block'; b.style.animation='none'; b.offsetHeight; b.style.animation='goldenFloat 10s linear forwards'; setTimeout(()=>b.style.display='none', 10000); };
 window.forceCloud = function() { window.spawnMagicCloud(); };

@@ -4,6 +4,7 @@ export function createDefaultStats() {
     return {
         totalClicks: 0,
         maxBps: 0,
+        playTimeMs: 0,
         events: {
             golden: 0,
             rusty: 0,
@@ -26,6 +27,7 @@ export function ensureGameStats() {
         GameState.stats = createDefaultStats();
     }
     if (!GameState.stats.events) GameState.stats.events = createDefaultStats().events;
+    if (typeof GameState.stats.playTimeMs !== 'number') GameState.stats.playTimeMs = 0;
     return GameState.stats;
 }
 

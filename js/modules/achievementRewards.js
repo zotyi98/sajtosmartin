@@ -1,6 +1,7 @@
 import { GameState, showToast, saveUserProgress } from '../state.js';
 import { rpgItems } from '../data.js';
 import { ensureGameStats } from './gameStats.js';
+import { pauseEconomyCheck } from './anticheat.js';
 
 export function applyAchievementReward(reward, achName) {
     if (!reward || !reward.type) return '';
@@ -10,6 +11,7 @@ export function applyAchievementReward(reward, achName) {
             const amt = reward.amount || 0;
             GameState.bikes += amt;
             GameState.lifetimeBikes += amt;
+            if (amt >= 50000) pauseEconomyCheck(10000);
             return `+${amt.toLocaleString()} 🚲`;
         }
         case 'goldenSpokes': {
@@ -64,6 +66,7 @@ export function applyAchievementReward(reward, achName) {
             const gain = Math.max(100, Math.floor(GameState.bps * seconds));
             GameState.bikes += gain;
             GameState.lifetimeBikes += gain;
+            pauseEconomyCheck(Math.max(10000, seconds * 200));
             return `${seconds} mp termelés (${gain.toLocaleString()} 🚲)`;
         }
         default:

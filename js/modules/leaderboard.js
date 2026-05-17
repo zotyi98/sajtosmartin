@@ -1,16 +1,19 @@
 import { GameState, db, showToast } from '../state.js';
 import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { sanitizeUsername } from '../authSession.js';
 
 window.initLeaderboard = function() {
-    onValue(ref(db, 'users'), (snapshot) => {
+    onValue(ref(db, 'leaderboard'), (snapshot) => {
         const list = document.getElementById('leaderboard-list');
         list.innerHTML = "";
-        let players = [];
+        const players = [];
 
         snapshot.forEach(child => {
-            let d = child.val();
+            const d = child.val();
+            if (!d) return;
             players.push({
-                name: child.key,
+                key: child.key,
+                name: d.displayName || child.key,
                 bikes: d.bikes || 0,
                 bps: d.bps || 0,
                 prestigeCount: d.prestigeCount || 0,
@@ -20,12 +23,15 @@ window.initLeaderboard = function() {
 
         players.sort((a, b) => (b.prestigeCount - a.prestigeCount) || (b.bps - a.bps));
 
-        players.slice(0, 15).forEach((p, index) => {
-            let li = document.createElement('div');
-            let rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `<span style="font-size: 15px; color: #795548;">${index + 1}.</span>`;
-            let bpsIcon = p.bps > 1000000 ? "💎" : p.bps > 10000 ? "🔥" : "⚡";
+        const myKey = sanitizeUsername(GameState.currentUser);
 
-            li.className = `leader-item ${p.name === GameState.currentUser ? 'current-user' : ''}`;
+        players.slice(0, 15).forEach((p, index) => {
+            const li = document.createElement('div');
+            const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `<span style="font-size: 15px; color: #795548;">${index + 1}.</span>`;
+            const bpsIcon = p.bps > 1000000 ? "💎" : p.bps > 10000 ? "🔥" : "⚡";
+            const isMe = p.key === myKey;
+
+            li.className = `leader-item ${isMe ? 'current-user' : ''}`;
             li.style.display = "flex";
             li.style.justifyContent = "space-between";
             li.style.alignItems = "center";
@@ -45,8 +51,8 @@ window.initLeaderboard = function() {
             `;
 
             li.onclick = () => {
-                if (p.name !== GameState.currentUser) {
-                    if (window.visualSpectate) window.visualSpectate(p.name);
+                if (!isMe) {
+                    if (window.visualSpectate) window.visualSpectate(p.key, p.name);
                 } else {
                     showToast("Ez te vagy! 😂");
                 }

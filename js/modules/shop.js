@@ -95,14 +95,18 @@ window.buyUpgrade = function(id) {
 
 window.buyExtraUpgrade = function(id) {
     const ext = extraUpgradesData.find(e => e.id === id);
-    if (GameState.bikes >= ext.cost) {
-        GameState.bikes -= ext.cost;
-        GameState.realUpgrades.push({ id: id });
-        showToast(`✨ Új Fejlesztés: ${ext.name}!`);
-        window.recalculateStats();
-        window.updateUI();
-        saveUserProgress();
+    if (!ext) return;
+    if (GameState.realUpgrades.some(ru => ru.id === id)) {
+        showToast('Ez a fejlesztés már megvan.');
+        return;
     }
+    if (GameState.bikes < ext.cost) return;
+    GameState.bikes -= ext.cost;
+    GameState.realUpgrades.push({ id });
+    showToast(`✨ Új Fejlesztés: ${ext.name}!`);
+    window.recalculateStats();
+    window.updateUI();
+    saveUserProgress();
 };
 
 window.buyCosmetic = function(id) {

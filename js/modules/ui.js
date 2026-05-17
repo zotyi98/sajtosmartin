@@ -30,9 +30,25 @@ window.updateUI = function() {
     document.getElementById('bike-count').innerText = Math.floor(GameState.bikes).toLocaleString();
     document.getElementById('bps-count').innerText = "Biciklik másodpercenként: " + Math.floor(GameState.bps * window.multiplier).toLocaleString();
     const presCountUI = document.getElementById('prestige-count');
+    const ascensionEl = document.getElementById('ascension-info');
     if (GameState.goldenSpokes > 0 || GameState.prestigeSkills.length > 0) {
         presCountUI.style.display = 'block';
         presCountUI.innerText = `✨ Arany Küllők: ${GameState.goldenSpokes} (+${GameState.goldenSpokes}%)`;
+        if (ascensionEl) {
+            const double301 = GameState.prestigeSkills.filter(id => id === 301).length;
+            const double302 = GameState.prestigeSkills.filter(id => id === 302).length;
+            const dark404 = GameState.prestigeSkills.filter(id => id === 404).length;
+            const distinctBuildings = GameState.upgrades.filter(u => u.owned > 0 && u.type !== 'special').length;
+            const spokeBonus = GameState.prestigeSkills.includes(304) ? (GameState.goldenSpokes * 0.02) : (GameState.goldenSpokes * 0.01);
+            const treeBonus = (double301 * 1.0) + (double302 * 1.0);
+            const supplyBonus = GameState.prestigeSkills.includes(210) ? (distinctBuildings * 0.02) : 0;
+            const infiniteBonus = dark404 * 0.10;
+            const prestigeMult = 1 + spokeBonus + treeBonus + supplyBonus + infiniteBonus;
+            ascensionEl.style.display = 'block';
+            ascensionEl.innerText = `Felemelkedés: ${prestigeMult.toFixed(2)}x`;
+        }
+    } else if (ascensionEl) {
+        ascensionEl.style.display = 'none';
     }
 
     let hasEszterDiscount = GameState.prestigeSkills.includes(203);

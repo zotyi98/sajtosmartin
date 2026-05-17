@@ -1,5 +1,6 @@
 import { GameState, showToast, saveUserProgress, updateUI } from '../state.js';
 import { trackAimlabAttempt, trackAimlabWin } from './gameStats.js';
+import { pauseEconomyCheck } from './anticheat.js';
 
 window.aimlabActive = false; 
 let aimlabHits = 0; 
@@ -71,12 +72,13 @@ function spawnAimlabTarget() {
     };
     area.appendChild(aimlabCurrentTarget);
     
-    aimlabTargetTimer = setTimeout(() => { 
-        if (!window.aimlabActive) return; 
-        aimlabClicks++; 
-        updateAimlabStats(); 
-        spawnAimlabTarget(); 
-    }, 600);
+    const targetMs = GameState.prestigeSkills.includes(402) ? 850 : 600;
+    aimlabTargetTimer = setTimeout(() => {
+        if (!window.aimlabActive) return;
+        aimlabClicks++;
+        updateAimlabStats();
+        spawnAimlabTarget();
+    }, targetMs);
 }
 
 function aimlabMiss(e) { if (!window.aimlabActive) return; aimlabClicks++; updateAimlabStats(); }
@@ -105,8 +107,9 @@ function endAimlab() {
         // PONTOS NYEREMÉNY SZÁMOLÁSA
         let reward = winTotal - (aimlabOriginalBikes * 0.1); 
         
-        GameState.bikes += reward; 
-        GameState.lifetimeBikes += reward; 
+        GameState.bikes += reward;
+        GameState.lifetimeBikes += reward;
+        pauseEconomyCheck(15000);
         updateUI(); 
         saveUserProgress(); 
         showToast(`🎮 AIM LAB GYŐZELEM!\n${acc}% pontosság! Nyeremény: ${mult}x szorzó (Összesen: ${winTotal.toLocaleString()} 🚲)!`);

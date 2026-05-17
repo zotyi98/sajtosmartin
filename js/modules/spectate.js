@@ -5,19 +5,20 @@ import { defaultUpgrades, extraUpgradesData, prestigeSkillsData } from '../data.
 
 let spectateUnsubscribe = null;
 
-window.visualSpectate = function(targetName) {
+window.visualSpectate = function(targetKey, targetName) {
     trackSpectate();
     if (spectateUnsubscribe) spectateUnsubscribe();
 
     const modal = document.getElementById('spectate-modal');
     const content = document.getElementById('spectate-content');
-    
+    const label = (targetName || targetKey || '???').toUpperCase();
+
     const modalBox = modal.querySelector('.modal-box');
     modalBox.style.width = "520px";
     modalBox.style.maxWidth = "95%";
-    
+
     modal.style.display = 'flex';
-    document.getElementById('spectate-name').innerText = `👁️ ${targetName.toUpperCase()} PROFILJA`;
+    document.getElementById('spectate-name').innerText = `👁️ ${label} PROFILJA`;
 
     content.innerHTML = `
         <div id="spec-mini-world" style="position:relative; width:100%; height:160px; background:linear-gradient(to bottom, #4fc3f7, #b3e5fc); border-radius:12px; overflow:hidden; border:4px solid #263238; box-shadow: inset 0 5px 15px rgba(0,0,0,0.2);">
@@ -68,7 +69,7 @@ window.visualSpectate = function(targetName) {
         </div>
     `;
 
-    const targetRef = ref(db, `users/${targetName}`);
+    const targetRef = ref(db, `users/${targetKey}/game`);
     spectateUnsubscribe = onValue(targetRef, (snapshot) => {
         const data = snapshot.val();
         if (!data) return;
@@ -88,8 +89,9 @@ window.visualSpectate = function(targetName) {
             document.getElementById('spec-start-date').innerText = "Régi motoros (v5.5 előtt)";
         }
 
-        // Felszerelés
-        const inv = data.inventory || [];
+        const inv = Array.isArray(data.inventory)
+            ? data.inventory
+            : Object.values(data.inventory || {});
         document.getElementById('spec-acc-helmet').style.display = inv.includes('helmet') ? 'block' : 'none';
         document.getElementById('spec-acc-chain').style.display = inv.includes('chain') ? 'block' : 'none';
 
