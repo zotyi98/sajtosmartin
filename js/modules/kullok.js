@@ -1,5 +1,6 @@
 import { GameState } from '../state.js';
 import { prestigeSkillsData } from '../data.js';
+import { calculateKulloTotal } from '../prestigeBalance.js';
 
 export function migrateClaimedSpokesOnce() {
     if (GameState.claimedSpokes !== undefined && GameState.claimedSpokes !== null) return;
@@ -27,7 +28,7 @@ export function migrateClaimedSpokesOnce() {
 
 window.calculateKullok = function() {
     const claimed = GameState.claimedSpokes ?? 0;
-    const expectedTotal = Math.floor(Math.pow(GameState.lifetimeBikes / 100000000, 0.5));
+    const expectedTotal = calculateKulloTotal(GameState.lifetimeBikes);
     const gain = expectedTotal - claimed;
     return gain > 0 ? gain : 0;
 };

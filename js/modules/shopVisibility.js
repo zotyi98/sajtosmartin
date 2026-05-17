@@ -1,5 +1,6 @@
 import { GameState } from '../state.js';
 import { defaultUpgrades } from '../data.js';
+import { getChallengeBuildingCostMult } from './challenges.js';
 
 export const UPCOMING_PREVIEW_COUNT = 4;
 /** Következő N épület: látszik az ár, még ha nem is vehető meg */
@@ -36,6 +37,7 @@ export function getUpgradeActualCost(upg, hasEszterDiscount, hasKupon) {
     let cost = upg.cost;
     if (upg.id === 7 && hasEszterDiscount) cost *= 0.8;
     else if (upg.id !== 7 && hasKupon) cost *= 0.9;
+    cost *= getChallengeBuildingCostMult();
     return cost;
 }
 

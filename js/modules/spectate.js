@@ -1,12 +1,16 @@
 import { db, GameState } from '../state.js';
 import { trackSpectate } from './gameStats.js';
+import { pushActivityFeed } from './activityFeed.js';
 import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { defaultUpgrades, extraUpgradesData, prestigeSkillsData } from '../data.js';
 
 let spectateUnsubscribe = null;
+let spectateTarget = { key: null, name: null };
 
 window.visualSpectate = function(targetKey, targetName) {
+    spectateTarget = { key: targetKey, name: targetName || targetKey };
     trackSpectate();
+    pushActivityFeed('spectate');
     if (spectateUnsubscribe) spectateUnsubscribe();
 
     const modal = document.getElementById('spectate-modal');
@@ -19,6 +23,8 @@ window.visualSpectate = function(targetKey, targetName) {
 
     modal.style.display = 'flex';
     document.getElementById('spectate-name').innerText = `👁️ ${label} PROFILJA`;
+    const duelBtn = document.getElementById('btn-spectate-duel');
+    if (duelBtn) duelBtn.style.display = 'inline-block';
 
     content.innerHTML = `
         <div id="spec-mini-world" style="position:relative; width:100%; height:160px; background:linear-gradient(to bottom, #4fc3f7, #b3e5fc); border-radius:12px; overflow:hidden; border:4px solid #263238; box-shadow: inset 0 5px 15px rgba(0,0,0,0.2);">
@@ -143,7 +149,14 @@ window.visualSpectate = function(targetKey, targetName) {
     });
 };
 
+window.challengeSpectatedPlayer = function() {
+    if (!spectateTarget.key || !window.openDuelChallenge) return;
+    window.openDuelChallenge(spectateTarget.key, spectateTarget.name);
+};
+
 window.closeSpectate = function() {
     if (spectateUnsubscribe) spectateUnsubscribe();
+    const duelBtn = document.getElementById('btn-spectate-duel');
+    if (duelBtn) duelBtn.style.display = 'none';
     document.getElementById('spectate-modal').style.display = 'none';
 };

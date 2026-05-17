@@ -6,6 +6,8 @@ import { createDefaultStats } from './gameStats.js';
 import { initAchievementsFromSave } from './achievements.js';
 import { getLocalGameKey, sanitizeUsername, dedupeRealUpgrades, loadSessionToken } from '../authSession.js';
 import { migrateClaimedSpokesOnce } from './kullok.js';
+import { getHeavenlyOfflineMult } from '../heavenlyData.js';
+import { initMartinRestOnLoad } from './gameCompletion.js';
 
 function stripSensitiveFields(data) {
     if (!data || typeof data !== 'object') return data;
@@ -113,7 +115,17 @@ export async function loadUserProgressFromDB() {
             completedAchievements: Array.isArray(parsed.completedAchievements) ? parsed.completedAchievements : [],
             stats: parsed.stats && typeof parsed.stats === 'object'
                 ? { ...createDefaultStats(), ...parsed.stats, events: { ...createDefaultStats().events, ...(parsed.stats.events || {}) } }
-                : createDefaultStats()
+                : createDefaultStats(),
+            purchasedBuildingTiers: Array.isArray(parsed.purchasedBuildingTiers) ? parsed.purchasedBuildingTiers : [],
+            apocalypse: parsed.apocalypse && typeof parsed.apocalypse === 'object' ? parsed.apocalypse : null,
+            platinaSpokes: parsed.platinaSpokes || 0,
+            ascensionCount: parsed.ascensionCount || 0,
+            heavenlyUpgrades: parsed.heavenlyUpgrades && typeof parsed.heavenlyUpgrades === 'object' ? parsed.heavenlyUpgrades : {},
+            completedChallenges: Array.isArray(parsed.completedChallenges) ? parsed.completedChallenges : [],
+            activeChallenge: parsed.activeChallenge || null,
+            challengeStartedAt: parsed.challengeStartedAt || 0,
+            bikeGarden: parsed.bikeGarden && typeof parsed.bikeGarden === 'object' ? parsed.bikeGarden : null,
+            martinRestPurchased: !!parsed.martinRestPurchased
         });
 
         initAchievementsFromSave(parsed);
@@ -140,7 +152,11 @@ export async function loadUserProgressFromDB() {
             if (secondsOffline > 60) {
                 window.recalculateStats();
                 window.recalcMultiplier();
-                const offlineGains = GameState.bps * (window.multiplier || 1) * secondsOffline;
+                let offlineMult = window.getOfflineSecondsMultiplier
+                    ? window.getOfflineSecondsMultiplier(secondsOffline)
+                    : 1;
+                offlineMult *= getHeavenlyOfflineMult(GameState);
+                const offlineGains = GameState.bps * (window.multiplier || 1) * secondsOffline * offlineMult;
                 if (offlineGains > 0) {
                     GameState.bikes += offlineGains;
                     GameState.lifetimeBikes += offlineGains;
@@ -163,7 +179,9 @@ export async function loadUserProgressFromDB() {
             completedAchievements: [],
             stats: createDefaultStats(),
             cosmetics: [],
-            firstJoined: Date.now()
+            firstJoined: Date.now(),
+            purchasedBuildingTiers: [],
+            apocalypse: null
         });
         window.activeBuffs = [];
         window.multiplier = 1;
@@ -179,6 +197,8 @@ export async function loadUserProgressFromDB() {
     window.recalculateStats();
     window.updateUI();
     window.applyCosmetics();
+    if (window.refreshPlayerPanel) window.refreshPlayerPanel();
+    initMartinRestOnLoad();
 
     if (migratedLegacy) saveUserProgress();
 }

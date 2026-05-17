@@ -58,6 +58,105 @@ function getUpgradeOwned(id) {
     return GameState.upgrades.find(u => u.id === id)?.owned || 0;
 }
 
+function countMilestoneUpgrades() {
+    return GameState.realUpgrades.filter((ru) => (ru.id || 0) >= 201).length;
+}
+
+function formatNum(n) {
+    if (n >= 1e12) return (n / 1e12).toFixed(2) + ' T';
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + ' Mrd';
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + ' M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + ' e';
+    return Math.floor(n).toLocaleString('hu-HU');
+}
+
+function progressFromValues(current, target) {
+    const pct = target > 0 ? Math.min(100, Math.floor((current / target) * 100)) : 0;
+    return {
+        progressText: `${formatNum(current)} / ${formatNum(target)}`,
+        progressPercent: pct
+    };
+}
+
+export function describeAchievementReward(reward) {
+    if (!reward?.type) return '—';
+    switch (reward.type) {
+        case 'bikes': return `+${(reward.amount || 0).toLocaleString('hu-HU')} 🚲`;
+        case 'goldenSpokes': return `+${reward.amount || 1} ✨ Küllő`;
+        case 'buff': return `${reward.mult || 2}x buff (${Math.round((reward.durationMs || 60000) / 1000)} mp)`;
+        case 'clickBonus': return `+${reward.amount || 1} állandó kattintás`;
+        case 'inventory': return 'Felszerelés';
+        case 'cosmetic': return 'Kozmetika';
+        case 'instantProduction': return `${reward.seconds || 60} mp azonnali termelés`;
+        default: return reward.type;
+    }
+}
+
+export function getAchievementStatus(ach) {
+    const done = getCompletedSet().has(ach.id) || ach.done;
+    if (done) {
+        return { done: true, progressText: 'Teljesítve ✓', progressPercent: 100 };
+    }
+    const s = ensureGameStats();
+    let current = 0;
+    let target = ach.check.value || 1;
+
+    switch (ach.check.type) {
+        case 'lifetimeBikes': current = GameState.lifetimeBikes; break;
+        case 'bikes': current = GameState.bikes; break;
+        case 'bps': current = GameState.bps; break;
+        case 'maxBps': current = s.maxBps; break;
+        case 'prestigeCount': current = GameState.prestigeCount || 0; break;
+        case 'goldenSpokes': current = GameState.goldenSpokes || 0; break;
+        case 'totalClicks': current = s.totalClicks; break;
+        case 'buildingOwned':
+            current = getUpgradeOwned(ach.check.buildingId);
+            break;
+        case 'buildingTypes':
+            current = countDistinctBuildingTypes();
+            break;
+        case 'totalBuildings':
+            current = countBuildingsOwned();
+            break;
+        case 'extraUpgrades':
+            current = GameState.realUpgrades.length;
+            break;
+        case 'prestigeSkills':
+            current = GameState.prestigeSkills.length;
+            break;
+        case 'inventory':
+            current = GameState.inventory.includes(ach.check.itemId) ? 1 : 0;
+            target = 1;
+            break;
+        case 'cosmetic':
+            current = GameState.cosmetics.includes(ach.check.id) ? 1 : 0;
+            target = 1;
+            break;
+        case 'eventTotal':
+            current = s.events[ach.check.event] || 0;
+            break;
+        case 'eventsTotal':
+            current = Object.values(s.events).reduce((a, b) => a + b, 0);
+            break;
+        case 'aimlabWins': current = s.aimlabWins; break;
+        case 'wheelJackpots': current = s.wheelJackpots; break;
+        case 'playMinutes':
+            current = Math.floor((s.playTimeMs || 0) / 60000);
+            break;
+        case 'spectate': current = s.spectateCount; break;
+        case 'ascensionCount': current = GameState.ascensionCount || 0; break;
+        case 'challengesCompleted': current = (GameState.completedChallenges || []).length; break;
+        case 'achievementsCompleted': current = getCompletedSet().size; break;
+        case 'milestoneUpgrades': current = countMilestoneUpgrades(); break;
+        case 'martinRest': current = GameState.martinRestPurchased ? 1 : 0; target = 1; break;
+        default:
+            return { done: false, progressText: '—', progressPercent: 0 };
+    }
+
+    const { progressText, progressPercent } = progressFromValues(current, target);
+    return { done: false, progressText, progressPercent };
+}
+
 function checkAchievement(ach) {
     const s = ensureGameStats();
     switch (ach.check.type) {
@@ -107,6 +206,16 @@ function checkAchievement(ach) {
         }
         case 'spectate':
             return s.spectateCount >= ach.check.value;
+        case 'ascensionCount':
+            return (GameState.ascensionCount || 0) >= ach.check.value;
+        case 'challengesCompleted':
+            return (GameState.completedChallenges || []).length >= ach.check.value;
+        case 'achievementsCompleted':
+            return getCompletedSet().size >= ach.check.value;
+        case 'milestoneUpgrades':
+            return countMilestoneUpgrades() >= ach.check.value;
+        case 'martinRest':
+            return !!GameState.martinRestPurchased;
         default:
             return false;
     }
@@ -128,7 +237,9 @@ function tryUnlockAchievements() {
     });
 
     if (changed) {
+        if (window.recalculateStats) window.recalculateStats();
         if (window.updateUI) window.updateUI();
+        if (window.refreshPlayerPanel) window.refreshPlayerPanel();
         saveUserProgress();
     }
 }

@@ -1,0 +1,19 @@
+{
+  "name": "Martin: Bicikli Birodalom",
+  "short_name": "Bicikli Birodalom",
+  "description": "Magyar idle kattintós játék — építsd a bicikli birodalmat!",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#333333",
+  "theme_color": "#2e7d32",
+  "lang": "hu",
+  "icons": [
+    {
+      "src": "martin.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

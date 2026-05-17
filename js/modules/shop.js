@@ -3,6 +3,10 @@ import { defaultUpgrades, extraUpgradesData, BUILDING_PRICE_GROWTH } from '../da
 import { checkClickCheat } from './anticheat.js';
 import { trackClick } from './gameStats.js';
 import { getOrderedShopUpgrades } from './shopVisibility.js';
+import { canPurchaseBuilding, getBuildingUnlockHint } from '../longGameBalance.js';
+import { EXTRA_UPGRADE_COST_MULT } from '../longGameBalance.js';
+import { getBuyAmount, calcBulkPurchase } from './shopBulk.js';
+import { checkChallengeCompletion } from './challenges.js';
 
 const CHEESE_CURSOR_COST = 50000;
 
@@ -64,6 +68,8 @@ export function initShopUI() {
     initCosmeticsUI();
 }
 
+let lastMartinTouch = 0;
+
 window.clickMartin = function(e) {
     if (window.isKitchenMeetingActive) { showToast("☕ Martin a konyhában van!"); return; }
     if (checkClickCheat()) return;
@@ -71,23 +77,45 @@ window.clickMartin = function(e) {
     let gained = (GameState.clickPower * window.clickMultiplier);
     GameState.bikes += gained;
     GameState.lifetimeBikes += gained;
-    window.createFloatingNumber(e.clientX, e.clientY, gained);
-    window.createParticle(e.clientX, e.clientY);
+    const x = e.clientX ?? 0;
+    const y = e.clientY ?? 0;
+    window.createFloatingNumber(x, y, gained);
+    window.createParticle(x, y);
     window.updateUI();
+};
+
+window.handleMartinTouch = function(e) {
+    if (Date.now() - lastMartinTouch < 80) return;
+    lastMartinTouch = Date.now();
+    if (e.cancelable) e.preventDefault();
+    const t = e.touches[0] || e.changedTouches[0];
+    if (!t) return;
+    window.clickMartin({ clientX: t.clientX, clientY: t.clientY });
 };
 
 window.buyUpgrade = function(id) {
     const upg = GameState.upgrades.find(u => u.id === id);
     if (!upg) return;
+    if (!canPurchaseBuilding(id)) {
+        const hint = getBuildingUnlockHint(id);
+        showToast(hint || '🔒 Még nem veheted meg ezt az épületet.');
+        return;
+    }
     const hasEszterDiscount = GameState.prestigeSkills.includes(203);
     const hasKupon = GameState.prestigeSkills.includes(207);
-    let actualCost = upg.cost;
-    if (id === 7 && hasEszterDiscount) actualCost *= 0.8;
-    else if (id !== 7 && hasKupon) actualCost *= 0.9;
-    if (GameState.bikes < actualCost) return;
-    GameState.bikes -= actualCost;
-    upg.owned++;
-    if (upg.type !== "special") upg.cost = Math.floor(upg.cost * BUILDING_PRICE_GROWTH);
+    const want = getBuyAmount();
+    const bulk = calcBulkPurchase(upg, want, GameState.bikes, hasEszterDiscount, hasKupon);
+    if (bulk.count < 1) return;
+    if (GameState.bikes < bulk.totalCost) return;
+
+    GameState.bikes -= bulk.totalCost;
+    for (let i = 0; i < bulk.count; i++) {
+        upg.owned++;
+        if (upg.type !== 'special') {
+            upg.cost = Math.floor(upg.cost * BUILDING_PRICE_GROWTH);
+        }
+    }
+    checkChallengeCompletion('building_bought');
     window.recalculateStats();
     window.updateUI();
     saveUserProgress();
@@ -100,8 +128,9 @@ window.buyExtraUpgrade = function(id) {
         showToast('Ez a fejlesztés már megvan.');
         return;
     }
-    if (GameState.bikes < ext.cost) return;
-    GameState.bikes -= ext.cost;
+    const extCost = Math.floor(ext.cost * EXTRA_UPGRADE_COST_MULT);
+    if (GameState.bikes < extCost) return;
+    GameState.bikes -= extCost;
     GameState.realUpgrades.push({ id });
     showToast(`✨ Új Fejlesztés: ${ext.name}!`);
     window.recalculateStats();

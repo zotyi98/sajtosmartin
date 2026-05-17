@@ -1,22 +1,42 @@
 import { GameState, showToast, saveUserProgress } from '../state.js';
 import { trackEvent } from './gameStats.js';
+import { pushActivityFeed } from './activityFeed.js';
+import { isGoldenBlocked, checkChallengeCompletion } from './challenges.js';
+import { getHeavenlyGoldenMult } from '../heavenlyData.js';
 
 window.catchGoldenBike = function() {
-    if (window.isKitchenMeetingActive) return; 
+    if (window.isKitchenMeetingActive) return;
+    if (isGoldenBlocked()) {
+        document.getElementById('golden-bike').style.display = 'none';
+        failChallengeGolden();
+        return;
+    }
     trackEvent('golden');
+    checkChallengeCompletion('golden_caught');
     document.getElementById('golden-bike').style.display = 'none';
     let dur = GameState.prestigeSkills.includes(204) ? 35000 : 30000;
     
     // NERF: 1.5x vagy 2x (korábban 3x vagy 5x)
-    let multValue = GameState.prestigeSkills.includes(401) ? 2 : 1.5;
+    let multValue = (GameState.prestigeSkills.includes(401) ? 2 : 1.5) * getHeavenlyGoldenMult(GameState);
     window.activeBuffs.push({ mult: multValue, target: 'both', endTime: Date.now() + dur, text: `✨ ${multValue}x SZORZÓ AKTÍV! ✨`, color: "var(--gold)" });
     
     window.recalcMultiplier(); window.spawnConfetti(); window.dropRPGItem();
+    if (Math.random() < 0.35) pushActivityFeed('golden');
 };
 
+function failChallengeGolden() {
+    checkChallengeCompletion('golden_caught');
+}
+
 window.catchRustyBike = function() {
-    if (window.isKitchenMeetingActive) return; 
+    if (window.isKitchenMeetingActive) return;
+    if (isGoldenBlocked()) {
+        document.getElementById('rusty-bike').style.display = 'none';
+        failChallengeGolden();
+        return;
+    }
     trackEvent('rusty');
+    checkChallengeCompletion('golden_caught');
     document.getElementById('rusty-bike').style.display = 'none';
     let dur = GameState.prestigeSkills.includes(204) ? 20000 : 15000;
     
@@ -29,6 +49,7 @@ window.catchRustyBike = function() {
         showToast("Beleszaladtál egy rozsdás szögbe... megállt a termelés!");
     }
     window.recalcMultiplier(); window.dropRPGItem();
+    if (Math.random() < 0.35) pushActivityFeed('rusty');
 };
 
 window.catchHarry = function() {
@@ -153,6 +174,7 @@ let kitchenMeetingInterval;
 window.triggerKitchenMeeting = function() {
     if (window.isKitchenMeetingActive) return;
     trackEvent('kitchen');
+    pushActivityFeed('kitchen');
     window.isKitchenMeetingActive = true; 
     const overlay = document.getElementById('kitchen-overlay'); const timerEl = document.getElementById('kitchen-timer'); overlay.style.display = 'flex';
     const kitchen3 = getKitchen3Overlay();
@@ -171,8 +193,31 @@ window.triggerKitchenMeeting = function() {
     }, 1000);
 };
 
-window.catchAimlabEvent = function() { 
-    if (window.isKitchenMeetingActive) return; 
-    document.getElementById('aimlab-event-obj').style.display = 'none'; 
-    window.openAimlab(); 
+window.catchAimlabEvent = function() {
+    if (window.isKitchenMeetingActive) return;
+    document.getElementById('aimlab-event-obj').style.display = 'none';
+    window.openAimlab();
+};
+
+window.catchSilverBike = function() {
+    if (window.isKitchenMeetingActive) return;
+    const el = document.getElementById('silver-bike');
+    if (el) el.style.display = 'none';
+    trackEvent('silver');
+    const dur = GameState.prestigeSkills.includes(204) ? 25000 : 20000;
+    window.activeBuffs.push({ mult: 1.35, target: 'click', endTime: Date.now() + dur, text: '🥈 Ezüst bicikli: 1.35x katt!', color: '#b0bec5' });
+    window.recalcMultiplier();
+    showToast('🥈 Ezüst bicikli — erősebb kattintás!');
+};
+
+window.catchRainbowBike = function() {
+    if (window.isKitchenMeetingActive) return;
+    const el = document.getElementById('rainbow-bike');
+    if (el) el.style.display = 'none';
+    trackEvent('rainbow');
+    const dur = GameState.prestigeSkills.includes(204) ? 28000 : 22000;
+    window.activeBuffs.push({ mult: 1.25, target: 'both', endTime: Date.now() + dur, text: '🌈 Szivárvány: 1.25x minden!', color: '#e040fb' });
+    window.recalcMultiplier();
+    window.spawnConfetti();
+    showToast('🌈 Szivárvány bicikli!');
 };

@@ -62,6 +62,29 @@
       }
     },
 
+    "activity": {
+      ".read": true,
+      "$id": {
+        ".write": "!data.exists()",
+        ".validate": "newData.hasChildren(['displayName', 'type', 'msg', 'at']) && newData.child('at').isNumber()"
+      }
+    },
+
+    "duels": {
+      ".read": true,
+      "$duelId": {
+        ".write": true,
+        ".validate": "!newData.exists() || (newData.hasChildren(['challengerKey', 'targetKey', 'stake', 'status']) && newData.child('stake').val() >= 5000 && newData.child('stake').val() <= 2000000)"
+      }
+    },
+
+    "trioRooms": {
+      ".read": true,
+      "$roomId": {
+        ".write": true
+      }
+    },
+
     "reports": {
       "cheatLogs": {
         "$logId": {

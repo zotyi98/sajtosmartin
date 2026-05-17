@@ -1,6 +1,7 @@
 import { GameState, saveUserProgress } from '../state.js';
 import { checkEconomyCheat } from './anticheat.js';
 import { ensureGameStats } from './gameStats.js';
+import { tickApocalypse, getApocalypseBpsMult, getApocalypseEventBias } from './apocalypse.js';
 
 function scheduleEvent(callback, minMs, maxMs) {
     const delay = Math.random() * (maxMs - minMs) + minMs;
@@ -16,7 +17,35 @@ function scheduleEvent(callback, minMs, maxMs) {
 
 function spawnGoldenOrRusty() {
     const showTime = GameState.prestigeSkills.includes(204) ? 20000 : 15000;
-    const bike = Math.random() < 0.3 ? document.getElementById('rusty-bike') : document.getElementById('golden-bike');
+    const roll = Math.random();
+    if (roll < 0.08 && (GameState.prestigeCount || 0) >= 2) {
+        const rb = document.getElementById('rainbow-bike');
+        if (rb) {
+            rb.style.top = Math.random() * 50 + 25 + '%';
+            rb.style.display = 'block';
+            rb.style.animation = 'none';
+            rb.offsetHeight;
+            rb.style.animation = `goldenFloat ${showTime / 1000}s linear forwards`;
+            setTimeout(() => { rb.style.display = 'none'; }, showTime);
+        }
+        return;
+    }
+    if (roll < 0.18 && (GameState.prestigeCount || 0) >= 1) {
+        const sb = document.getElementById('silver-bike');
+        if (sb) {
+            sb.style.top = Math.random() * 50 + 25 + '%';
+            sb.style.display = 'block';
+            sb.style.animation = 'none';
+            sb.offsetHeight;
+            sb.style.animation = `goldenFloat ${showTime / 1000}s linear forwards`;
+            setTimeout(() => { sb.style.display = 'none'; }, showTime);
+        }
+        return;
+    }
+    const rustyBias = getApocalypseEventBias();
+    const rustyChance = rustyBias > 0 ? rustyBias : 0.3;
+    const bike = Math.random() < rustyChance ? document.getElementById('rusty-bike') : document.getElementById('golden-bike');
+    if (!bike) return;
     bike.style.top = Math.random() * 50 + 25 + '%';
     bike.style.display = 'block';
     bike.style.animation = 'none';
@@ -48,9 +77,12 @@ export function startGameLoops() {
     setInterval(() => {
         window.recalcMultiplier();
         if (!window.isKitchenMeetingActive) {
-            const gained = (GameState.bps * window.multiplier) / 10;
+            const rawBps = GameState.bps * window.multiplier;
+            const apocalypseMult = getApocalypseBpsMult();
+            const gained = (rawBps * apocalypseMult) / 10;
             GameState.bikes += gained;
             GameState.lifetimeBikes += gained;
+            tickApocalypse(rawBps);
             window.updateUI();
         }
         if (GameState.currentUser && document.getElementById('game-container').style.display !== 'none') {

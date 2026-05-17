@@ -7,6 +7,15 @@ import {
     shouldShowShopDetails
 } from './shopVisibility.js';
 import { updateCosmeticsUI } from './shop.js';
+import { getPrestigeMultiplier, formatSpokeBonusPercent } from '../prestigeBalance.js';
+import { EXTRA_UPGRADE_COST_MULT } from '../longGameBalance.js';
+import { updateBuildingTiersUI } from './buildingTiers.js';
+import { updateApocalypseUI, getApocalypseBpsMult } from './apocalypse.js';
+import { getBuildingUnlockHint, canPurchaseBuilding } from '../longGameBalance.js';
+import { formatMilkPercent } from './milk.js';
+import { getBuyAmount, cycleBuyAmount } from './shopBulk.js';
+import { updateAscensionButton } from './ascension.js';
+import { updateMartinRestUI } from './gameCompletion.js';
 
 let lastBuildingSum = -1;
 
@@ -28,28 +37,35 @@ window.updateBuildingsVisuals = function() {
 
 window.updateUI = function() {
     document.getElementById('bike-count').innerText = Math.floor(GameState.bikes).toLocaleString();
-    document.getElementById('bps-count').innerText = "Biciklik másodpercenként: " + Math.floor(GameState.bps * window.multiplier).toLocaleString();
+    const displayBps = Math.floor(GameState.bps * window.multiplier * getApocalypseBpsMult());
+    const bpsLabel = window.isApocalypseActive
+        ? `BPS (apokalipszis): ${displayBps.toLocaleString()}`
+        : `Biciklik másodpercenként: ${displayBps.toLocaleString()}`;
+    document.getElementById('bps-count').innerText = bpsLabel;
     const presCountUI = document.getElementById('prestige-count');
     const ascensionEl = document.getElementById('ascension-info');
+    const milkEl = document.getElementById('milk-info');
     if (GameState.goldenSpokes > 0 || GameState.prestigeSkills.length > 0) {
         presCountUI.style.display = 'block';
-        presCountUI.innerText = `✨ Arany Küllők: ${GameState.goldenSpokes} (+${GameState.goldenSpokes}%)`;
+        const spokePct = formatSpokeBonusPercent(GameState.goldenSpokes, GameState.prestigeSkills.includes(304));
+        const milkPct = formatMilkPercent(GameState);
+        presCountUI.innerText = `✨ Arany Küllők: ${GameState.goldenSpokes} (+${spokePct}% passzív)`;
         if (ascensionEl) {
-            const double301 = GameState.prestigeSkills.filter(id => id === 301).length;
-            const double302 = GameState.prestigeSkills.filter(id => id === 302).length;
-            const dark404 = GameState.prestigeSkills.filter(id => id === 404).length;
-            const distinctBuildings = GameState.upgrades.filter(u => u.owned > 0 && u.type !== 'special').length;
-            const spokeBonus = GameState.prestigeSkills.includes(304) ? (GameState.goldenSpokes * 0.02) : (GameState.goldenSpokes * 0.01);
-            const treeBonus = (double301 * 1.0) + (double302 * 1.0);
-            const supplyBonus = GameState.prestigeSkills.includes(210) ? (distinctBuildings * 0.02) : 0;
-            const infiniteBonus = dark404 * 0.10;
-            const prestigeMult = 1 + spokeBonus + treeBonus + supplyBonus + infiniteBonus;
+            const prestigeMult = getPrestigeMultiplier(GameState, GameState.upgrades);
             ascensionEl.style.display = 'block';
-            ascensionEl.innerText = `Felemelkedés: ${prestigeMult.toFixed(2)}x`;
+            ascensionEl.innerText = `Felemelkedés: ${prestigeMult.toFixed(2)}x · Tej: +${milkPct}%`;
         }
     } else if (ascensionEl) {
         ascensionEl.style.display = 'none';
     }
+    if (milkEl) {
+        const milkPct = formatMilkPercent(GameState);
+        milkEl.style.display = milkPct > 0 ? 'block' : 'none';
+        milkEl.textContent = milkPct > 0 ? `🥛 Tej: +${milkPct}%` : '';
+    }
+    const buyBtn = document.getElementById('btn-buy-amount');
+    if (buyBtn) buyBtn.textContent = `Vásárlás: ×${getBuyAmount()}`;
+    updateAscensionButton();
 
     let hasEszterDiscount = GameState.prestigeSkills.includes(203);
     let hasKupon = GameState.prestigeSkills.includes(207);
@@ -66,7 +82,8 @@ window.updateUI = function() {
         if (!visible) return;
 
         const actualCost = getUpgradeActualCost(upg, hasEszterDiscount, hasKupon);
-        const canAfford = GameState.bikes >= actualCost;
+        const prestigeLocked = !canPurchaseBuilding(upg.id);
+        const canAfford = !prestigeLocked && GameState.bikes >= actualCost;
         const showDetails = shouldShowShopDetails(upg, actualCost, index, orderedShop);
         const ownedEl = document.getElementById(`upg-owned-${upg.id}`);
         const descEl = document.getElementById(`upg-desc-${upg.id}`);
@@ -80,7 +97,13 @@ window.updateUI = function() {
             descEl.innerText = upg.type !== "special"
                 ? `+${Math.ceil(upg.power).toLocaleString()} pont ${upg.type === 'click' ? 'katt.' : '/ mp'}`
                 : upg.desc;
-            costEl.innerText = Math.floor(actualCost).toLocaleString() + " 🚲";
+            if (prestigeLocked) {
+                costEl.innerText = getBuildingUnlockHint(upg.id) || '🔒 Zárolt';
+                item.className = 'upgrade-item locked-preview';
+                item.style.pointerEvents = 'none';
+            } else {
+                costEl.innerText = Math.floor(actualCost).toLocaleString() + " 🚲";
+            }
             ownedEl.innerText = upg.owned;
         } else {
             item.className = 'upgrade-item locked-preview';
@@ -102,6 +125,9 @@ window.updateUI = function() {
         lastBuildingSum = currentBuildingSum;
     }
 
+    updateBuildingTiersUI();
+    updateApocalypseUI();
+
     const extraList = document.getElementById('extra-upgrades-list');
     extraUpgradesData.forEach(ext => {
         let isOwned = GameState.realUpgrades.some(ru => ru.id === ext.id);
@@ -112,16 +138,19 @@ window.updateUI = function() {
                 el = document.createElement('div');
                 el.id = `extra-upg-${ext.id}`;
                 el.onclick = () => window.buyExtraUpgrade(ext.id);
-                el.innerHTML = `<b>${ext.name}</b><br><span style="color:#78909c;">${ext.desc}</span><br><b style="color:#d32f2f; font-family:'Bangers'; font-size:16px;">${ext.cost.toLocaleString()} 🚲</b>`;
+                const extCost = Math.floor(ext.cost * EXTRA_UPGRADE_COST_MULT);
+                el.innerHTML = `<b>${ext.name}</b><br><span style="color:#78909c;">${ext.desc}</span><br><b style="color:#d32f2f; font-family:'Bangers'; font-size:16px;">${extCost.toLocaleString()} 🚲</b>`;
                 extraList.appendChild(el);
             }
-            el.className = 'extra-upgrade-item ' + (GameState.bikes >= ext.cost ? 'affordable' : 'disabled');
+            const extCostCheck = Math.floor(ext.cost * EXTRA_UPGRADE_COST_MULT);
+            el.className = 'extra-upgrade-item ' + (GameState.bikes >= extCostCheck ? 'affordable' : 'disabled');
         } else if (el) {
             el.remove();
         }
     });
 
     updateCosmeticsUI();
+    updateMartinRestUI();
 
     const prestigePoints = window.calculateKullok();
     if (prestigePoints > 0) {
@@ -132,6 +161,8 @@ window.updateUI = function() {
         const costEl = document.getElementById('aimlab-cost');
         if (costEl) costEl.innerText = Math.floor(GameState.bikes * 0.9).toLocaleString();
     }
+
+    if (window.refreshPlayerPanel) window.refreshPlayerPanel();
 };
 
 setUpdateUI(window.updateUI);

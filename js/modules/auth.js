@@ -20,7 +20,10 @@ import { checkSeasons } from './seasons.js';
 import { initShopUI } from './shop.js';
 import { loadUserProgressFromDB } from './progress.js';
 import { startGameLoops } from './gameLoop.js';
-
+import { initBuildingTiersUI } from './buildingTiers.js';
+import { initApocalypse } from './apocalypse.js';
+import { initActivityFeed } from './activityFeed.js';
+import { initDuels } from './duel.js';
 async function verifyLegacyPassword(username, password) {
     try {
         const legacySnap = await get(child(ref(db), `users/${username}/password`));
@@ -122,6 +125,10 @@ async function startGameSession(displayName) {
     checkSeasons();
     initShopUI();
     await loadUserProgressFromDB();
+    initBuildingTiersUI();
+    initApocalypse();
+    initActivityFeed();
+    initDuels();
     document.getElementById('current-user-display').innerText = GameState.currentUser;
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('game-container').style.display = 'flex';

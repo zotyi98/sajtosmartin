@@ -28,7 +28,15 @@ export const GameState = {
     completedAchievements: [],
     stats: null,
     cosmetics: [],
-    lastSaved: 0
+    lastSaved: 0,
+    platinaSpokes: 0,
+    ascensionCount: 0,
+    heavenlyUpgrades: {},
+    completedChallenges: [],
+    activeChallenge: null,
+    challengeStartedAt: 0,
+    bikeGarden: null,
+    martinRestPurchased: false
 };
 
 let saveChain = Promise.resolve();
@@ -68,7 +76,17 @@ function buildSavePayload() {
         stats: GameState.stats,
         cosmetics: GameState.cosmetics,
         claimedSpokes: GameState.claimedSpokes,
-        firstJoined: GameState.firstJoined
+        firstJoined: GameState.firstJoined,
+        purchasedBuildingTiers: GameState.purchasedBuildingTiers || [],
+        apocalypse: GameState.apocalypse || null,
+        platinaSpokes: GameState.platinaSpokes || 0,
+        ascensionCount: GameState.ascensionCount || 0,
+        heavenlyUpgrades: GameState.heavenlyUpgrades || {},
+        completedChallenges: GameState.completedChallenges || [],
+        activeChallenge: GameState.activeChallenge || null,
+        challengeStartedAt: GameState.challengeStartedAt || 0,
+        bikeGarden: GameState.bikeGarden || null,
+        martinRestPurchased: !!GameState.martinRestPurchased
     });
 
     if (GameState.sessionToken) {

@@ -2,6 +2,12 @@ import { GameState } from '../state.js';
 import { defaultUpgrades, extraUpgradesData } from '../data.js';
 import { ensureGameStats } from './gameStats.js';
 import { dedupeRealUpgrades } from '../authSession.js';
+import { getPrestigeMultiplier, CLICK_FROM_BPS_RATE } from '../prestigeBalance.js';
+import { getBuildingTierBonus } from './buildingTiers.js';
+import { getLateBuildingEfficiency } from '../longGameBalance.js';
+import { getMilkMultiplier } from './milk.js';
+import { getHeavenlyBpsMult, getHeavenlyClickMult, getHeavenlyTierMult } from '../heavenlyData.js';
+import { getChallengeBonuses, getChallengeBpsFromBuildingsMult } from './challenges.js';
 
 window.recalculateStats = function() {
     GameState.realUpgrades = dedupeRealUpgrades(GameState.realUpgrades);
@@ -12,36 +18,43 @@ window.recalculateStats = function() {
 
     let sajtCount = GameState.upgrades.find(u => u.id === 6)?.owned || 0;
     let hasSajtSynergy = GameState.realUpgrades.some(ru => ru.id === 104);
+    let globalBpsMult = 1;
+    GameState.realUpgrades.forEach(ru => {
+        const ext = extraUpgradesData.find(e => e.id === ru.id);
+        if (ext && ext.global) globalBpsMult += (ext.mult - 1);
+    });
+    const tierHeavenly = getHeavenlyTierMult(GameState);
+    const buildingBpsMult = getChallengeBpsFromBuildingsMult();
 
     GameState.upgrades.forEach(u => {
         let basePower = defaultUpgrades.find(def => def.id === u.id).power;
-        let upgMult = 1;
+        let upgMult = globalBpsMult;
         GameState.realUpgrades.forEach(ru => {
             let ext = extraUpgradesData.find(e => e.id === ru.id);
             if (ext && ext.targetId === u.id) upgMult += (ext.mult - 1);
         });
         if (u.id === 2 && hasSajtSynergy) basePower += (20 * sajtCount);
-        let p = (basePower * upgMult) * u.owned;
-        if (u.type === "bps") b += p;
-        if (u.type === "click") c += p;
+        const tierMult = (1 + getBuildingTierBonus(u.id)) * tierHeavenly;
+        const lateEff = getLateBuildingEfficiency(u.id);
+        const effectiveOwned = u.owned * lateEff;
+        let p = (basePower * upgMult * tierMult) * effectiveOwned;
+        if (u.type === 'bps') {
+            p *= buildingBpsMult;
+            b += p;
+        }
+        if (u.type === 'click') c += p;
     });
 
-    let doubleCount301 = GameState.prestigeSkills.filter(id => id === 301).length;
-    let doubleCount302 = GameState.prestigeSkills.filter(id => id === 302).length;
-    let darkMatterCount = GameState.prestigeSkills.filter(id => id === 404).length;
-    let distinctBuildings = GameState.upgrades.filter(u => u.owned > 0 && u.type !== 'special').length;
+    const prestigeMult = getPrestigeMultiplier(GameState, GameState.upgrades);
+    const milkMult = getMilkMultiplier(GameState);
+    const heavenlyBps = getHeavenlyBpsMult(GameState);
+    const heavenlyClick = getHeavenlyClickMult(GameState);
+    const challengeBonuses = getChallengeBonuses();
+    const eszterMult = GameState.upgrades.find(u => u.id === 7)?.owned > 0 ? 2 : 1;
 
-    let spokeBonus = GameState.prestigeSkills.includes(304) ? (GameState.goldenSpokes * 0.02) : (GameState.goldenSpokes * 0.01);
-    let treeBonus = (doubleCount301 * 1.0) + (doubleCount302 * 1.0);
-    let supplyBonus = GameState.prestigeSkills.includes(210) ? (distinctBuildings * 0.02) : 0;
-    let infiniteBonus = darkMatterCount * 0.10;
-
-    let prestigeMult = 1 + spokeBonus + treeBonus + supplyBonus + infiniteBonus;
-    let eszterMult = GameState.upgrades.find(u => u.id === 7)?.owned > 0 ? 2 : 1;
-
-    GameState.bps = b * prestigeMult * eszterMult * window.seasonBpsMult;
-    let clickBase = c * prestigeMult * eszterMult * window.seasonClickMult;
-    if (GameState.prestigeSkills.includes(205)) clickBase += (GameState.bps * 0.01);
+    GameState.bps = b * prestigeMult * milkMult * heavenlyBps * challengeBonuses.bps * eszterMult * window.seasonBpsMult;
+    let clickBase = c * prestigeMult * milkMult * heavenlyClick * challengeBonuses.click * eszterMult * window.seasonClickMult;
+    if (GameState.prestigeSkills.includes(205)) clickBase += (GameState.bps * CLICK_FROM_BPS_RATE);
     clickBase += ensureGameStats().permanentClickBonus || 0;
     GameState.clickPower = Math.max(1, clickBase);
     ensureGameStats().maxBps = Math.max(ensureGameStats().maxBps || 0, Math.floor(GameState.bps));

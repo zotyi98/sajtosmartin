@@ -1,7 +1,9 @@
 import { GameState, saveUserProgress, showToast } from '../state.js';
 import { defaultUpgrades, prestigeSkillsData } from '../data.js';
 import { sanitizeUsername } from '../authSession.js';
-
+import { DARK_MATTER_MAX_LEVEL } from '../prestigeBalance.js';
+import { pushActivityFeed } from './activityFeed.js';
+import { checkChallengeCompletion } from './challenges.js';
 window.openPrestigeShop = function() {
     document.getElementById('modal-kullok').innerText = GameState.goldenSpokes;
     const container = document.getElementById('skill-tree-container');
@@ -11,7 +13,8 @@ window.openPrestigeShop = function() {
 
     prestigeSkillsData.forEach(sk => {
         let ownedCount = GameState.prestigeSkills.filter(sid => sid === sk.id).length;
-        let isMaxed = sk.repeatable ? (sk.maxLevel && ownedCount >= sk.maxLevel) : ownedCount > 0;
+        const effectiveMax = sk.id === 404 ? DARK_MATTER_MAX_LEVEL : sk.maxLevel;
+    let isMaxed = sk.repeatable ? (effectiveMax && ownedCount >= effectiveMax) : ownedCount > 0;
         let cost = sk.repeatable ? sk.baseCost * Math.pow(2, ownedCount) : sk.baseCost;
         
         let reqMet = true;
@@ -32,7 +35,7 @@ window.openPrestigeShop = function() {
         else if (ownedCount > 0 && sk.repeatable) statusClass = aff ? "owned affordable" : "owned"; 
 
         let btnTxt = isMaxed ? "MAX" : `${cost} Küllő`;
-        let levelTxt = sk.repeatable ? `<div style="color:#00e5ff; font-weight:bold; margin-top:2px;">Szint: ${ownedCount}${sk.maxLevel ? '/' + sk.maxLevel : ''}</div>` : "";
+        let levelTxt = sk.repeatable ? `<div style="color:#00e5ff; font-weight:bold; margin-top:2px;">Szint: ${ownedCount}${effectiveMax ? '/' + effectiveMax : ''}</div>` : "";
 
         nodesHTML += `
             <div class="tree-node ${statusClass}" style="left:${sk.x}%; top:${sk.y}%;" onclick="window.buySkill(${sk.id})">
@@ -56,7 +59,8 @@ window.openPrestigeShop = function() {
 window.buySkill = function(id) {
     let sk = prestigeSkillsData.find(s => s.id === id);
     let ownedCount = GameState.prestigeSkills.filter(sid => sid === id).length;
-    let isMaxed = sk.repeatable ? (sk.maxLevel && ownedCount >= sk.maxLevel) : ownedCount > 0;
+    const effectiveMax = sk.id === 404 ? DARK_MATTER_MAX_LEVEL : sk.maxLevel;
+    let isMaxed = sk.repeatable ? (effectiveMax && ownedCount >= effectiveMax) : ownedCount > 0;
     let cost = sk.repeatable ? sk.baseCost * Math.pow(2, ownedCount) : sk.baseCost;
     
     if (sk.req && !GameState.prestigeSkills.includes(sk.req)) { showToast("Előbb vedd meg az előfeltételt!"); return; }
@@ -76,6 +80,7 @@ window.prestige = async function() {
         GameState.goldenSpokes += gain;
         GameState.claimedSpokes = (GameState.claimedSpokes || 0) + gain;
         GameState.prestigeCount = (GameState.prestigeCount || 0) + 1;
+        checkChallengeCompletion('prestige');
 
         GameState.bikes = 0;
         GameState.bps = 0;
@@ -95,6 +100,7 @@ window.prestige = async function() {
         sessionStorage.setItem(`prestigeReload_${sanitizeUsername(GameState.currentUser)}`, '1');
 
         try {
+            pushActivityFeed('prestige', String(gain), true);
             await saveUserProgress();
         } catch (e) {
             console.error(e);
