@@ -1036,22 +1036,27 @@ body.apocalypse-active #apocalypse-veil { opacity: 1; }
 }
 #btn-ascension { background: linear-gradient(180deg, #7e57c2, #4527a0) !important; color: #fff !important; }
 
-.martin-rest-wrap { padding: 0 10px 12px; }
-.martin-rest-card {
-    padding: 14px; border-radius: 12px; background: linear-gradient(145deg, #1b5e20, #2e7d32);
-    border: 2px solid #81c784; color: #fff; font-size: 13px; line-height: 1.45;
+.martin-rest-wrap { padding: 0 8px 6px; margin-bottom: 4px; }
+.martin-rest-bar {
+    display: flex; align-items: center; gap: 6px; padding: 5px 8px;
+    border-radius: 8px; font-size: 11px; line-height: 1.2; color: #fff;
+    background: #455a64; border: 1px solid #78909c;
 }
-.martin-rest-card.locked { background: linear-gradient(145deg, #37474f, #455a64); border-color: #78909c; }
-.martin-rest-card.affordable { box-shadow: 0 0 20px rgba(255, 235, 59, 0.35); }
-.martin-rest-card.owned { background: linear-gradient(145deg, #4a148c, #6a1b9a); border-color: #ce93d8; }
-.martin-rest-progress { margin: 8px 0; font-size: 15px; }
-.martin-rest-missing { margin: 8px 0 0 18px; font-size: 12px; max-height: 120px; overflow-y: auto; color: #e0e0e0; }
-.martin-rest-btn {
-    margin-top: 10px; width: 100%; padding: 10px; font-family: 'Bangers', cursive; font-size: 18px;
-    border: 2px solid #1b5e20; border-radius: 8px; background: #ffeb3b; color: #1b5e20; cursor: pointer;
-    box-shadow: 0 3px 0 #f57f17;
+.martin-rest-bar.ready { background: #2e7d32; border-color: #81c784; }
+.martin-rest-bar.owned { background: #4a148c; border-color: #ce93d8; justify-content: space-between; }
+.martin-rest-bar .mr-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mr-mini-btn {
+    flex-shrink: 0; padding: 3px 8px; font-size: 11px; font-family: 'Bangers', cursive;
+    border: 1px solid rgba(0,0,0,0.25); border-radius: 6px; background: #ffeb3b; color: #1b5e20;
+    cursor: pointer; line-height: 1.1;
 }
-.martin-rest-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+.mr-mini-btn:disabled { opacity: 0.45; cursor: not-allowed; background: #9e9e9e; color: #424242; }
+.mr-details {
+    margin-top: 4px; padding: 6px 8px; border-radius: 6px;
+    background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
+    max-height: 72px; overflow-y: auto;
+}
+.mr-missing-list { margin: 0; padding-left: 16px; font-size: 10px; color: #e0e0e0; line-height: 1.35; }
 
 .game-victory-overlay {
     position: fixed; inset: 0; z-index: 50000;

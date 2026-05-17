@@ -13,11 +13,13 @@ import { DARK_MATTER_MAX_LEVEL } from '../prestigeBalance.js';
 export const MARTIN_REST_COST = 1;
 
 function ownedExtraIds() {
-    return new Set(GameState.realUpgrades.map((r) => r.id));
+    const list = Array.isArray(GameState.realUpgrades) ? GameState.realUpgrades : [];
+    return new Set(list.map((r) => r.id));
 }
 
 function isPrestigeSkillMaxed(sk) {
-    const owned = GameState.prestigeSkills.filter((id) => id === sk.id).length;
+    const skills = Array.isArray(GameState.prestigeSkills) ? GameState.prestigeSkills : [];
+    const owned = skills.filter((id) => id === sk.id).length;
     const max = sk.id === 404 ? DARK_MATTER_MAX_LEVEL : (sk.maxLevel || 1);
     return sk.repeatable ? owned >= max : owned >= 1;
 }
@@ -112,7 +114,7 @@ window.buyMartinRest = function () {
         return;
     }
     if (!isGameFullyComplete()) {
-        showToast('Még nem gyűjtöttél össze mindent! Nézd a súgót vagy a pihenés panelt.');
+        showToast('Még nem gyűjtöttél össze mindent! Kattints a ? gombra a hiánylistához.');
         return;
     }
     if (GameState.bikes < MARTIN_REST_COST) {
@@ -128,44 +130,52 @@ window.buyMartinRest = function () {
     updateMartinRestUI();
 };
 
+let lastMartinRestRenderKey = '';
+
+function buildMartinRestHtml(purchased, complete, pct, preview) {
+    const tag = 'd' + 'iv';
+    if (purchased) {
+        return `<${tag} class="martin-rest-bar owned"><span>🏆 Kivitted</span><button type="button" class="mr-mini-btn" data-action="victory">Újra</button></${tag}>`;
+    }
+    return `<${tag} class="martin-rest-bar ${complete ? 'ready' : 'locked'}">
+        <span class="mr-label">😴 Végső cél <b>${pct}%</b></span>
+        <button type="button" class="mr-mini-btn mr-toggle" data-action="toggle" aria-expanded="false">?</button>
+        <button type="button" class="mr-mini-btn mr-buy" data-action="buy" ${complete ? '' : 'disabled'}>${complete ? '1🚲' : '🔒'}</button>
+    </${tag}>
+    <${tag} class="mr-details" hidden data-details><ul class="mr-missing-list">${preview}</ul></${tag}>`;
+}
+
 export function updateMartinRestUI() {
     const section = document.getElementById('martin-rest-section');
     if (!section) return;
 
-    if (GameState.martinRestPurchased) {
-        section.innerHTML = `
-            <div class="martin-rest-card owned">
-                <b>😴 Martin megpihenése</b>
-                <p>Hivatalosan teljesítetted a Bicikli Birodalmat.</p>
-                <button type="button" class="martin-rest-btn" onclick="window.buyMartinRest()">🏆 Győzelem újra</button>
-            </div>`;
-        return;
-    }
-
+    const purchased = !!GameState.martinRestPurchased;
     const complete = isGameFullyComplete();
     const pct = getCompletionPercent();
     const missing = getCompletionMissing();
-    const preview = missing.slice(0, 5).map((m) => `<li>${m}</li>`).join('');
-    const more = missing.length > 5 ? `<li>… és még ${missing.length - 5} tétel</li>` : '';
+    const renderKey = `${purchased}|${pct}|${complete}|${missing.length}`;
+    if (renderKey === lastMartinRestRenderKey && section.dataset.built === '1') return;
+    lastMartinRestRenderKey = renderKey;
+    section.dataset.built = '1';
 
-    section.innerHTML = `
-        <motion class="martin-rest-card ${complete ? 'affordable' : 'locked'}">
-            <b>😴 Martin megpihenése</b>
-            <p>Ha mindent összegyűjtöttél (épületek, fejlesztések, tier, prestige, mennyei, kihívások, achievementek), megvásárolhatod — ezzel hivatalosan is kivitted a játékot.</p>
-            <p class="martin-rest-progress">Teljesítés: <b>${pct}%</b></p>
-            ${complete ? '' : `<ul class="martin-rest-missing">${preview}${more}</ul>`}
-            <button type="button" class="martin-rest-btn" ${complete ? '' : 'disabled'}
-                onclick="window.buyMartinRest()">${complete ? 'Megveszem (1 🚲)' : '🔒 Még nem elérhető'}</button>
-        </motion>`.replace(/<motion/g, '<div').replace(/<\/motion>/g, '</div>');
+    const preview = missing.length
+        ? missing.slice(0, 8).map((m) => `<li>${m}</li>`).join('')
+        : '<li>Minden megvan!</li>';
 
-    if (complete) {
-        section.querySelector('.martin-rest-btn')?.addEventListener('click', () => window.buyMartinRest());
-    }
+    section.innerHTML = buildMartinRestHtml(purchased, complete, pct, preview);
+
+    section.querySelector('[data-action="buy"]')?.addEventListener('click', () => window.buyMartinRest());
+    section.querySelector('[data-action="victory"]')?.addEventListener('click', () => window.buyMartinRest());
+    section.querySelector('[data-action="toggle"]')?.addEventListener('click', (e) => {
+        const details = section.querySelector('[data-details]');
+        if (!details) return;
+        const open = details.hidden;
+        details.hidden = !open;
+        e.currentTarget.setAttribute('aria-expanded', open ? 'true' : 'false');
+        e.currentTarget.textContent = open ? '▲' : '?';
+    });
 }
 
 export function initMartinRestOnLoad() {
-    if (GameState.martinRestPurchased) {
-        setTimeout(showVictoryOverlay, 800);
-    }
     updateMartinRestUI();
 }

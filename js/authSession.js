@@ -35,6 +35,44 @@ export async function hashPassword(password, salt) {
         .join("");
 }
 
+const REMEMBER_USER_KEY = 'rememberUsername';
+const REMEMBER_PASS_KEY = 'rememberPassword_b64';
+
+export function saveRememberedLogin(displayName, password, remember) {
+    if (remember) {
+        localStorage.setItem(REMEMBER_USER_KEY, displayName);
+        try {
+            localStorage.setItem(REMEMBER_PASS_KEY, btoa(unescape(encodeURIComponent(password))));
+        } catch {
+            localStorage.removeItem(REMEMBER_PASS_KEY);
+        }
+    } else {
+        clearRememberedLogin();
+    }
+}
+
+export function loadRememberedLogin() {
+    const user = localStorage.getItem(REMEMBER_USER_KEY);
+    let password = '';
+    const passB64 = localStorage.getItem(REMEMBER_PASS_KEY)
+        || localStorage.getItem('rememberPassword_password');
+    if (passB64) {
+        try {
+            password = decodeURIComponent(escape(atob(passB64)));
+        } catch {
+            password = '';
+        }
+    }
+    return { user: user || '', password, hasSaved: !!(user && password) };
+}
+
+export function clearRememberedLogin() {
+    localStorage.removeItem(REMEMBER_USER_KEY);
+    localStorage.removeItem(REMEMBER_PASS_KEY);
+    localStorage.removeItem('rememberPassword_username');
+    localStorage.removeItem('rememberPassword_password');
+}
+
 export function dedupeRealUpgrades(list) {
     const seen = new Set();
     const out = [];

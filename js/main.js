@@ -4,8 +4,6 @@ import { openTrio } from './modules/trio.js';
 
 import './modules/globals.js';
 import { getOfflineSecondsMultiplier } from './longGameBalance.js';
-
-window.getOfflineSecondsMultiplier = getOfflineSecondsMultiplier;
 import './modules/kullok.js';
 import './modules/visuals.js';
 import './modules/buildingTiers.js';
@@ -35,24 +33,24 @@ import './modules/gameCompletion.js';
 import { initChallengeChecker } from './modules/challenges.js';
 import { initGardenTicker } from './modules/bikeGarden.js';
 import { cycleBuyAmount } from './modules/shopBulk.js';
+import { initNewsTicker } from './modules/ticker.js';
+import { initAchievementChecker } from './modules/achievements.js';
+import { initPlayerPanel, initMobileNav } from './modules/playerPanel.js';
+
+window.getOfflineSecondsMultiplier = getOfflineSecondsMultiplier;
 
 window.cycleShopBuyAmount = function () {
     cycleBuyAmount();
     if (window.updateUI) window.updateUI();
 };
 
-initChallengeChecker();
-initGardenTicker();
-
-import { initNewsTicker } from './modules/ticker.js';
-import { initAchievementChecker } from './modules/achievements.js';
-import { initPlayerPanel, initMobileNav } from './modules/playerPanel.js';
-
 window.openAimlab = openAimlab;
 window.startAimlab = startAimlab;
 window.spinWheel = spinWheel;
 window.openTrio = openTrio;
 
+initChallengeChecker();
+initGardenTicker();
 initNewsTicker();
 initAchievementChecker();
 initPlayerPanel();

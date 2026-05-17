@@ -6,15 +6,11 @@ import {
     hashPassword,
     generateSalt,
     storeSessionToken,
-    loadSessionToken
+    loadSessionToken,
+    saveRememberedLogin,
+    loadRememberedLogin as getRememberedLogin,
+    clearRememberedLogin
 } from '../authSession.js';
-
-async function establishSession(username) {
-    const token = crypto.randomUUID();
-    GameState.sessionToken = token;
-    storeSessionToken(username, token);
-    await set(ref(db, `sessions/${username}`), token);
-}
 import { initMartinEasterEgg } from './martinbg.js';
 import { checkSeasons } from './seasons.js';
 import { initShopUI } from './shop.js';
@@ -24,6 +20,14 @@ import { initBuildingTiersUI } from './buildingTiers.js';
 import { initApocalypse } from './apocalypse.js';
 import { initActivityFeed } from './activityFeed.js';
 import { initDuels } from './duel.js';
+
+async function establishSession(username) {
+    const token = crypto.randomUUID();
+    GameState.sessionToken = token;
+    storeSessionToken(username, token);
+    await set(ref(db, `sessions/${username}`), token);
+}
+
 async function verifyLegacyPassword(username, password) {
     try {
         const legacySnap = await get(child(ref(db), `users/${username}/password`));
@@ -188,11 +192,8 @@ window.login = async function() {
             return;
         }
 
-        if (document.getElementById('remember-username-check')?.checked) {
-            localStorage.setItem('rememberUsername', displayName);
-        } else {
-            localStorage.removeItem('rememberUsername');
-        }
+        const rememberLogin = document.getElementById('remember-login-check')?.checked;
+        saveRememberedLogin(displayName, pwd, rememberLogin);
 
         btn.innerText = "Betöltés...";
         await startGameSession(displayName);
@@ -210,25 +211,22 @@ window.login = async function() {
     }
 };
 
-window.loadRememberedUsername = function() {
-    const saved = localStorage.getItem('rememberUsername');
-    if (saved) {
-        document.getElementById('username-input').value = saved;
-        const chk = document.getElementById('remember-username-check');
-        if (chk) chk.checked = true;
-    }
+window.loadRememberedLogin = function() {
+    const { user, password, hasSaved } = getRememberedLogin();
+    if (user) document.getElementById('username-input').value = user;
+    if (password) document.getElementById('password-input').value = password;
+    const chk = document.getElementById('remember-login-check');
+    if (chk && hasSaved) chk.checked = true;
 };
 
 window.forgetPassword = function() {
-    if (confirm("Törlöd a mentett felhasználónevet?")) {
-        localStorage.removeItem('rememberUsername');
-        localStorage.removeItem('rememberPassword_username');
-        localStorage.removeItem('rememberPassword_password');
+    if (confirm("Törlöd a mentett felhasználónevet és jelszót ezen a gépen?")) {
+        clearRememberedLogin();
         document.getElementById('username-input').value = '';
         document.getElementById('password-input').value = '';
-        const chk = document.getElementById('remember-username-check');
+        const chk = document.getElementById('remember-login-check');
         if (chk) chk.checked = false;
-        showToast("✅ Mentett adatok törölve.");
+        showToast("✅ Mentett bejelentkezés törölve.");
     }
 };
 
@@ -239,5 +237,5 @@ export function initAuthUI() {
     document.getElementById('password-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') window.login();
     });
-    window.addEventListener('load', () => window.loadRememberedUsername());
+    window.addEventListener('load', () => window.loadRememberedLogin());
 }

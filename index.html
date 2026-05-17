@@ -40,13 +40,13 @@
             <input type="password" id="password-input" placeholder="Jelszó..." maxlength="20" style="margin-bottom: 15px;">
             
             <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; cursor: pointer; font-weight: 600; color: #555;">
-                <input type="checkbox" id="remember-username-check" style="width: 18px; height: 18px; cursor: pointer;">
-                💾 Felhasználónév megjegyzése
+                <input type="checkbox" id="remember-login-check" style="width: 18px; height: 18px; cursor: pointer;">
+                💾 Bejelentkezés megjegyzése (név + jelszó)
             </label>
             <p style="font-size: 12px; color: #888; margin: 0 0 12px 0; line-height: 1.4;">Új játékos: add meg a neved és jelszavad — első belépéskor létrejön a fiók. Email nem kell.</p>
             
             <button class="btn-primary" id="btn-login" onclick="window.login()">BELÉPÉS</button>
-            <button class="btn-primary" id="btn-forget-password" onclick="window.forgetPassword()" style="background: #888; margin-top: 5px; font-size: 14px; padding: 8px 15px;">🗑️ Mentett név törlése</button>
+            <button class="btn-primary" id="btn-forget-password" onclick="window.forgetPassword()" style="background: #888; margin-top: 5px; font-size: 14px; padding: 8px 15px;">🗑️ Mentett bejelentkezés törlése</button>
         </div>
     </div>
 
@@ -192,9 +192,9 @@
                 <div class="shop-section-title" id="cosmetics-title" style="display:none;">💅 Kozmetikák</div>
                 <div id="cosmetics-section" style="display:none;" class="extra-upgrades-list"></div>
             </div>
-            <div class="shop-section-title" id="martin-rest-title">😴 Végső cél</div>
-            <div id="martin-rest-section" class="martin-rest-wrap"></div>
-            <div class="shop-footer">
+<div class="shop-footer">
+                <div id="martin-rest-section" class="martin-rest-wrap"></div>
+                
                 <button id="btn-ascension" type="button" onclick="window.ascend()" style="display:none;margin-bottom:6px;">🌠 Mennyei emelkedés</button>
                 <button id="btn-prestige" onclick="window.prestige()" style="display:none;">✨ ÚJRASZÜLETÉS ✨</button>
                 <button type="button" class="btn-logout" onclick="location.reload()">Kijelentkezés</button>
@@ -377,7 +377,7 @@
         </div>
     </div>
 
-    <script type="module" src="js/main.js?v=23"></script>
+    <script type="module" src="js/main.js?v=25"></script>
 </body>
 </html>
 
