@@ -13,7 +13,12 @@ import { updateBuildingTiersUI } from './buildingTiers.js';
 import { updateApocalypseUI, getApocalypseBpsMult } from './apocalypse.js';
 import { getBuildingUnlockHint, canPurchaseBuilding } from '../longGameBalance.js';
 import { formatMilkPercent } from './milk.js';
-import { getBuyAmount, cycleBuyAmount } from './shopBulk.js';
+import { getBuyAmount, calcBulkPurchase } from './shopBulk.js';
+import { getActiveChallenge } from './challenges.js';
+import {
+    getMarginalHudBpsPerUnit,
+    getMarginalHudClickPerUnit
+} from './stats.js';
 import { updateAscensionButton } from './ascension.js';
 import { updateMartinRestUI } from './gameCompletion.js';
 
@@ -67,6 +72,24 @@ window.updateUI = function() {
     if (buyBtn) buyBtn.textContent = `Vásárlás: ×${getBuyAmount()}`;
     updateAscensionButton();
 
+    function buildingShopDesc(upg) {
+        if (upg.type === 'special') return upg.desc;
+        const active = getActiveChallenge();
+        const challengeNote =
+            active?.bpsFromBuildings && active.bpsFromBuildings < 1 && upg.type === 'bps'
+                ? ` · kihívás: ${Math.round(active.bpsFromBuildings * 100)}%`
+                : '';
+        if (upg.type === 'click') {
+            const per = Math.ceil(getMarginalHudClickPerUnit(upg.id));
+            return `+${per.toLocaleString()} katt./db (tényleges)${challengeNote}`;
+        }
+        const per = Math.ceil(getMarginalHudBpsPerUnit(upg.id));
+        if (per <= 0) {
+            return `+0 / mp/db (buff vagy defekt miatt a fejléc nem nő)${challengeNote}`;
+        }
+        return `+${per.toLocaleString()} / mp/db (fejléc)${challengeNote}`;
+    }
+
     let hasEszterDiscount = GameState.prestigeSkills.includes(203);
     let hasKupon = GameState.prestigeSkills.includes(207);
     let currentBuildingSum = 0;
@@ -81,9 +104,15 @@ window.updateUI = function() {
         item.style.display = visible ? 'flex' : 'none';
         if (!visible) return;
 
-        const actualCost = getUpgradeActualCost(upg, hasEszterDiscount, hasKupon);
+        const buyN = getBuyAmount();
+        const bulk = buyN > 1 && upg.type !== 'special'
+            ? calcBulkPurchase(upg, buyN, GameState.bikes, hasEszterDiscount, hasKupon)
+            : null;
+        const actualCost = bulk ? bulk.totalCost : getUpgradeActualCost(upg, hasEszterDiscount, hasKupon);
         const prestigeLocked = !canPurchaseBuilding(upg.id);
-        const canAfford = !prestigeLocked && GameState.bikes >= actualCost;
+        const canAfford = !prestigeLocked && bulk
+            ? bulk.count > 0 && GameState.bikes >= bulk.totalCost
+            : GameState.bikes >= actualCost;
         const showDetails = shouldShowShopDetails(upg, actualCost, index, orderedShop);
         const ownedEl = document.getElementById(`upg-owned-${upg.id}`);
         const descEl = document.getElementById(`upg-desc-${upg.id}`);
@@ -94,15 +123,17 @@ window.updateUI = function() {
             item.className = 'upgrade-item ' + (canAfford ? 'affordable' : 'disabled');
             item.style.pointerEvents = '';
             if (nameEl) nameEl.style.visibility = 'visible';
-            descEl.innerText = upg.type !== "special"
-                ? `+${Math.ceil(upg.power).toLocaleString()} pont ${upg.type === 'click' ? 'katt.' : '/ mp'}`
-                : upg.desc;
+            descEl.innerText = buildingShopDesc(upg);
             if (prestigeLocked) {
                 costEl.innerText = getBuildingUnlockHint(upg.id) || '🔒 Zárolt';
                 item.className = 'upgrade-item locked-preview';
                 item.style.pointerEvents = 'none';
+            } else if (bulk && bulk.count > 0) {
+                costEl.innerText = buyN > 1
+                    ? `×${bulk.count}: ${bulk.totalCost.toLocaleString()} 🚲`
+                    : Math.floor(actualCost).toLocaleString() + ' 🚲';
             } else {
-                costEl.innerText = Math.floor(actualCost).toLocaleString() + " 🚲";
+                costEl.innerText = Math.floor(actualCost).toLocaleString() + ' 🚲';
             }
             ownedEl.innerText = upg.owned;
         } else {

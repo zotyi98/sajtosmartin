@@ -35,6 +35,7 @@ import { initGardenTicker } from './modules/bikeGarden.js';
 import { cycleBuyAmount } from './modules/shopBulk.js';
 import { initNewsTicker } from './modules/ticker.js';
 import { initAchievementChecker } from './modules/achievements.js';
+import { initCyclooPublicEasterEgg } from './modules/cycloo.js';
 import { initPlayerPanel, initMobileNav } from './modules/playerPanel.js';
 
 window.getOfflineSecondsMultiplier = getOfflineSecondsMultiplier;
@@ -52,6 +53,7 @@ window.openTrio = openTrio;
 initChallengeChecker();
 initGardenTicker();
 initNewsTicker();
+initCyclooPublicEasterEgg();
 initAchievementChecker();
 initPlayerPanel();
 initMobileNav();

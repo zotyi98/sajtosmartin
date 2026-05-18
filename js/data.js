@@ -71,7 +71,7 @@ const baseExtraUpgrades = [
     { id: 119, name: "Részvényopció", desc: "Irodaház x1.5 BPS", cost: 10000000, reqBuilding: 17, reqCount: 10, targetId: 17, mult: 1.5 },
     { id: 108, name: "Shelby Különítmény", desc: "Garrison tavern x1.5 BPS", cost: 800000000, reqBuilding: 11, reqCount: 5, targetId: 11, mult: 1.5 },
     { id: 120, name: "High Roller", desc: "Kaszinó x1.5 BPS", cost: 5000000000, reqBuilding: 18, reqCount: 10, targetId: 18, mult: 1.5 },
-    { id: 104, name: "Sajtos Munkások", desc: "Szinergia: Sajtgyár +20 BPS a Munkásnak", cost: 600000000, reqBuilding: 6, reqCount: 1, type: "synergy" },
+    { id: 104, name: "Sajtos Munkások", desc: "Szinergia: minden Sajtgyár +20 alap erő a Segédmunkásnak (db)", cost: 600000000, reqBuilding: 6, reqCount: 1, type: "synergy" },
     { id: 105, name: "Használtautó Keresk.", desc: "Autobizniszek x1.5 BPS", cost: 120000000000, reqBuilding: 8, reqCount: 5, targetId: 8, mult: 1.5 },
     { id: 109, name: "Pálcás Futárok", desc: "Roxfort x1.5 BPS", cost: 400000000000, reqBuilding: 12, reqCount: 8, targetId: 12, mult: 1.5 },
     { id: 121, name: "Plazma Hegesztő", desc: "Nano-Gyár x1.5 BPS", cost: 3000000000000, reqBuilding: 20, reqCount: 10, targetId: 20, mult: 1.5 },
@@ -97,9 +97,9 @@ export const prestigeSkillsData = [
     { id: 207, name: "Kuponkód", desc: "Minden alap épület 10%-kal olcsóbb!", baseCost: 10, repeatable: false, req: 203, x: 12, y: 45 },
     { id: 209, name: "Tőzsdecápa", desc: "Szerencsekerék nyereménye: 30x helyett 40x szorzó (+33%)", baseCost: 20, repeatable: false, req: 207, x: 12, y: 65 },
     { id: 208, name: "Éjszakai Bagoly", desc: "Éjszakai Műszak felhői +20% extra szorzó.", baseCost: 15, repeatable: false, req: 203, x: 32, y: 45 },
-    { id: 210, name: "Globális Ellátólánc", desc: "Minden birtokolt épülettípus után +1% BPS (max 12%).", baseCost: 30, repeatable: false, req: 208, x: 32, y: 65 },
+    { id: 210, name: "Globális Ellátólánc", desc: "Minden birtokolt épülettípus után +0,8% BPS (max 10%).", baseCost: 30, repeatable: false, req: 208, x: 32, y: 65 },
 
-    { id: 202, name: "Szerencsés Kéz", desc: "Az Arany/Rozsdás biciklik ~1.25x sűrűbben jönnek.", baseCost: 3, repeatable: false, req: 301, x: 75, y: 30 },
+    { id: 202, name: "Szerencsés Kéz", desc: "Az Arany/Rozsdás biciklik ~1.4x sűrűbben jönnek.", baseCost: 3, repeatable: false, req: 301, x: 75, y: 30 },
     { id: 201, name: "Felhővadász", desc: "A varázsfelhők ~1.4x gyakrabban jelennek meg.", baseCost: 2, repeatable: false, req: 202, x: 68, y: 45 },
     { id: 204, name: "Varázsüveg", desc: "A bónusz biciklik 5mp-el tovább maradnak kint.", baseCost: 5, repeatable: false, req: 201, x: 68, y: 65 },
     { id: 401, name: "Aranyásó", desc: "Az Aranybicikli nagyobbat dob a bevételen!", baseCost: 15, repeatable: false, req: 204, x: 66, y: 80 },
@@ -127,7 +127,10 @@ export const newsItems = [
     "A ranglistán kattints egy névre: élőben látod a birodalmát (Spectate).",
     "Pro tipp: az aranybicikli után néha tárgy is hullik az égből.",
     "Ha a rozsdás bicó defektet ad, takarítsd a hányást — kárpótol a rendszer.",
-    "Martin néha visz haza is egy kis sajtot"
+    "Martin néha visz haza is egy kis sajtot",
+    "Cycloo itt nagyon jó, de valorantba meg kutyaszar",
+    "Lejláéknak 1000 köszönet hogy létrehozták Cycloo-t",
+    "Krisztián mellett reméljük most nem zakatol a varrógép"
 ];
 
 /**
@@ -193,5 +196,6 @@ export const achievements = [
     { id: 'meta_challenge', icon: '⚔️', name: 'Kihívó', desc: 'Teljesíts egy kihívást.', check: { type: 'challengesCompleted', value: 1 }, reward: { type: 'bikes', amount: 1000000 }, done: false },
     { id: 'meta_milk', icon: '🥛', name: 'Tejes reggel', desc: '10 achievement (tej bónusz érezhető).', check: { type: 'achievementsCompleted', value: 10 }, reward: { type: 'bikes', amount: 50000 }, done: false },
     { id: 'meta_milestone_buyer', icon: '📈', name: 'Milestone vadász', desc: 'Vásárolj 5 generált milestone fejlesztést.', check: { type: 'milestoneUpgrades', value: 5 }, reward: { type: 'instantProduction', seconds: 240 }, done: false },
-    { id: 'meta_martin_rest', icon: '😴', name: 'Végre alszik', desc: 'Megvetted: Martin megpihenése — kivitted a játékot.', check: { type: 'martinRest', value: 1 }, reward: { type: 'goldenSpokes', amount: 3 }, done: false }
+    { id: 'meta_martin_rest', icon: '😴', name: 'Végre alszik', desc: 'Megvetted: Martin megpihenése — kivitted a játékot.', check: { type: 'martinRest', value: 1 }, reward: { type: 'goldenSpokes', amount: 3 }, done: false },
+    { id: 'meta_cycloo', icon: '🛠️', name: 'Cycloo, a teszt hős', desc: 'Köszönjük, Cycloo — te segítesz kipróbálni a játékot!', check: { type: 'cyclooTester', value: 1 }, reward: { type: 'goldenSpokes', amount: 2 }, done: false }
 ];

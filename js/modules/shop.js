@@ -7,6 +7,7 @@ import { canPurchaseBuilding, getBuildingUnlockHint } from '../longGameBalance.j
 import { EXTRA_UPGRADE_COST_MULT } from '../longGameBalance.js';
 import { getBuyAmount, calcBulkPurchase } from './shopBulk.js';
 import { checkChallengeCompletion } from './challenges.js';
+import { getHudProductionBps } from './stats.js';
 
 const CHEESE_CURSOR_COST = 50000;
 
@@ -108,6 +109,8 @@ window.buyUpgrade = function(id) {
     if (bulk.count < 1) return;
     if (GameState.bikes < bulk.totalCost) return;
 
+    const hudBpsBefore = upg.type === 'bps' ? getHudProductionBps() : null;
+
     GameState.bikes -= bulk.totalCost;
     for (let i = 0; i < bulk.count; i++) {
         upg.owned++;
@@ -117,6 +120,15 @@ window.buyUpgrade = function(id) {
     }
     checkChallengeCompletion('building_bought');
     window.recalculateStats();
+    if (hudBpsBefore !== null) {
+        const delta = Math.floor(getHudProductionBps() - hudBpsBefore);
+        if (delta > 0) {
+            const n = bulk.count > 1 ? ` (×${bulk.count})` : '';
+            showToast(`📈 Fejléc BPS +${delta.toLocaleString()}/mp${n}`);
+        } else if (delta === 0 && upg.type === 'bps') {
+            showToast('Épület megvéve — a fejléc BPS most 0 (defekt/buff). Alapból nőtt a termelés.');
+        }
+    }
     window.updateUI();
     saveUserProgress();
 };

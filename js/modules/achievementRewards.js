@@ -2,6 +2,7 @@ import { GameState, showToast, saveUserProgress } from '../state.js';
 import { rpgItems } from '../data.js';
 import { ensureGameStats } from './gameStats.js';
 import { pauseEconomyCheck } from './anticheat.js';
+import { getHudProductionBps } from './stats.js';
 
 export function applyAchievementReward(reward, achName) {
     if (!reward || !reward.type) return '';
@@ -63,7 +64,9 @@ export function applyAchievementReward(reward, achName) {
         }
         case 'instantProduction': {
             const seconds = reward.seconds || 60;
-            const gain = Math.max(100, Math.floor(GameState.bps * seconds));
+            if (window.recalcMultiplier) window.recalcMultiplier();
+            const bpsRate = getHudProductionBps();
+            const gain = Math.max(100, Math.floor(bpsRate * seconds));
             GameState.bikes += gain;
             GameState.lifetimeBikes += gain;
             pauseEconomyCheck(Math.max(10000, seconds * 200));

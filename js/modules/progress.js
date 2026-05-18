@@ -8,6 +8,7 @@ import { getLocalGameKey, sanitizeUsername, dedupeRealUpgrades, loadSessionToken
 import { migrateClaimedSpokesOnce } from './kullok.js';
 import { getHeavenlyOfflineMult } from '../heavenlyData.js';
 import { initMartinRestOnLoad } from './gameCompletion.js';
+import { getHudProductionBps } from './stats.js';
 
 function stripSensitiveFields(data) {
     if (!data || typeof data !== 'object') return data;
@@ -156,7 +157,7 @@ export async function loadUserProgressFromDB() {
                     ? window.getOfflineSecondsMultiplier(secondsOffline)
                     : 1;
                 offlineMult *= getHeavenlyOfflineMult(GameState);
-                const offlineGains = GameState.bps * (window.multiplier || 1) * secondsOffline * offlineMult;
+                const offlineGains = getHudProductionBps() * secondsOffline * offlineMult;
                 if (offlineGains > 0) {
                     GameState.bikes += offlineGains;
                     GameState.lifetimeBikes += offlineGains;

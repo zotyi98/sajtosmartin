@@ -8,6 +8,103 @@ import { getLateBuildingEfficiency } from '../longGameBalance.js';
 import { getMilkMultiplier } from './milk.js';
 import { getHeavenlyBpsMult, getHeavenlyClickMult, getHeavenlyTierMult } from '../heavenlyData.js';
 import { getChallengeBonuses, getChallengeBpsFromBuildingsMult } from './challenges.js';
+import { getApocalypseBpsMult } from './apocalypse.js';
+
+/** Fejléc BPS — jutalmak/offline szöveg ehhez igazodik. */
+export function getHudProductionBps() {
+    return GameState.bps * (window.multiplier || 1) * getApocalypseBpsMult();
+}
+
+function getBuildingLocalFactors(u) {
+    const def = defaultUpgrades.find((d) => d.id === u.id);
+    if (!def) return null;
+
+    const sajtCount = GameState.upgrades.find((x) => x.id === 6)?.owned || 0;
+    const hasSajtSynergy = GameState.realUpgrades.some((ru) => ru.id === 104);
+    let basePower = def.power;
+    if (u.id === 2 && hasSajtSynergy) basePower += 20 * sajtCount;
+
+    let globalBpsMult = 1;
+    GameState.realUpgrades.forEach((ru) => {
+        const ext = extraUpgradesData.find((e) => e.id === ru.id);
+        if (ext && ext.global) globalBpsMult += ext.mult - 1;
+    });
+    let upgMult = globalBpsMult;
+    GameState.realUpgrades.forEach((ru) => {
+        const ext = extraUpgradesData.find((e) => e.id === ru.id);
+        if (ext && ext.targetId === u.id) upgMult += ext.mult - 1;
+    });
+
+    const tierMult = (1 + getBuildingTierBonus(u.id)) * getHeavenlyTierMult(GameState);
+    const lateEff = getLateBuildingEfficiency(u.id);
+    const buildingBpsMult = getChallengeBpsFromBuildingsMult();
+    return { basePower, upgMult, tierMult, lateEff, buildingBpsMult };
+}
+
+function getGlobalBpsMult() {
+    const prestigeMult = getPrestigeMultiplier(GameState, GameState.upgrades);
+    const milkMult = getMilkMultiplier(GameState);
+    const heavenlyBps = getHeavenlyBpsMult(GameState);
+    const challengeBonuses = getChallengeBonuses();
+    const eszterMult = GameState.upgrades.find((x) => x.id === 7)?.owned > 0 ? 2 : 1;
+    return (
+        prestigeMult *
+        milkMult *
+        heavenlyBps *
+        challengeBonuses.bps *
+        eszterMult *
+        (window.seasonBpsMult || 1)
+    );
+}
+
+function getGlobalClickMult() {
+    const prestigeMult = getPrestigeMultiplier(GameState, GameState.upgrades);
+    const milkMult = getMilkMultiplier(GameState);
+    const heavenlyClick = getHeavenlyClickMult(GameState);
+    const challengeBonuses = getChallengeBonuses();
+    const eszterMult = GameState.upgrades.find((x) => x.id === 7)?.owned > 0 ? 2 : 1;
+    return (
+        prestigeMult *
+        milkMult *
+        heavenlyClick *
+        challengeBonuses.click *
+        eszterMult *
+        (window.seasonClickMult || 1)
+    );
+}
+
+/** 1 db épület vásárlásának alap BPS hozzáadása (recalculateStats előtt/után ugyanaz). */
+export function getMarginalBaseBpsPerUnit(buildingId) {
+    const u = GameState.upgrades.find((x) => x.id === buildingId);
+    if (!u || u.type !== 'bps') return 0;
+    const f = getBuildingLocalFactors(u);
+    if (!f) return 0;
+    const local = f.basePower * f.upgMult * f.tierMult * f.lateEff * f.buildingBpsMult;
+    return local * getGlobalBpsMult();
+}
+
+/** Fejlécen látható BPS növekedés 1 db épületre. */
+export function getMarginalHudBpsPerUnit(buildingId) {
+    return getMarginalBaseBpsPerUnit(buildingId) * (window.multiplier || 1) * getApocalypseBpsMult();
+}
+
+export function getMarginalHudBpsGain(buildingId, count = 1) {
+    return getMarginalHudBpsPerUnit(buildingId) * Math.max(1, count);
+}
+
+/** 1 db kattintós épület: tényleges kattintási erő növekedés (fejléc buff nélkül). */
+export function getMarginalClickPerUnit(buildingId) {
+    const u = GameState.upgrades.find((x) => x.id === buildingId);
+    if (!u || u.type !== 'click') return 0;
+    const f = getBuildingLocalFactors(u);
+    if (!f) return 0;
+    const local = f.basePower * f.upgMult * f.tierMult * f.lateEff;
+    return local * getGlobalClickMult();
+}
+
+export function getMarginalHudClickPerUnit(buildingId) {
+    return getMarginalClickPerUnit(buildingId) * (window.clickMultiplier || 1);
+}
 
 window.recalculateStats = function() {
     GameState.realUpgrades = dedupeRealUpgrades(GameState.realUpgrades);

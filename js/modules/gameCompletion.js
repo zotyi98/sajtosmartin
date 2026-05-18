@@ -61,7 +61,7 @@ export function getCompletionMissing() {
 
     const completedAch = new Set(GameState.completedAchievements || []);
     achievements.forEach((a) => {
-        if (a.id === 'meta_martin_rest') return;
+        if (a.id === 'meta_martin_rest' || a.id === 'meta_cycloo') return;
         if (!completedAch.has(a.id)) missing.push(`Achievement: ${a.name}`);
     });
 

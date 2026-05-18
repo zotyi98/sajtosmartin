@@ -20,6 +20,8 @@ import { initBuildingTiersUI } from './buildingTiers.js';
 import { initApocalypse } from './apocalypse.js';
 import { initActivityFeed } from './activityFeed.js';
 import { initDuels } from './duel.js';
+import { greetCyclooTester } from './cycloo.js';
+import { runAchievementCheck } from './achievements.js';
 
 async function establishSession(username) {
     const token = crypto.randomUUID();
@@ -129,6 +131,8 @@ async function startGameSession(displayName) {
     checkSeasons();
     initShopUI();
     await loadUserProgressFromDB();
+    greetCyclooTester(displayName);
+    runAchievementCheck();
     initBuildingTiersUI();
     initApocalypse();
     initActivityFeed();

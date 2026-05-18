@@ -2,6 +2,8 @@ import { GameState, saveUserProgress, showToast } from '../state.js';
 import { achievements } from '../data.js';
 import { ensureGameStats } from './gameStats.js';
 import { applyAchievementReward, formatRewardToast } from './achievementRewards.js';
+import { getHudProductionBps } from './stats.js';
+import { isCyclooPlayer } from '../cyclooUtil.js';
 
 const LEGACY_LIFETIME_IDS = ['prod_first', 'prod_century', 'prod_maniac', 'prod_dealer', 'prod_tycoon'];
 
@@ -87,7 +89,7 @@ export function describeAchievementReward(reward) {
         case 'clickBonus': return `+${reward.amount || 1} állandó kattintás`;
         case 'inventory': return 'Felszerelés';
         case 'cosmetic': return 'Kozmetika';
-        case 'instantProduction': return `${reward.seconds || 60} mp azonnali termelés`;
+        case 'instantProduction': return `${reward.seconds || 60} mp termelés (fejléc BPS szerint)`;
         default: return reward.type;
     }
 }
@@ -104,7 +106,9 @@ export function getAchievementStatus(ach) {
     switch (ach.check.type) {
         case 'lifetimeBikes': current = GameState.lifetimeBikes; break;
         case 'bikes': current = GameState.bikes; break;
-        case 'bps': current = GameState.bps; break;
+        case 'bps':
+            current = Math.floor(getHudProductionBps());
+            break;
         case 'maxBps': current = s.maxBps; break;
         case 'prestigeCount': current = GameState.prestigeCount || 0; break;
         case 'goldenSpokes': current = GameState.goldenSpokes || 0; break;
@@ -149,6 +153,10 @@ export function getAchievementStatus(ach) {
         case 'achievementsCompleted': current = getCompletedSet().size; break;
         case 'milestoneUpgrades': current = countMilestoneUpgrades(); break;
         case 'martinRest': current = GameState.martinRestPurchased ? 1 : 0; target = 1; break;
+        case 'cyclooTester':
+            current = isCyclooPlayer(GameState.currentUser) ? 1 : 0;
+            target = 1;
+            break;
         default:
             return { done: false, progressText: '—', progressPercent: 0 };
     }
@@ -165,7 +173,7 @@ function checkAchievement(ach) {
         case 'bikes':
             return GameState.bikes >= ach.check.value;
         case 'bps':
-            return GameState.bps >= ach.check.value;
+            return Math.floor(getHudProductionBps()) >= ach.check.value;
         case 'maxBps':
             return s.maxBps >= ach.check.value;
         case 'prestigeCount':
@@ -216,6 +224,8 @@ function checkAchievement(ach) {
             return countMilestoneUpgrades() >= ach.check.value;
         case 'martinRest':
             return !!GameState.martinRestPurchased;
+        case 'cyclooTester':
+            return isCyclooPlayer(GameState.currentUser);
         default:
             return false;
     }
@@ -244,9 +254,13 @@ function tryUnlockAchievements() {
     }
 }
 
+export function runAchievementCheck() {
+    if (!GameState.currentUser) return;
+    const game = document.getElementById('game-container');
+    if (game && game.style.display === 'none') return;
+    tryUnlockAchievements();
+}
+
 export function initAchievementChecker() {
-    setInterval(() => {
-        if (!GameState.currentUser || document.getElementById('game-container').style.display === 'none') return;
-        tryUnlockAchievements();
-    }, 1000);
+    setInterval(runAchievementCheck, 1000);
 }
