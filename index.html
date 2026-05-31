@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Fuss Martin elől!</title>
+<style>
+    * { box-sizing: border-box; }
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #0f0f14;
+        color: #fff;
+        overflow: hidden;
+        -webkit-user-select: none;
+        user-select: none;
+        touch-action: none;
+    }
+    #game-wrap {
+        position: relative;
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    #topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 16px;
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: #ffca28;
+        z-index: 5;
+    }
+    #topbar .stat { display: flex; gap: 18px; }
+    #topbar .stat span { color: #fff; }
+    #canvas-holder {
+        position: relative;
+        flex: 1;
+        margin: 0 12px 12px;
+        border-radius: 14px;
+        overflow: hidden;
+        background: radial-gradient(circle at 50% 30%, #1d2030 0%, #0c0d14 100%);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 0 0 2px #2a2d40;
+    }
+    canvas { display: block; width: 100%; height: 100%; }
+
+    .overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 24px;
+        background: rgba(8,9,14,0.82);
+        backdrop-filter: blur(4px);
+        z-index: 10;
+        overflow-y: auto;
+    }
+    .overlay.hidden { display: none; }
+    .overlay h1 {
+        margin: 0 0 6px;
+        font-size: clamp(1.8rem, 6vw, 3rem);
+        color: #ffca28;
+        text-shadow: 0 3px 0 rgba(0,0,0,0.4);
+    }
+    .overlay h2 { margin: 0 0 14px; color: #ff7676; }
+    .overlay p { margin: 6px 0; color: #cfcfe0; max-width: 460px; }
+    .keys { color: #9fb0ff; font-weight: 600; }
+
+    .btn {
+        margin-top: 18px;
+        padding: 14px 34px;
+        font-size: 1.15rem;
+        font-weight: 700;
+        border: none;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #ffd95a, #ffb000);
+        color: #3a2600;
+        cursor: pointer;
+        box-shadow: 0 6px 0 #b97c00, 0 10px 20px rgba(0,0,0,0.4);
+        transition: transform 0.05s, box-shadow 0.05s;
+    }
+    .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #b97c00; }
+    .btn.secondary {
+        background: #2a2d40;
+        color: #fff;
+        box-shadow: 0 6px 0 #16182a;
+        font-size: 0.95rem;
+        padding: 10px 22px;
+    }
+    .btn.secondary:active { box-shadow: 0 2px 0 #16182a; }
+
+    .uploads {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        margin: 16px 0 4px;
+    }
+    .upload-card {
+        background: #181a26;
+        border: 1px dashed #3a3f5c;
+        border-radius: 12px;
+        padding: 12px 14px;
+        width: 200px;
+        text-align: left;
+    }
+    .upload-card strong { color: #ffca28; display: block; margin-bottom: 6px; font-size: 0.95rem; }
+    .upload-card small { color: #8a8fa8; display: block; line-height: 1.3; }
+    .upload-card label {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 7px 14px;
+        background: #2a2d40;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .upload-card label:hover { background: #353a55; }
+    .upload-card input[type=file] { display: none; }
+    .face-preview {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+    }
+    .face-preview img {
+        width: 34px;
+        height: 34px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 2px solid #ffca28;
+    }
+    .status-pill {
+        margin-top: 8px;
+        font-size: 0.8rem;
+        color: #7CFC9B;
+    }
+    .hint { color: #6f748c; font-size: 0.8rem; margin-top: 14px; }
+    #pause-btn {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        z-index: 6;
+        background: rgba(0,0,0,0.45);
+        border: none;
+        color: #fff;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        cursor: pointer;
+    }
+    .danger-flash {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        box-shadow: inset 0 0 80px rgba(255,40,40,0);
+        z-index: 4;
+        transition: box-shadow 0.15s;
+    }
+</style>
+</head>
+<body>
+<div id="game-wrap">
+    <div id="topbar">
+        <div>👧 <span id="lives-label">Fuss Martin elől!</span></div>
+        <div class="stat">
+            <div>Pont: <span id="score">0</span></div>
+            <div>Rekord: <span id="highscore">0</span></div>
+        </div>
+    </div>
+
+    <div id="canvas-holder">
+        <canvas id="game"></canvas>
+        <div class="danger-flash" id="danger-flash"></div>
+        <button id="pause-btn" title="Szünet">⏸</button>
+
+        <!-- START SCREEN -->
+        <div class="overlay" id="start-screen">
+            <h1>Fuss Martin elől! 🏃‍♀️</h1>
+            <p>Te vagy a kislány 👧. Martin folyton meg akar fogni („felszedni”) — <strong>kerülgesd ki</strong> ameddig csak bírod!</p>
+            <p class="keys">Mozgás: WASD / nyilak vagy egér / ujj &nbsp;•&nbsp; Dash: Szóköz</p>
+
+            <div class="uploads">
+                <div class="upload-card">
+                    <strong>🖼️ Martin arca</strong>
+                    <small>Tölts fel képeket Martinról — ezt kapják az üldözők. (Több is lehet.)</small>
+                    <label for="face-input">Kép kiválasztása</label>
+                    <input type="file" id="face-input" accept="image/*" multiple>
+                    <div class="face-preview" id="face-preview"></div>
+                </div>
+                <div class="upload-card">
+                    <strong>🔊 Martin hangja</strong>
+                    <small>Tölts fel egy vicces hangot — ez szól, amikor elkap.</small>
+                    <label for="sound-input">Hang kiválasztása</label>
+                    <input type="file" id="sound-input" accept="audio/*">
+                    <div class="status-pill" id="sound-status"></div>
+                </div>
+            </div>
+
+            <button class="btn" id="start-btn">Indítás ▶</button>
+            <button class="btn secondary" id="clear-uploads">Feltöltések törlése</button>
+            <p class="hint">A feltöltött képek/hangok csak ezen a gépen, a böngészőben tárolódnak (nem mennek fel internetre).</p>
+        </div>
+
+        <!-- PAUSE SCREEN -->
+        <div class="overlay hidden" id="pause-screen">
+            <h1>Szünet ⏸</h1>
+            <button class="btn" id="resume-btn">Folytatás ▶</button>
+            <button class="btn secondary" id="quit-btn">Vissza a menübe</button>
+        </div>
+
+        <!-- GAME OVER SCREEN -->
+        <div class="overlay hidden" id="over-screen">
+            <h1>Martin elkapott! 🫠</h1>
+            <img id="over-face" alt="Martin" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid #ffca28;margin:6px 0;display:none;">
+            <div id="over-emoji" style="font-size:90px;line-height:1;">🧔</div>
+            <h2 id="over-msg">Felszedett! 😅</h2>
+            <p>Túlélted: <strong><span id="final-score">0</span></strong> pontig.</p>
+            <p id="record-msg" style="color:#7CFC9B;font-weight:700;display:none;">🏆 Új rekord!</p>
+            <button class="btn" id="retry-btn">Újra ▶</button>
+            <button class="btn secondary" id="menu-btn">Menü</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    "use strict";
+
+    // ---------- IndexedDB (faces + sound persistence) ----------
+    const DB_NAME = 'martin-game';
+    const DB_VERSION = 1;
+    const STORE = 'assets'; // keyPath 'key'
+
+    function openDb() {
+        return new Promise(function (resolve, reject) {
+            const req = indexedDB.open(DB_NAME, DB_VERSION);
+            req.onupgradeneeded = function (e) {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE)) {
+                    db.createObjectStore(STORE, { keyPath: 'key' });
+                }
+            };
+            req.onsuccess = function () { resolve(req.result); };
+            req.onerror = function () { reject(req.error); };
+        });
+    }
+    function dbPut(key, value) {
+        return openDb().then(function (db) {
+            return new Promise(function (resolve, reject) {
+                const tx = db.transaction(STORE, 'readwrite');
+                tx.oncomplete = function () { resolve(); };
+                tx.onerror = function () { reject(tx.error); };
+                tx.objectStore(STORE).put({ key: key, value: value });
+            });
+        });
+    }
+    function dbGet(key) {
+        return openDb().then(function (db) {
+            return new Promise(function (resolve, reject) {
+                const tx = db.transaction(STORE, 'readonly');
+                const req = tx.objectStore(STORE).get(key);
+                req.onsuccess = function () { resolve(req.result ? req.result.value : null); };
+                req.onerror = function () { reject(req.error); };
+            });
+        });
+    }
+    function dbClear() {
+        return openDb().then(function (db) {
+            return new Promise(function (resolve, reject) {
+                const tx = db.transaction(STORE, 'readwrite');
+                tx.oncomplete = function () { resolve(); };
+                tx.onerror = function () { reject(tx.error); };
+                tx.objectStore(STORE).clear();
+            });
+        });
+    }
+
+    // ---------- DOM ----------
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const highEl = document.getElementById('highscore');
+    const startScreen = document.getElementById('start-screen');
+    const pauseScreen = document.getElementById('pause-screen');
+    const overScreen = document.getElementById('over-screen');
+    const dangerFlash = document.getElementById('danger-flash');
+    const facePreview = document.getElementById('face-preview');
+    const soundStatus = document.getElementById('sound-status');
+    const overFace = document.getElementById('over-face');
+    const overEmoji = document.getElementById('over-emoji');
+    const overMsg = document.getElementById('over-msg');
+    const finalScoreEl = document.getElementById('final-score');
+    const recordMsg = document.getElementById('record-msg');
+
+    // ---------- Assets in memory ----------
+    let faceBlobs = [];          // array of Blob
+    let faceImages = [];         // array of HTMLImageElement (loaded)
+    let faceObjectUrls = [];
+    let soundBlob = null;
+    let soundUrl = null;
+    let catchAudio = null;
+
+    const overMessages = [
+        'Felszedett! 😅', 'Megvagy! 🤣', 'Nem menekülsz! 😈',
+        'Martin: "Gyere ide!" 🙌', 'Elkapott a haver! 🫠', 'Túl lassú voltál! 🐌'
+    ];
+
+    // ---------- Game state ----------
+    let W = 800, H = 600;
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    const player = { x: 400, y: 300, r: 20, vx: 0, vy: 0 };
+    const SPEED = 620;          // px/s keyboard accel target speed
+    const FRICTION = 0.82;
+    let enemies = [];
+    let hearts = [];
+    let particles = [];
+    let keys = {};
+    let pointer = { active: false, x: 0, y: 0 };
+    let running = false, paused = false, gameOver = false;
+    let lastTime = 0;
+    let elapsed = 0;            // seconds
+    let score = 0;
+    let highscore = parseInt(localStorage.getItem('martin-highscore') || '0', 10);
+    let spawnTimer = 0;
+    let heartTimer = 0;
+    let baseEnemySpeed = 55;
+
+    // dash
+    let dashReady = true;
+    let dashCooldown = 0;       // seconds
+    const DASH_CD = 2.5;
+
+    highEl.textContent = highscore;
+
+    // ---------- Resize ----------
+    function resize() {
+        const holder = canvas.parentElement;
+        W = holder.clientWidth;
+        H = holder.clientHeight;
+        canvas.width = Math.round(W * DPR);
+        canvas.height = Math.round(H * DPR);
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+    window.addEventListener('resize', resize);
+
+    // ---------- Asset loading ----------
+    function loadFaceImages() {
+        faceObjectUrls.forEach(function (u) { URL.revokeObjectURL(u); });
+        faceObjectUrls = [];
+        faceImages = [];
+        const promises = faceBlobs.map(function (blob) {
+            return new Promise(function (resolve) {
+                const url = URL.createObjectURL(blob);
+                faceObjectUrls.push(url);
+                const img = new Image();
+                img.onload = function () { faceImages.push(img); resolve(); };
+                img.onerror = function () { resolve(); };
+                img.src = url;
+            });
+        });
+        return Promise.all(promises);
+    }
+
+    function renderFacePreview() {
+        facePreview.innerHTML = '';
+        faceBlobs.forEach(function (blob) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(blob);
+            facePreview.appendChild(img);
+        });
+    }
+
+    function setupSound() {
+        if (soundUrl) { URL.revokeObjectURL(soundUrl); soundUrl = null; }
+        catchAudio = null;
+        if (soundBlob) {
+            soundUrl = URL.createObjectURL(soundBlob);
+            catchAudio = new Audio(soundUrl);
+            soundStatus.textContent = '✓ Hang betöltve';
+        } else {
+            soundStatus.textContent = '';
+        }
+    }
+
+    // load persisted assets on boot
+    Promise.all([dbGet('faces'), dbGet('sound')]).then(function (res) {
+        const faces = res[0], snd = res[1];
+        if (faces && faces.length) { faceBlobs = faces.slice(); }
+        if (snd) { soundBlob = snd; }
+        renderFacePreview();
+        setupSound();
+        return loadFaceImages();
+    }).catch(function(){});
+
+    // ---------- Uploads ----------
+    document.getElementById('face-input').addEventListener('change', function (e) {
+        const files = Array.prototype.slice.call(e.target.files || [])
+            .filter(function (f) { return /^image\//.test(f.type); });
+        if (!files.length) return;
+        faceBlobs = faceBlobs.concat(files);
+        dbPut('faces', faceBlobs).catch(function(){});
+        renderFacePreview();
+        loadFaceImages();
+        e.target.value = '';
+    });
+
+    document.getElementById('sound-input').addEventListener('change', function (e) {
+        const file = (e.target.files || [])[0];
+        if (!file || !/^audio\//.test(file.type)) return;
+        soundBlob = file;
+        dbPut('sound', soundBlob).catch(function(){});
+        setupSound();
+        e.target.value = '';
+    });
+
+    document.getElementById('clear-uploads').addEventListener('click', function () {
+        if (!confirm('Biztosan törlöd az összes feltöltött képet és hangot?')) return;
+        faceBlobs = [];
+        soundBlob = null;
+        dbClear().catch(function(){});
+        renderFacePreview();
+        setupSound();
+        loadFaceImages();
+    });
+
+    // ---------- Input ----------
+    window.addEventListener('keydown', function (e) {
+        const k = e.key.toLowerCase();
+        keys[k] = true;
+        if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].indexOf(k) !== -1) e.preventDefault();
+        if (k === ' ' && running && !paused && !gameOver) tryDash();
+        if (k === 'p' && running && !gameOver) togglePause();
+    });
+    window.addEventListener('keyup', function (e) { keys[e.key.toLowerCase()] = false; });
+
+    function pointerPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+        const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+        return { x: cx, y: cy };
+    }
+    function onPointerDown(e) { pointer.active = true; const p = pointerPos(e); pointer.x = p.x; pointer.y = p.y; }
+    function onPointerMove(e) { if (!pointer.active) return; const p = pointerPos(e); pointer.x = p.x; pointer.y = p.y; }
+    function onPointerUp() { pointer.active = false; }
+    canvas.addEventListener('mousedown', onPointerDown);
+    canvas.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+    canvas.addEventListener('touchstart', function (e) { e.preventDefault(); onPointerDown(e); }, { passive: false });
+    canvas.addEventListener('touchmove', function (e) { e.preventDefault(); onPointerMove(e); }, { passive: false });
+    canvas.addEventListener('touchend', onPointerUp);
+
+    function tryDash() {
+        if (!dashReady) return;
+        let dx = 0, dy = 0;
+        if (keys['a'] || keys['arrowleft']) dx -= 1;
+        if (keys['d'] || keys['arrowright']) dx += 1;
+        if (keys['w'] || keys['arrowup']) dy -= 1;
+        if (keys['s'] || keys['arrowdown']) dy += 1;
+        if (dx === 0 && dy === 0) {
+            if (pointer.active) { dx = pointer.x - player.x; dy = pointer.y - player.y; }
+            else { dx = player.vx; dy = player.vy; }
+        }
+        const len = Math.hypot(dx, dy) || 1;
+        const power = 520;
+        player.vx += (dx / len) * power;
+        player.vy += (dy / len) * power;
+        dashReady = false;
+        dashCooldown = DASH_CD;
+        for (let i = 0; i < 14; i++) {
+            particles.push({
+                x: player.x, y: player.y,
+                vx: -(dx / len) * (60 + Math.random() * 120) + (Math.random() - 0.5) * 80,
+                vy: -(dy / len) * (60 + Math.random() * 120) + (Math.random() - 0.5) * 80,
+                life: 0.5, max: 0.5, color: '#9fb0ff'
+            });
+        }
+    }
+
+    // ---------- Spawning ----------
+    function spawnEnemy() {
+        const side = Math.floor(Math.random() * 4);
+        let x, y;
+        if (side === 0) { x = -30; y = Math.random() * H; }
+        else if (side === 1) { x = W + 30; y = Math.random() * H; }
+        else if (side === 2) { x = Math.random() * W; y = -30; }
+        else { x = Math.random() * W; y = H + 30; }
+        const img = faceImages.length ? faceImages[Math.floor(Math.random() * faceImages.length)] : null;
+        enemies.push({
+            x: x, y: y, r: 22,
+            speed: baseEnemySpeed + Math.random() * 25,
+            img: img,
+            wobble: Math.random() * Math.PI * 2
+        });
+    }
+
+    function spawnHeart() {
+        const m = 60;
+        hearts.push({
+            x: m + Math.random() * (W - 2 * m),
+            y: m + Math.random() * (H - 2 * m),
+            r: 14, life: 8, pulse: 0
+        });
+    }
+
+    // ---------- Game lifecycle ----------
+    function startGame() {
+        resize();
+        player.x = W / 2; player.y = H / 2; player.vx = 0; player.vy = 0;
+        enemies = []; hearts = []; particles = [];
+        elapsed = 0; score = 0; spawnTimer = 0; heartTimer = 3;
+        baseEnemySpeed = 55;
+        dashReady = true; dashCooldown = 0;
+        running = true; paused = false; gameOver = false;
+        startScreen.classList.add('hidden');
+        overScreen.classList.add('hidden');
+        pauseScreen.classList.add('hidden');
+        // initial enemies
+        spawnEnemy();
+        setTimeout(spawnEnemy, 600);
+        lastTime = performance.now();
+        requestAnimationFrame(loop);
+    }
+
+    function endGame() {
+        running = false;
+        gameOver = true;
+        finalScoreEl.textContent = score;
+        overMsg.textContent = overMessages[Math.floor(Math.random() * overMessages.length)];
+        if (score > highscore) {
+            highscore = score;
+            localStorage.setItem('martin-highscore', String(highscore));
+            highEl.textContent = highscore;
+            recordMsg.style.display = 'block';
+        } else {
+            recordMsg.style.display = 'none';
+        }
+        if (faceImages.length) {
+            overFace.src = faceImages[Math.floor(Math.random() * faceImages.length)].src;
+            overFace.style.display = 'block';
+            overEmoji.style.display = 'none';
+        } else {
+            overFace.style.display = 'none';
+            overEmoji.style.display = 'block';
+        }
+        if (catchAudio) { try { catchAudio.currentTime = 0; catchAudio.play(); } catch (e) {} }
+        overScreen.classList.remove('hidden');
+    }
+
+    function togglePause() {
+        if (!running || gameOver) return;
+        paused = !paused;
+        if (paused) {
+            pauseScreen.classList.remove('hidden');
+        } else {
+            pauseScreen.classList.add('hidden');
+            lastTime = performance.now();
+            requestAnimationFrame(loop);
+        }
+    }
+
+    document.getElementById('start-btn').addEventListener('click', startGame);
+    document.getElementById('retry-btn').addEventListener('click', startGame);
+    document.getElementById('resume-btn').addEventListener('click', togglePause);
+    document.getElementById('pause-btn').addEventListener('click', togglePause);
+    document.getElementById('quit-btn').addEventListener('click', backToMenu);
+    document.getElementById('menu-btn').addEventListener('click', backToMenu);
+
+    function backToMenu() {
+        running = false; paused = false; gameOver = false;
+        pauseScreen.classList.add('hidden');
+        overScreen.classList.add('hidden');
+        startScreen.classList.remove('hidden');
+    }
+
+    // ---------- Update ----------
+    function update(dt) {
+        elapsed += dt;
+        score = Math.floor(elapsed * 10);
+        scoreEl.textContent = score;
+
+        // difficulty ramp
+        baseEnemySpeed = 55 + elapsed * 3.5;
+
+        // desired movement direction (keyboard or pointer)
+        let dirX = 0, dirY = 0;
+        if (keys['a'] || keys['arrowleft']) dirX -= 1;
+        if (keys['d'] || keys['arrowright']) dirX += 1;
+        if (keys['w'] || keys['arrowup']) dirY -= 1;
+        if (keys['s'] || keys['arrowdown']) dirY += 1;
+        if (dirX === 0 && dirY === 0 && pointer.active) {
+            const dx = pointer.x - player.x, dy = pointer.y - player.y;
+            const d = Math.hypot(dx, dy);
+            if (d > 4) { dirX = dx; dirY = dy; }
+        }
+
+        const justDashed = dashCooldown > DASH_CD - 0.25;
+        if (dirX !== 0 || dirY !== 0) {
+            const len = Math.hypot(dirX, dirY) || 1;
+            const targetVx = (dirX / len) * SPEED;
+            const targetVy = (dirY / len) * SPEED;
+            // snap velocity toward target quickly (responsive control)
+            const resp = justDashed ? 0.18 : 0.7;
+            player.vx += (targetVx - player.vx) * resp;
+            player.vy += (targetVy - player.vy) * resp;
+        } else {
+            // no input: glide to a stop
+            player.vx *= FRICTION;
+            player.vy *= FRICTION;
+        }
+        player.x += player.vx * dt;
+        player.y += player.vy * dt;
+        // bounds
+        player.x = Math.max(player.r, Math.min(W - player.r, player.x));
+        player.y = Math.max(player.r, Math.min(H - player.r, player.y));
+
+        // dash cooldown
+        if (!dashReady) {
+            dashCooldown -= dt;
+            if (dashCooldown <= 0) { dashReady = true; dashCooldown = 0; }
+        }
+
+        // spawn enemies over time
+        spawnTimer -= dt;
+        const spawnInterval = Math.max(1.4, 3.5 - elapsed * 0.025);
+        if (spawnTimer <= 0) {
+            spawnEnemy();
+            spawnTimer = spawnInterval;
+        }
+
+        // hearts
+        heartTimer -= dt;
+        if (heartTimer <= 0 && hearts.length < 3) {
+            spawnHeart();
+            heartTimer = 5 + Math.random() * 4;
+        }
+
+        // enemies chase
+        let nearestDist = Infinity;
+        enemies.forEach(function (en) {
+            const dx = player.x - en.x, dy = player.y - en.y;
+            const d = Math.hypot(dx, dy) || 1;
+            en.wobble += dt * 4;
+            const wob = Math.sin(en.wobble) * 0.35;
+            const nx = dx / d, ny = dy / d;
+            // rotate slightly for wobble
+            const cos = Math.cos(wob), sin = Math.sin(wob);
+            const rx = nx * cos - ny * sin;
+            const ry = nx * sin + ny * cos;
+            en.x += rx * en.speed * dt;
+            en.y += ry * en.speed * dt;
+            if (d < nearestDist) nearestDist = d;
+            if (d < player.r + en.r) {
+                endGame();
+            }
+        });
+
+        // hearts collect
+        for (let i = hearts.length - 1; i >= 0; i--) {
+            const ht = hearts[i];
+            ht.life -= dt;
+            ht.pulse += dt * 5;
+            const d = Math.hypot(player.x - ht.x, player.y - ht.y);
+            if (d < player.r + ht.r) {
+                score += 50; // bonus baked via elapsed? simpler: add direct
+                elapsed += 5;
+                hearts.splice(i, 1);
+                for (let j = 0; j < 12; j++) {
+                    particles.push({
+                        x: ht.x, y: ht.y,
+                        vx: (Math.random() - 0.5) * 200, vy: (Math.random() - 0.5) * 200,
+                        life: 0.6, max: 0.6, color: '#ff6fae'
+                    });
+                }
+            } else if (ht.life <= 0) {
+                hearts.splice(i, 1);
+            }
+        }
+
+        // particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.life -= dt;
+            p.x += p.vx * dt; p.y += p.vy * dt;
+            p.vx *= 0.92; p.vy *= 0.92;
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        // danger flash based on nearest enemy
+        const dangerR = 90;
+        if (nearestDist < dangerR) {
+            const intensity = (1 - nearestDist / dangerR) * 0.9;
+            dangerFlash.style.boxShadow = 'inset 0 0 80px rgba(255,40,40,' + intensity.toFixed(2) + ')';
+        } else {
+            dangerFlash.style.boxShadow = 'inset 0 0 80px rgba(255,40,40,0)';
+        }
+    }
+
+    // ---------- Draw ----------
+    function drawCircleImage(img, x, y, r) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+        const s = r * 2;
+        // cover fit
+        const ratio = Math.max(s / img.width, s / img.height);
+        const iw = img.width * ratio, ih = img.height * ratio;
+        ctx.drawImage(img, x - iw / 2, y - ih / 2, iw, ih);
+        ctx.restore();
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#ff5252';
+        ctx.stroke();
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        // subtle grid
+        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.lineWidth = 1;
+        for (let gx = 0; gx < W; gx += 48) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+        for (let gy = 0; gy < H; gy += 48) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+
+        // hearts
+        hearts.forEach(function (ht) {
+            const sc = 1 + Math.sin(ht.pulse) * 0.12;
+            ctx.save();
+            ctx.globalAlpha = ht.life < 2 ? Math.max(0.2, ht.life / 2) : 1;
+            ctx.font = (28 * sc) + 'px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('💖', ht.x, ht.y);
+            ctx.restore();
+        });
+
+        // particles
+        particles.forEach(function (p) {
+            ctx.globalAlpha = Math.max(0, p.life / p.max);
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        });
+
+        // enemies
+        enemies.forEach(function (en) {
+            if (en.img) {
+                drawCircleImage(en.img, en.x, en.y, en.r);
+            } else {
+                ctx.font = (en.r * 2) + 'px serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🧔', en.x, en.y);
+            }
+            // grabbing hands hint
+        });
+
+        // player (girl)
+        ctx.save();
+        // dash glow
+        if (!dashReady && dashCooldown > DASH_CD - 0.3) {
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.r + 8, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(159,176,255,0.4)';
+            ctx.fill();
+        }
+        ctx.font = (player.r * 2.1) + 'px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('👧', player.x, player.y);
+        ctx.restore();
+
+        // dash cooldown bar
+        if (!dashReady) {
+            const bw = 44, bh = 5;
+            const bx = player.x - bw / 2, by = player.y + player.r + 8;
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillRect(bx, by, bw, bh);
+            ctx.fillStyle = '#9fb0ff';
+            ctx.fillRect(bx, by, bw * (1 - dashCooldown / DASH_CD), bh);
+        }
+    }
+
+    // ---------- Loop ----------
+    function loop(now) {
+        if (!running || paused || gameOver) return;
+        let dt = (now - lastTime) / 1000;
+        lastTime = now;
+        if (dt > 0.05) dt = 0.05; // clamp
+        update(dt);
+        if (gameOver) { return; } // endGame triggered
+        draw();
+        requestAnimationFrame(loop);
+    }
+
+    // initial sizing for backdrop
+    resize();
+})();
+</script>
+</body>
+</html>
